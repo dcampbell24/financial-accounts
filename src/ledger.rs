@@ -65,8 +65,6 @@ impl Ledger {
     }
 
     pub fn list_transactions(&self) {
-        // find the lessor of lenghth " amount " and num, use that  
-        
         let mut len = 0;
         for tx in self.data.iter() {
             let tx_len = tx.amount.to_string().len();
@@ -77,14 +75,24 @@ impl Ledger {
         let amount_str = "Amount";
         let amount_len = max(amount_str.len(), len);
 
-        println!("  # {:^amount_len$} {:^19}{:^10}", amount_str, "Comment", "Date", amount_len = amount_len);
+        println!(
+            "  # {:^amount_len$} {:^19}{:^10}",
+            amount_str,
+            "Comment",
+            "Date",
+            amount_len = amount_len
+        );
         println!("{}-{}", "-".repeat(amount_len), "-".repeat(33));
         let mut total = dec!(0.00);
         for (i, transaction) in self.data.iter().enumerate() {
             total += transaction.amount;
             println!(
                 "{:>3} {:>amount_len$} {:<19}{:<10}",
-                i, transaction.amount, transaction.comment, transaction.date.format("%Y-%m-%d"), amount_len = amount_len,
+                i,
+                transaction.amount,
+                transaction.comment,
+                transaction.date.format("%Y-%m-%d"),
+                amount_len = amount_len,
             );
         }
         println!("\ntotal:{}{total:>28}\n", " ".repeat(amount_len));
