@@ -2,6 +2,7 @@ use chrono::{offset::Utc, DateTime, Months};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+use std::cmp::max;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, Stdin};
@@ -95,15 +96,48 @@ impl Accounts {
     }
 
     pub fn list_accounts(&self) {
-        println!("  # {:^16}{:^20}", "Account", "Balance");
-        println!("{}", "-".repeat(40));
+        let mut account_name_len = 0;
+        let mut account_balance_len = 0;
+        for account in self.accounts.iter() {
+            let name_len = account.name.len();
+            if name_len > account_name_len {
+                account_name_len = name_len;
+            }
+            let balance = account.ledger.sum();
+            let balance_len = balance.to_string().len();
+            if balance_len > account_balance_len {
+                account_balance_len = balance_len;
+            }
+        }
+        let account_str = "Account";
+        account_name_len = max(account_str.len(), account_name_len);
+        let balance_str = "Balance";
+        account_balance_len = max(balance_str.len(), account_balance_len);
+
+        println!(
+            "  # {:^account_name_len$} {:^account_balance_len$}",
+            account_str,
+            balance_str,
+            account_name_len = account_name_len,
+            account_balance_len = account_balance_len
+        );
+        println!(
+            "{}-{}----",
+            "-".repeat(account_name_len),
+            "-".repeat(account_balance_len)
+        );
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
             let sum = account.ledger.sum();
             total += sum;
-            println!("{:>3} {:<16}{:>20}", i, account.name, sum);
+            println!(
+                "{i:>3} {:<account_name_len$} {sum:>account_balance_len$}",
+                account.name,
+                account_name_len = account_name_len,
+                account_balance_len = account_balance_len
+            );
         }
-        println!("\ntotal:{total:>34}\n");
+        println!("\ntotal: {total}\n");
     }
 
     pub fn select_account_inner(&self, stdin: &mut Stdin) -> usize {

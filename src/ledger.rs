@@ -65,37 +65,51 @@ impl Ledger {
     }
 
     pub fn list_transactions(&self) {
-        let mut len = 0;
+        let mut amount_len = 0;
+        let mut comment_len = 0;
         for tx in self.data.iter() {
-            let tx_len = tx.amount.to_string().len();
-            if tx_len > len {
-                len = tx_len
+            let tx_amount_len = tx.amount.to_string().len();
+            if tx_amount_len > amount_len {
+                amount_len = tx_amount_len
+            }
+            let tx_comment_len = tx.comment.len();
+            if tx_comment_len > comment_len {
+                comment_len = tx_comment_len;
             }
         }
         let amount_str = "Amount";
-        let amount_len = max(amount_str.len(), len);
+        amount_len = max(amount_str.len(), amount_len);
+        let comment_str = "Comment";
+        comment_len = max(comment_str.len(), comment_len);
 
         println!(
-            "  # {:^amount_len$} {:^19}{:^10}",
+            "  # {:^amount_len$} {:^comment_len$} {:^10}",
             amount_str,
-            "Comment",
+            comment_str,
             "Date",
-            amount_len = amount_len
+            amount_len = amount_len,
+            comment_len = comment_len,
         );
-        println!("{}-{}", "-".repeat(amount_len), "-".repeat(33));
+        println!(
+            "{}-{}-{}",
+            "-".repeat(amount_len),
+            "-".repeat(comment_len),
+            "-".repeat(14)
+        );
         let mut total = dec!(0.00);
         for (i, transaction) in self.data.iter().enumerate() {
             total += transaction.amount;
             println!(
-                "{:>3} {:>amount_len$} {:<19}{:<10}",
-                i,
+                "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}",
                 transaction.amount,
                 transaction.comment,
                 transaction.date.format("%Y-%m-%d"),
                 amount_len = amount_len,
+                comment_len = comment_len,
             );
         }
-        println!("\ntotal:{}{total:>28}\n", " ".repeat(amount_len));
+        println!(
+            "\ntotal: {total}\n");
     }
 
     pub fn select_transaction(&self, stdin: &mut Stdin) -> usize {
