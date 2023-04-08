@@ -1,4 +1,3 @@
-use chrono::{Duration, Local};
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use rust_decimal::Decimal;
@@ -110,8 +109,7 @@ impl Ledger {
                 comment_len = comment_len,
             );
         }
-        println!(
-            "\ntotal: {total}\n");
+        println!("\ntotal: {total}\n");
     }
 
     pub fn select_transaction(&self, stdin: &mut Stdin) -> usize {
