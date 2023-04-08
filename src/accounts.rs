@@ -1,6 +1,7 @@
 use chrono::{offset::Utc, DateTime, Months};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use thousands::Separable;
 
 use std::cmp::max;
 use std::fs::File;
@@ -104,7 +105,7 @@ impl Accounts {
                 account_name_len = name_len;
             }
             let balance = account.ledger.sum();
-            let balance_len = balance.to_string().len();
+            let balance_len = balance.separate_with_underscores().len();
             if balance_len > account_balance_len {
                 account_balance_len = balance_len;
             }
@@ -131,8 +132,9 @@ impl Accounts {
             let sum = account.ledger.sum();
             total += sum;
             println!(
-                "{i:>3} {:<account_name_len$} {sum:>account_balance_len$}",
+                "{i:>3} {:<account_name_len$} {:>account_balance_len$}",
                 account.name,
+                sum.separate_with_underscores(),
                 account_name_len = account_name_len,
                 account_balance_len = account_balance_len
             );

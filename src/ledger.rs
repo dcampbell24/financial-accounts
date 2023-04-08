@@ -3,6 +3,7 @@ use chrono::{offset::Utc, DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use thousands::Separable;
 
 use std::cmp::max;
 use std::io::prelude::*;
@@ -68,7 +69,7 @@ impl Ledger {
         let mut amount_len = 0;
         let mut comment_len = 0;
         for tx in self.data.iter() {
-            let tx_amount_len = tx.amount.to_string().len();
+            let tx_amount_len = tx.amount.separate_with_underscores().len();
             if tx_amount_len > amount_len {
                 amount_len = tx_amount_len
             }
@@ -101,7 +102,7 @@ impl Ledger {
             total += transaction.amount;
             println!(
                 "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}",
-                transaction.amount,
+                transaction.amount.separate_with_underscores(),
                 transaction.comment,
                 transaction.date.format("%Y-%m-%d"),
                 amount_len = amount_len,
