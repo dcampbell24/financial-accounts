@@ -1,3 +1,4 @@
+use chrono::{Duration, Local};
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use rust_decimal::Decimal;
@@ -84,7 +85,7 @@ impl Ledger {
         comment_len = max(comment_str.len(), comment_len);
 
         println!(
-            "  # {:^amount_len$} {:^comment_len$} {:^10}",
+            "  # {:^amount_len$} {:^comment_len$} {:^14}",
             amount_str,
             comment_str,
             "Date",
@@ -95,7 +96,7 @@ impl Ledger {
             "{}-{}-{}",
             "-".repeat(amount_len),
             "-".repeat(comment_len),
-            "-".repeat(14)
+            "-".repeat(18)
         );
         let mut total = dec!(0.00);
         for (i, transaction) in self.data.iter().enumerate() {
@@ -104,7 +105,7 @@ impl Ledger {
                 "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}",
                 transaction.amount.separate_with_underscores(),
                 transaction.comment,
-                transaction.date.format("%Y-%m-%d"),
+                transaction.date.format("%Y-%m-%d %Z"),
                 amount_len = amount_len,
                 comment_len = comment_len,
             );
