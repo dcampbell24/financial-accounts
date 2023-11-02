@@ -1,5 +1,7 @@
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime, NaiveDate, NaiveDateTime, NaiveTime};
+use iced::widget::{button, column, row, text, text_input, Column};
+use iced::{Sandbox, Element, Alignment};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -10,8 +12,12 @@ use std::io::prelude::*;
 use std::io::Stdin;
 use std::str::FromStr;
 
+use crate::accounts::Message;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ledger {
+    pub amount: String,
+    pub tx: Transaction,
     pub data: Vec<Transaction>,
 }
 
@@ -23,7 +29,7 @@ impl Default for Ledger {
 
 impl Ledger {
     pub fn new() -> Ledger {
-        Ledger { data: Vec::new() }
+        Ledger { amount: String::new(), tx: Transaction::new(), data: Vec::new() }
     }
 
     pub fn create_transaction(&mut self, stdin: &mut Stdin) {
@@ -65,7 +71,15 @@ impl Ledger {
         self.transaction(amount, comment, date_option, repeats_monthly);
     }
 
-    pub fn list_transactions(&self) {
+    pub fn list_transactions(&self) -> Column<Message> {
+        let mut tx = String::new();
+        let tx_input = row![
+            text_input("0", &self.amount).on_input(|tx| Message::ChangeTx(tx)),
+        ];
+        // price
+        // date
+        // comment
+
         let mut amount_len = 0;
         let mut comment_len = 0;
         for tx in self.data.iter() {
@@ -78,38 +92,46 @@ impl Ledger {
                 comment_len = tx_comment_len;
             }
         }
+
         let amount_str = "Amount";
         amount_len = max(amount_str.len(), amount_len);
         let comment_str = "Comment";
         comment_len = max(comment_str.len(), comment_len);
 
-        println!(
-            "  # {:^amount_len$} {:^comment_len$} {:^14}",
+        let mut str = String::new();
+        str.push_str(&format!(
+            "  # {:^amount_len$} {:^comment_len$} {:^14}\n",
             amount_str,
             comment_str,
             "Date",
             amount_len = amount_len,
             comment_len = comment_len,
-        );
-        println!(
-            "{}-{}-{}",
+        ));
+        str.push_str(&format!(
+            "{}-{}-{}\n",
             "-".repeat(amount_len),
             "-".repeat(comment_len),
             "-".repeat(18)
-        );
+        ));
         let mut total = dec!(0.00);
         for (i, transaction) in self.data.iter().enumerate() {
             total += transaction.amount;
-            println!(
-                "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}",
+            str.push_str(&format!(
+                "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}\n",
                 transaction.amount.separate_with_underscores(),
                 transaction.comment,
                 transaction.date.format("%Y-%m-%d %Z"),
                 amount_len = amount_len,
                 comment_len = comment_len,
-            );
+            ));
         }
-        println!("\ntotal: {total}\n");
+        str.push_str(&format!("\ntotal: {total}\n"));
+
+        column![text(str), tx_input]
+    }
+
+    pub fn save_tx(amount: String) {
+
     }
 
     pub fn select_transaction(&self, stdin: &mut Stdin) -> usize {
@@ -167,4 +189,15 @@ pub struct Transaction {
     #[serde(with = "ts_seconds")]
     pub date: DateTime<Utc>,
     pub repeats_monthly: bool,
+}
+
+impl Transaction {
+    pub fn new() -> Self {
+        Self {
+            amount: dec!(0.00),
+            comment: String::new(),
+            date: Utc::now(),
+            repeats_monthly: false,
+        }
+    }
 }
