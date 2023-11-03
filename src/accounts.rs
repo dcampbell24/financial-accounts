@@ -1,17 +1,16 @@
 use chrono::{offset::Utc, DateTime, Months};
-use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Sandbox, Element};
+use iced::widget::{button, column, row, text, text_input, Row, Column};
+use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
-use std::cmp::max;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Stdin;
 
-use crate::ledger::Ledger;
+use crate::ledger::{Ledger, Transaction};
 
 pub struct DateRange(DateTime<Utc>, DateTime<Utc>);
 
@@ -31,71 +30,60 @@ impl Iterator for DateRange {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    account_name: String,
-    view_account: Option<usize>,
+    name: String,
+    selected: Option<usize>,
 
     accounts: Vec<Account>,
     checked_up_to: DateTime<Utc>,
 }
 
 impl Accounts {
-    pub fn list_accounts(&self) -> Column<Message> {
-        let mut account_name_len = 0;
-        let mut account_balance_len = 0;
+    pub fn name_balance_len(&self) -> (usize, usize) {
+        let mut name_len = " Account ".len();
+        let mut balance_len = " Balance ".len();
+
         for account in self.accounts.iter() {
-            let name_len = account.name.len();
-            if name_len > account_name_len {
-                account_name_len = name_len;
+            if account.name.len() > name_len {
+                name_len = account.name.len();
             }
-            let balance = account.ledger.sum();
-            let balance_len = balance.separate_with_commas().len();
-            if balance_len > account_balance_len {
-                account_balance_len = balance_len;
+
+            let balance = account.ledger.sum().separate_with_commas();
+            if balance.len() > balance_len {
+                balance_len = balance.len();
             }
         }
-        let account_str = "Account";
-        account_name_len = max(account_str.len(), account_name_len);
-        let balance_str = "Balance";
-        account_balance_len = max(balance_str.len(), account_balance_len);
 
-        let header = format!(
-            "{:^account_name_len$} {:^account_balance_len$}",
-            account_str,
-            balance_str,
-            account_name_len = account_name_len,
-            account_balance_len = account_balance_len
-        );
+        (name_len, balance_len)
+    }
 
-        let seperator = format!(
-            "{}-----{}----",
-            "-".repeat(account_name_len),
-            "-".repeat(account_balance_len)
-        );
-        
-        let mut table = column![text(header).size(25), text(seperator).size(50)];
+    pub fn list_accounts(&self) -> Column<Message> {
+        let mut col_1 = column![text("Account\n\n").size(25)].padding(5);
+        let mut col_2 = column![text("Balance\n\n").size(25)].padding(5);
+        let mut col_3 = column![text("\n".repeat(3))].padding(5);
+        let mut col_4 = column![text("\n".repeat(3))].padding(5);
 
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
             let sum = account.ledger.sum();
             total += sum;
-            let row = format!(
-                "{:<account_name_len$} {:>account_balance_len$}",
-                account.name,
-                sum.separate_with_commas(),
-                account_name_len = account_name_len,
-                account_balance_len = account_balance_len,
-            );
-            table = table.push(row![
-                text(row).size(25),
-                button(" Select ").on_press(Message::SelectAccount(i)),
-                button(" Delete ").on_press(Message::DeleteAccount(i)),
-            ]);
+            col_1 = col_1.push(text(&account.name).size(25));
+            col_2 = col_2.push(text(sum.separate_with_commas()).size(25));
+            col_3 = col_3.push(button(" Select ").on_press(Message::SelectAccount(i)));
+            col_4 = col_4.push(button(" Delete ").on_press(Message::DeleteAccount(i)));
         }
 
-        let total = format!("\ntotal: {:}\n", total.separate_with_commas());
-        table = table.push(text(total).size(25));
-
-        table
+        let rows = row![col_1, col_2, col_3, col_4];
+        let cols = column![
+            rows,
+            text(format!("\ntotal: {:}", total.separate_with_commas())).size(25),
+            row![
+                text("Add Account ").size(25),
+                text_input("", &self.name)
+                    .on_submit(Message::NewAccount)
+                    .on_input(|name| Message::ChangeAccountName(name))
+            ],      
+        ];
+        cols
     }
 
     pub fn project_months(&mut self, stdin: &mut Stdin) {
@@ -176,7 +164,7 @@ impl Sandbox for Accounts {
     type Message = Message;
 
     fn new() -> Self {
-        // Accounts { account_name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), view_account: None }
+        // Accounts { name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), selected: None }
         Accounts::load()
     }
 
@@ -187,43 +175,47 @@ impl Sandbox for Accounts {
     fn update(&mut self, message: Message) {
         match message {
             Message::Back => {
-                self.view_account = None;
-            },
+                self.selected = None;
+            }
             Message::ChangeAccountName(name) => {
-                self.account_name = name;
-            },
+                self.name = name;
+            }
             // TODO: Make handling of the '.' nicer.
             Message::ChangeTx(tx) => {
                 if tx.len() == 2 && tx.ends_with('.') {
-                    self.accounts[self.view_account.unwrap()].ledger.amount.push('.');
+                    self.accounts[self.selected.unwrap()]
+                        .ledger
+                        .amount
+                        .push('.');
                 } else {
-                    match  Decimal::from_str_exact(&tx) {
-                        Ok(tx) =>  {
-                            self.accounts[self.view_account.unwrap()].ledger.tx.amount = tx;
-                            self.accounts[self.view_account.unwrap()].ledger.amount = tx.to_string();
-                        },
+                    match Decimal::from_str_exact(&tx) {
+                        Ok(tx) => {
+                            self.accounts[self.selected.unwrap()].ledger.tx.amount = tx;
+                            self.accounts[self.selected.unwrap()].ledger.amount = tx.to_string();
+                        }
                         Err(_) => {
-                            self.accounts[self.view_account.unwrap()].ledger.amount = String::new();
-                        }, 
+                            self.accounts[self.selected.unwrap()].ledger.amount = String::new();
+                        }
                     }
                 }
-            },
+            }
             Message::ChangeComment(comment) => {
-                self.accounts[self.view_account.unwrap()].ledger.tx.comment = comment;
-            },
+                self.accounts[self.selected.unwrap()].ledger.tx.comment = comment
+            }
             Message::DeleteAccount(i) => {
                 self.accounts.remove(i);
-            },
-            Message::NewAccount => {
-                self.accounts.push(Account::new(self.account_name.clone()));
-                self.account_name = "".to_string();
-            },
+            }
+            Message::NewAccount => self
+                .accounts
+                .push(Account::new(std::mem::take(&mut self.name))),
             Message::SelectAccount(i) => {
-                self.view_account = Some(i);
-            },
+                self.selected = Some(i);
+            }
             Message::SubmitTx => {
-                let account = &mut self.accounts[self.view_account.unwrap()];
+                let account = &mut self.accounts[self.selected.unwrap()];
                 account.ledger.data.push(account.ledger.tx.clone());
+                self.accounts[self.selected.unwrap()].ledger.tx = Transaction::new();
+                self.accounts[self.selected.unwrap()].ledger.amount = String::new();
             }
         }
         // TODO: print a message and loop on error..
@@ -231,18 +223,10 @@ impl Sandbox for Accounts {
     }
 
     fn view(&self) -> Element<Message> {
-        match self.view_account {
+        match self.selected {
             None => {
-                let rows = self.list_accounts();
-                let rows= rows.push(
-                    row![
-                        text_input("", &self.account_name)
-                        .on_submit(Message::NewAccount)
-                        .on_input(|name| Message::ChangeAccountName(name)),
-                    ]
-                );
-                rows.into()
-            },
+                self.list_accounts().into()
+            }
             Some(i) => {
                 let rows = self.accounts[i].ledger.list_transactions();
                 let rows = rows.push(button("Back").on_press(Message::Back));

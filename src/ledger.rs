@@ -1,7 +1,7 @@
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Sandbox, Element, Alignment};
+use iced::{Alignment, Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -26,13 +26,18 @@ impl Default for Ledger {
 
 impl Ledger {
     pub fn new() -> Ledger {
-        Ledger { amount: String::new(), tx: Transaction::new(), data: Vec::new() }
+        Ledger {
+            amount: String::new(),
+            tx: Transaction::new(),
+            data: Vec::new(),
+        }
     }
 
     pub fn list_transactions(&self) -> Column<Message> {
         let tx_input = row![
             text_input("Amount", &self.amount).on_input(|amount| Message::ChangeTx(amount)),
-            text_input("Comment", &self.tx.comment).on_input(|comment| Message::ChangeComment(comment)),
+            text_input("Comment", &self.tx.comment)
+                .on_input(|comment| Message::ChangeComment(comment)),
             button("Add").on_press(Message::SubmitTx),
         ];
         // price
