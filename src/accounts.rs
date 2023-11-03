@@ -1,5 +1,5 @@
 use chrono::{offset::Utc, DateTime, Months};
-use iced::widget::{button, column, row, text, text_input, Row, Column};
+use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -9,8 +9,9 @@ use thousands::Separable;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Stdin;
+use std::mem;
 
-use crate::ledger::{Ledger, Transaction};
+use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
 
 pub struct DateRange(DateTime<Utc>, DateTime<Utc>);
 
@@ -38,24 +39,6 @@ pub struct Accounts {
 }
 
 impl Accounts {
-    pub fn name_balance_len(&self) -> (usize, usize) {
-        let mut name_len = " Account ".len();
-        let mut balance_len = " Balance ".len();
-
-        for account in self.accounts.iter() {
-            if account.name.len() > name_len {
-                name_len = account.name.len();
-            }
-
-            let balance = account.ledger.sum().separate_with_commas();
-            if balance.len() > balance_len {
-                balance_len = balance.len();
-            }
-        }
-
-        (name_len, balance_len)
-    }
-
     pub fn list_accounts(&self) -> Column<Message> {
         let mut col_1 = column![text("Account\n\n").size(25)].padding(5);
         let mut col_2 = column![text("Balance\n\n").size(25)].padding(5);
@@ -180,24 +163,8 @@ impl Sandbox for Accounts {
             Message::ChangeAccountName(name) => {
                 self.name = name;
             }
-            // TODO: Make handling of the '.' nicer.
             Message::ChangeTx(tx) => {
-                if tx.len() == 2 && tx.ends_with('.') {
-                    self.accounts[self.selected.unwrap()]
-                        .ledger
-                        .amount
-                        .push('.');
-                } else {
-                    match Decimal::from_str_exact(&tx) {
-                        Ok(tx) => {
-                            self.accounts[self.selected.unwrap()].ledger.tx.amount = tx;
-                            self.accounts[self.selected.unwrap()].ledger.amount = tx.to_string();
-                        }
-                        Err(_) => {
-                            self.accounts[self.selected.unwrap()].ledger.amount = String::new();
-                        }
-                    }
-                }
+                self.accounts[self.selected.unwrap()].ledger.tx.amount = tx;
             }
             Message::ChangeComment(comment) => {
                 self.accounts[self.selected.unwrap()].ledger.tx.comment = comment
@@ -207,15 +174,30 @@ impl Sandbox for Accounts {
             }
             Message::NewAccount => self
                 .accounts
-                .push(Account::new(std::mem::take(&mut self.name))),
+                .push(Account::new(mem::take(&mut self.name))),
             Message::SelectAccount(i) => {
                 self.selected = Some(i);
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[self.selected.unwrap()];
-                account.ledger.data.push(account.ledger.tx.clone());
-                self.accounts[self.selected.unwrap()].ledger.tx = Transaction::new();
-                self.accounts[self.selected.unwrap()].ledger.amount = String::new();
+                let amount_str = account.ledger.tx.amount.clone(); //.clone();
+                let mut amount = dec!(0.00);
+                match Decimal::from_str_exact(&amount_str) {
+                    Ok(tx) => {
+                        amount = tx;
+                    }
+                    Err(_) => {
+                        // todo: handle error.
+                    }
+                }
+                account.ledger.data.push(Transaction {
+                    amount: amount,
+                    comment: account.ledger.tx.comment.clone(),
+                    date: Utc::now(),
+                    repeats_monthly: false,
+
+                });
+                self.accounts[self.selected.unwrap()].ledger.tx = TransactionToSubmit::new();
             }
         }
         // TODO: print a message and loop on error..

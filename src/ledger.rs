@@ -13,8 +13,7 @@ use crate::accounts::Message;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ledger {
-    pub amount: String,
-    pub tx: Transaction,
+    pub tx: TransactionToSubmit,
     pub data: Vec<Transaction>,
 }
 
@@ -27,22 +26,18 @@ impl Default for Ledger {
 impl Ledger {
     pub fn new() -> Ledger {
         Ledger {
-            amount: String::new(),
-            tx: Transaction::new(),
+            tx: TransactionToSubmit::new(),
             data: Vec::new(),
         }
     }
 
     pub fn list_transactions(&self) -> Column<Message> {
         let tx_input = row![
-            text_input("Amount", &self.amount).on_input(|amount| Message::ChangeTx(amount)),
+            text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
             text_input("Comment", &self.tx.comment)
                 .on_input(|comment| Message::ChangeComment(comment)),
             button("Add").on_press(Message::SubmitTx),
         ];
-        // price
-        // date
-        // comment
 
         let mut amount_len = 0;
         let mut comment_len = 0;
@@ -114,6 +109,31 @@ impl Transaction {
             amount: dec!(0.00),
             comment: String::new(),
             date: Utc::now(),
+            repeats_monthly: false,
+        }
+    }
+}
+
+impl Default for Transaction {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TransactionToSubmit {
+    pub amount: String,
+    pub comment: String,
+    pub date: String,
+    pub repeats_monthly: bool,
+}
+
+impl TransactionToSubmit {
+    pub fn new() -> Self {
+        Self {
+            amount: String::new(),
+            comment: String::new(),
+            date: String::new(),
             repeats_monthly: false,
         }
     }
