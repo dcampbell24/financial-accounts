@@ -1,5 +1,5 @@
 use chrono::serde::ts_seconds;
-use chrono::{offset::Utc, DateTime, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Sandbox, Element, Alignment};
 use rust_decimal::Decimal;
@@ -8,9 +8,6 @@ use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use std::cmp::max;
-use std::io::prelude::*;
-use std::io::Stdin;
-use std::str::FromStr;
 
 use crate::accounts::Message;
 
@@ -32,49 +29,11 @@ impl Ledger {
         Ledger { amount: String::new(), tx: Transaction::new(), data: Vec::new() }
     }
 
-    pub fn create_transaction(&mut self, stdin: &mut Stdin) {
-        println!("amount:");
-        let mut amount = dec!(0.00);
-        if let Some(Ok(line)) = stdin.lock().lines().next() {
-            if let Ok(num) = Decimal::from_str(&line) {
-                amount = num;
-            }
-        }
-
-        println!("comment:");
-        let mut comment = "".to_owned();
-        if let Some(Ok(line)) = stdin.lock().lines().next() {
-            comment = line;
-        }
-
-        println!("date:");
-        let mut date_option = None;
-        if let Some(Ok(line)) = stdin.lock().lines().next() {
-            match NaiveDate::parse_from_str(&line, "%Y-%m-%d") {
-                Ok(date) => {
-                    let date_time =
-                        NaiveDateTime::new(date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                    date_option = Some(DateTime::<Utc>::from_local(date_time, Utc));
-                }
-                Err(_) => println!("using the current DateTime"),
-            }
-        }
-
-        println!("repeats monthly:");
-        let mut repeats_monthly = false;
-        if let Some(Ok(line)) = stdin.lock().lines().next() {
-            if line.trim() == "yes" {
-                repeats_monthly = true;
-            }
-        }
-
-        self.transaction(amount, comment, date_option, repeats_monthly);
-    }
-
     pub fn list_transactions(&self) -> Column<Message> {
-        let mut tx = String::new();
         let tx_input = row![
-            text_input("0", &self.amount).on_input(|tx| Message::ChangeTx(tx)),
+            text_input("Amount", &self.amount).on_input(|amount| Message::ChangeTx(amount)),
+            text_input("Comment", &self.tx.comment).on_input(|comment| Message::ChangeComment(comment)),
+            button("Add").on_press(Message::SubmitTx),
         ];
         // price
         // date
@@ -128,53 +87,6 @@ impl Ledger {
         str.push_str(&format!("\ntotal: {total}\n"));
 
         column![text(str), tx_input]
-    }
-
-    pub fn save_tx(amount: String) {
-
-    }
-
-    pub fn select_transaction(&self, stdin: &mut Stdin) -> usize {
-        loop {
-            if let Some(Ok(line)) = stdin.lock().lines().next() {
-                if let Ok(index) = line.parse::<usize>() {
-                    if index >= self.data.len() {
-                        println!("expected an integer equal to one of the accounts")
-                    } else {
-                        return index;
-                    }
-                } else {
-                    println!("expected an integer");
-                }
-            }
-        }
-    }
-
-    pub fn delete_transaction(&mut self, stdin: &mut Stdin) {
-        println!("transaction number:");
-        let index = self.select_transaction(stdin);
-        self.data.remove(index);
-    }
-
-    pub fn transaction(
-        &mut self,
-        amount: Decimal,
-        comment: String,
-        date_option: Option<DateTime<Utc>>,
-        repeats_monthly: bool,
-    ) {
-        let date = if let Some(date) = date_option {
-            date
-        } else {
-            Utc::now()
-        };
-
-        self.data.push(Transaction {
-            amount,
-            comment,
-            date,
-            repeats_monthly,
-        })
     }
 
     pub fn sum(&self) -> Decimal {

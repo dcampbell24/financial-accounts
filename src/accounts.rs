@@ -1,6 +1,6 @@
 use chrono::{offset::Utc, DateTime, Months};
 use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Sandbox, Element, Alignment};
+use iced::{Sandbox, Element};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use thousands::Separable;
 use std::cmp::max;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{self, Stdin};
+use std::io::Stdin;
 
 use crate::ledger::Ledger;
 
@@ -98,38 +98,6 @@ impl Accounts {
         table
     }
 
-    pub fn select_account(&mut self, stdin: &mut Stdin) {
-        println!("account number:");
-        // let index = self.select_account_inner(stdin);
-        let account = &mut self.accounts[0];
-
-        'menu: loop {
-            for (i, operation) in [
-                "create transaction",
-                "list transactions",
-                // update transaction
-                "delete transaction",
-                "return to main menu",
-            ]
-            .iter()
-            .enumerate()
-            {
-                println!("{i}) {operation}");
-            }
-
-            let mut string = "".to_owned();
-            if let Some(Ok(line)) = stdin.lock().lines().next() {
-                string = line;
-            }
-            match string.as_str() {
-                "0" => account.ledger.create_transaction(stdin),
-                "2" => account.ledger.delete_transaction(stdin),
-                "3" => break 'menu,
-                _ => println!("expected 0-3"),
-            }
-        }
-    }
-
     pub fn project_months(&mut self, stdin: &mut Stdin) {
         println!("months:");
         let string;
@@ -197,9 +165,11 @@ pub enum Message {
     Back,
     ChangeAccountName(String),
     ChangeTx(String),
+    ChangeComment(String),
     DeleteAccount(usize),
     NewAccount,
     SelectAccount(usize),
+    SubmitTx,
 }
 
 impl Sandbox for Accounts {
@@ -222,14 +192,24 @@ impl Sandbox for Accounts {
             Message::ChangeAccountName(name) => {
                 self.account_name = name;
             },
+            // TODO: Make handling of the '.' nicer.
             Message::ChangeTx(tx) => {
-                match  Decimal::from_str_exact(&tx) {
-                    Ok(tx) =>  {
-                        self.accounts[self.view_account.unwrap()].ledger.tx.amount = tx;
-                        self.accounts[self.view_account.unwrap()].ledger.amount = tx.to_string();
-                    },
-                    Err(_) => {}, 
+                if tx.len() == 2 && tx.ends_with('.') {
+                    self.accounts[self.view_account.unwrap()].ledger.amount.push('.');
+                } else {
+                    match  Decimal::from_str_exact(&tx) {
+                        Ok(tx) =>  {
+                            self.accounts[self.view_account.unwrap()].ledger.tx.amount = tx;
+                            self.accounts[self.view_account.unwrap()].ledger.amount = tx.to_string();
+                        },
+                        Err(_) => {
+                            self.accounts[self.view_account.unwrap()].ledger.amount = String::new();
+                        }, 
+                    }
                 }
+            },
+            Message::ChangeComment(comment) => {
+                self.accounts[self.view_account.unwrap()].ledger.tx.comment = comment;
             },
             Message::DeleteAccount(i) => {
                 self.accounts.remove(i);
@@ -240,6 +220,10 @@ impl Sandbox for Accounts {
             },
             Message::SelectAccount(i) => {
                 self.view_account = Some(i);
+            },
+            Message::SubmitTx => {
+                let account = &mut self.accounts[self.view_account.unwrap()];
+                account.ledger.data.push(account.ledger.tx.clone());
             }
         }
         // TODO: print a message and loop on error..
