@@ -186,18 +186,20 @@ impl Sandbox for Accounts {
                     Ok(tx) => {
                         amount = tx;
                     }
-                    Err(_) => {
-                        // todo: handle error.
+                    Err(err) => {
+                        account.error_str = err.to_string();
+                        return;
                     }
                 }
                 account.ledger.data.push(Transaction {
-                    amount: amount,
+                    amount,
                     comment: account.ledger.tx.comment.clone(),
                     date: Utc::now(),
                     repeats_monthly: false,
 
                 });
-                self.accounts[self.selected.unwrap()].ledger.tx = TransactionToSubmit::new();
+                account.ledger.tx = TransactionToSubmit::new();
+                account.error_str = String::new();
             }
         }
         // TODO: print a message and loop on error..
@@ -210,9 +212,11 @@ impl Sandbox for Accounts {
                 self.list_accounts().into()
             }
             Some(i) => {
-                let rows = self.accounts[i].ledger.list_transactions();
-                let rows = rows.push(button("Back").on_press(Message::Back));
-                rows.into()
+                let account =  &self.accounts[i];
+                let columns = account.ledger.list_transactions();
+                let columns = columns.push(button("Back").on_press(Message::Back));
+                let columns = columns.push(text(account.error_str.clone()));
+                columns.into()
             }
         }
     }
@@ -241,6 +245,7 @@ impl Sandbox for Accounts {
 pub struct Account {
     name: String,
     ledger: Ledger,
+    error_str: String,
 }
 
 impl Account {
@@ -248,6 +253,7 @@ impl Account {
         Account {
             name,
             ledger: Ledger::new(),
+            error_str: String::new(),
         }
     }
 }
