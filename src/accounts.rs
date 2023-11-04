@@ -1,5 +1,4 @@
-use chrono::TimeZone;
-use chrono::{offset::Utc, DateTime, Months, NaiveDate};
+use chrono::{offset::Utc, Datelike, DateTime, Months, NaiveDate, TimeZone};
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
@@ -9,7 +8,6 @@ use thousands::Separable;
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::Stdin;
 use std::mem;
 
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
@@ -41,23 +39,23 @@ pub struct Accounts {
 }
 
 impl Accounts {
-    pub fn check_monthly(&self) {
-        // If the first day of the month is passed over duplicate
-        // all the monthly expedatures into the month
-        // let past = self.checked_up_to;
-        let past: DateTime<Utc> = TimeZone::with_ymd_and_hms(&Utc, 2023, 11, 1, 0, 0, 0).unwrap();
+    pub fn check_monthly(&mut self) {
+        let past = self.checked_up_to;
         let now = Utc::now();
+        let day_1 = TimeZone::with_ymd_and_hms(&Utc, now.year(), now.month(), 1, 0, 0, 0).unwrap();
 
-        for account in self.accounts.iter() {
-            for tx in account.ledger.data.iter() {
-                let plus_1 = tx.date.checked_add_months(Months::new(6)).unwrap();
-                while plus_1 > past && plus_1 <= now {
-
+        if day_1 >= past && day_1 < now {
+            for account in self.accounts.iter_mut() {
+                for tx in account.ledger.monthly.iter() {
+                    account.ledger.data.push(Transaction {
+                        amount: tx.amount,
+                        comment: tx.comment.clone(),
+                        date: day_1,
+                    });
                 }
             }
         }
-        // Check whether any of the dates have passed
-        // if they have add old entries and put a new one in
+        self.checked_up_to = now;
     }
 
     pub fn list_accounts(&self) -> Column<Message> {
@@ -119,7 +117,6 @@ pub enum Message {
     SelectAccount(usize),
     SelectMonthly(usize),
     SubmitTx,
-    RepeatsMonthly,
 }
 
 impl Sandbox for Accounts {
@@ -127,7 +124,9 @@ impl Sandbox for Accounts {
 
     fn new() -> Self {
         // Accounts { name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), selected: None, list_monthly: false }
-        Accounts::load()
+        let mut self_ = Accounts::load();
+        self_.check_monthly();
+        self_
     }
 
     fn title(&self) -> String {
@@ -166,10 +165,10 @@ impl Sandbox for Accounts {
             Message::SubmitTx => {
                 let account = &mut self.accounts[self.selected.unwrap()];
                 let amount_str = account.ledger.tx.amount.clone(); //.clone();
-                let mut amount = dec!(0.00);
+                let mut _amount = dec!(0.00);
                 match Decimal::from_str_exact(&amount_str) {
                     Ok(tx) => {
-                        amount = tx;
+                        _amount = tx;
                     }
                     Err(err) => {
                         let mut msg = "Parse Amount error: ".to_string();
@@ -192,23 +191,21 @@ impl Sandbox for Accounts {
                         }
                     }
                 }
-                account.ledger.data.push(Transaction {
-                    amount,
-                    comment: account.ledger.tx.comment.clone(),
-                    date,
-                });
+                if self.list_monthly {
+                    account.ledger.monthly.push(Transaction {
+                        amount: _amount,
+                        comment: account.ledger.tx.comment.clone(),
+                        date,
+                    });
+                } else {
+                    account.ledger.data.push(Transaction {
+                        amount: _amount,
+                        comment: account.ledger.tx.comment.clone(),
+                        date,
+                    });
+                }
                 account.ledger.tx = TransactionToSubmit::new();
                 account.error_str = String::new();
-            }
-            Message::RepeatsMonthly => {
-                let repeats_monthly = self.accounts[self.selected.unwrap()]
-                    .ledger
-                    .tx
-                    .repeats_monthly;
-                self.accounts[self.selected.unwrap()]
-                    .ledger
-                    .tx
-                    .repeats_monthly = !repeats_monthly;
             }
         }
         self.save();

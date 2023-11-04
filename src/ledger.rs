@@ -12,7 +12,7 @@ use crate::accounts::Message;
 pub struct Ledger {
     pub tx: TransactionToSubmit,
     pub data: Vec<Transaction>,
-    pub monthly: Vec<Transaction> 
+    pub monthly: Vec<Transaction>,
 }
 
 impl Default for Ledger {
@@ -64,23 +64,23 @@ impl Ledger {
     pub fn list_monthly(&self) -> Column<Message> {
         let mut col_1 = column![text("Amount ")];
         let mut col_2 = column![text("Comment ")];
-    
+
         let mut total = dec!(0.00);
-        for tx in self.data.iter() {
+        for tx in self.monthly.iter() {
             total += tx.amount;
             col_1 = col_1.push(text(tx.amount.separate_with_underscores()));
             col_2 = col_2.push(text(tx.comment.clone()));
         }
-    
+
         let rows = row![col_1, col_2];
-    
+
         let row = row![
             text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
             text_input("Comment", &self.tx.comment)
                 .on_input(|comment| Message::ChangeComment(comment)),
             button("Add").on_press(Message::SubmitTx),
         ];
-    
+
         column![
             rows,
             text(format!("\ntotal: {total}\n")),
