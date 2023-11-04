@@ -1,13 +1,10 @@
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Alignment, Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
-
-use std::cmp::max;
 
 use crate::accounts::Message;
 
@@ -32,61 +29,28 @@ impl Ledger {
     }
 
     pub fn list_transactions(&self) -> Column<Message> {
-        let tx_input = row![
+        let mut col_1 = column![text("Amount ")];
+        let mut col_2 = column![text("Date ")];
+        let mut col_3 = column![text("Comment ")];
+
+        let mut total = dec!(0.00);
+        for tx in self.data.iter() {
+            total += tx.amount;
+            col_1 = col_1.push(text(tx.amount.separate_with_underscores()));
+            col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")));
+            col_3 = col_3.push(text(tx.comment.clone()));
+        }
+
+        let rows = row![col_1, col_2, col_3];
+
+        let row = row![
             text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
-            text_input("Comment", &self.tx.comment)
-                .on_input(|comment| Message::ChangeComment(comment)),
+            text_input("Date", &self.tx.date).on_input(|date| Message::ChangeDate(date)),
+            text_input("Comment", &self.tx.comment).on_input(|comment| Message::ChangeComment(comment)),
             button("Add").on_press(Message::SubmitTx),
         ];
 
-        let mut amount_len = 0;
-        let mut comment_len = 0;
-        for tx in self.data.iter() {
-            let tx_amount_len = tx.amount.separate_with_underscores().len();
-            if tx_amount_len > amount_len {
-                amount_len = tx_amount_len
-            }
-            let tx_comment_len = tx.comment.len();
-            if tx_comment_len > comment_len {
-                comment_len = tx_comment_len;
-            }
-        }
-
-        let amount_str = "Amount";
-        amount_len = max(amount_str.len(), amount_len);
-        let comment_str = "Comment";
-        comment_len = max(comment_str.len(), comment_len);
-
-        let mut str = String::new();
-        str.push_str(&format!(
-            "  # {:^amount_len$} {:^comment_len$} {:^14}\n",
-            amount_str,
-            comment_str,
-            "Date",
-            amount_len = amount_len,
-            comment_len = comment_len,
-        ));
-        str.push_str(&format!(
-            "{}-{}-{}\n",
-            "-".repeat(amount_len),
-            "-".repeat(comment_len),
-            "-".repeat(18)
-        ));
-        let mut total = dec!(0.00);
-        for (i, transaction) in self.data.iter().enumerate() {
-            total += transaction.amount;
-            str.push_str(&format!(
-                "{i:>3} {:>amount_len$} {:<comment_len$} {:<10}\n",
-                transaction.amount.separate_with_underscores(),
-                transaction.comment,
-                transaction.date.format("%Y-%m-%d %Z"),
-                amount_len = amount_len,
-                comment_len = comment_len,
-            ));
-        }
-        str.push_str(&format!("\ntotal: {total}\n"));
-
-        column![text(str), tx_input]
+        column![rows, text(format!("\ntotal: {total}\n")), row]
     }
 
     pub fn sum(&self) -> Decimal {

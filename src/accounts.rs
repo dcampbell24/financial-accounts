@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, DateTime, Months};
+use chrono::{offset::Utc, DateTime, Months, NaiveDate};
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
@@ -117,10 +117,10 @@ impl Accounts {
         accounts.list_accounts();
     }
 
-    pub fn save(&self) -> std::io::Result<()> {
+    pub fn save(&self) {
         let j = serde_json::to_string_pretty(&self).unwrap();
-        let mut file = File::create("data/ledger.json")?;
-        file.write_all(j.as_bytes())
+        let mut file = File::create("data/ledger.json").unwrap();
+        file.write_all(j.as_bytes()).unwrap()
     }
 
     pub fn load() -> Self {
@@ -136,6 +136,7 @@ pub enum Message {
     Back,
     ChangeAccountName(String),
     ChangeTx(String),
+    ChangeDate(String),
     ChangeComment(String),
     DeleteAccount(usize),
     NewAccount,
@@ -166,6 +167,9 @@ impl Sandbox for Accounts {
             Message::ChangeTx(tx) => {
                 self.accounts[self.selected.unwrap()].ledger.tx.amount = tx;
             }
+            Message::ChangeDate(date) => {
+                self.accounts[self.selected.unwrap()].ledger.tx.date = date;
+            }
             Message::ChangeComment(comment) => {
                 self.accounts[self.selected.unwrap()].ledger.tx.comment = comment
             }
@@ -187,14 +191,30 @@ impl Sandbox for Accounts {
                         amount = tx;
                     }
                     Err(err) => {
-                        account.error_str = err.to_string();
+                        let mut msg = "Parse Amount error: ".to_string();
+                        msg.push_str(&err.to_string());
+                        account.error_str = msg;
                         return;
+                    }
+                }
+                let mut date = Utc::now();
+                if account.ledger.tx.date != "" {
+                    match NaiveDate::parse_from_str(&account.ledger.tx.date, "%Y-%m-%d") {
+                        Ok(naive_date) => {
+                            date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                        },
+                        Err(err) => {
+                            let mut msg = "Parse Date error: ".to_string();
+                            msg.push_str(&err.to_string());
+                            account.error_str = msg;
+                            return;
+                        }
                     }
                 }
                 account.ledger.data.push(Transaction {
                     amount,
                     comment: account.ledger.tx.comment.clone(),
-                    date: Utc::now(),
+                    date,
                     repeats_monthly: false,
 
                 });
@@ -202,8 +222,7 @@ impl Sandbox for Accounts {
                 account.error_str = String::new();
             }
         }
-        // TODO: print a message and loop on error..
-        self.save().unwrap();
+        self.save();
     }
 
     fn view(&self) -> Element<Message> {
