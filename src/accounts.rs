@@ -142,6 +142,7 @@ pub enum Message {
     NewAccount,
     SelectAccount(usize),
     SubmitTx,
+    RepeatsMonthly,
 }
 
 impl Sandbox for Accounts {
@@ -215,11 +216,15 @@ impl Sandbox for Accounts {
                     amount,
                     comment: account.ledger.tx.comment.clone(),
                     date,
-                    repeats_monthly: false,
+                    repeats_monthly: account.ledger.tx.repeats_monthly,
 
                 });
                 account.ledger.tx = TransactionToSubmit::new();
                 account.error_str = String::new();
+            }
+            Message::RepeatsMonthly => {
+                let repeats_monthly = self.accounts[self.selected.unwrap()].ledger.tx.repeats_monthly;
+                self.accounts[self.selected.unwrap()].ledger.tx.repeats_monthly = !repeats_monthly;
             }
         }
         self.save();
