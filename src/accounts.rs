@@ -53,6 +53,7 @@ impl Accounts {
                         date: day_1,
                     });
                 }
+                account.ledger.data.sort_by_key(|tx| tx.date);
             }
         }
         self.checked_up_to = now;
@@ -164,7 +165,7 @@ impl Sandbox for Accounts {
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[self.selected.unwrap()];
-                let amount_str = account.ledger.tx.amount.clone(); //.clone();
+                let amount_str = account.ledger.tx.amount.clone();
                 let mut _amount = dec!(0.00);
                 match Decimal::from_str_exact(&amount_str) {
                     Ok(tx) => {
@@ -203,6 +204,7 @@ impl Sandbox for Accounts {
                         comment: account.ledger.tx.comment.clone(),
                         date,
                     });
+                    account.ledger.data.sort_by_key(|tx| tx.date);
                 }
                 account.ledger.tx = TransactionToSubmit::new();
                 account.error_str = String::new();
