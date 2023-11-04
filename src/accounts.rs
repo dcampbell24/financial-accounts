@@ -1,3 +1,4 @@
+use chrono::TimeZone;
 use chrono::{offset::Utc, DateTime, Months, NaiveDate};
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
@@ -33,17 +34,38 @@ impl Iterator for DateRange {
 pub struct Accounts {
     name: String,
     selected: Option<usize>,
+    list_monthly: bool,
 
     accounts: Vec<Account>,
     checked_up_to: DateTime<Utc>,
 }
 
 impl Accounts {
+    pub fn check_monthly(&self) {
+        // If the first day of the month is passed over duplicate
+        // all the monthly expedatures into the month
+        // let past = self.checked_up_to;
+        let past: DateTime<Utc> = TimeZone::with_ymd_and_hms(&Utc, 2023, 11, 1, 0, 0, 0).unwrap();
+        let now = Utc::now();
+
+        for account in self.accounts.iter() {
+            for tx in account.ledger.data.iter() {
+                let plus_1 = tx.date.checked_add_months(Months::new(6)).unwrap();
+                while plus_1 > past && plus_1 <= now {
+
+                }
+            }
+        }
+        // Check whether any of the dates have passed
+        // if they have add old entries and put a new one in
+    }
+
     pub fn list_accounts(&self) -> Column<Message> {
         let mut col_1 = column![text("Account\n\n").size(25)].padding(5);
         let mut col_2 = column![text("Balance\n\n").size(25)].padding(5);
         let mut col_3 = column![text("\n".repeat(3))].padding(5);
         let mut col_4 = column![text("\n".repeat(3))].padding(5);
+        let mut col_5 = column![text("\n".repeat(3))].padding(5);
 
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
@@ -52,10 +74,11 @@ impl Accounts {
             col_1 = col_1.push(text(&account.name).size(25));
             col_2 = col_2.push(text(sum.separate_with_commas()).size(25));
             col_3 = col_3.push(button(" Select ").on_press(Message::SelectAccount(i)));
-            col_4 = col_4.push(button(" Delete ").on_press(Message::DeleteAccount(i)));
+            col_4 = col_4.push(button(" Monthly ").on_press(Message::SelectMonthly(i)));
+            col_5 = col_5.push(button(" Delete ").on_press(Message::DeleteAccount(i)));
         }
 
-        let rows = row![col_1, col_2, col_3, col_4];
+        let rows = row![col_1, col_2, col_3, col_4, col_5];
         let cols = column![
             rows,
             text(format!("\ntotal: {:}", total.separate_with_commas())).size(25),
@@ -64,57 +87,10 @@ impl Accounts {
                 text_input("", &self.name)
                     .on_submit(Message::NewAccount)
                     .on_input(|name| Message::ChangeAccountName(name))
-            ],      
+            ],
+            text(format!("Checked Up To: {}", self.checked_up_to.to_string())),
         ];
         cols
-    }
-
-    pub fn project_months(&mut self, stdin: &mut Stdin) {
-        println!("months:");
-        let string;
-        if let Some(Ok(line)) = stdin.lock().lines().next() {
-            string = line;
-        } else {
-            println!("expected input");
-            return;
-        }
-
-        let months = match string.parse::<u32>() {
-            Ok(i) => i,
-            Err(_) => {
-                println!("expected an integer");
-                return;
-            }
-        };
-
-        let mut accounts = self.clone();
-        let mut transactions = Vec::new();
-        for account in accounts.accounts.iter_mut() {
-            for tx in account.ledger.data.iter_mut() {
-                if tx.repeats_monthly {
-                    for date in DateRange(
-                        tx.date,
-                        self.checked_up_to
-                            .checked_add_months(Months::new(months))
-                            .unwrap(),
-                    )
-                    .skip(1)
-                    {
-                        tx.repeats_monthly = false;
-                        let mut tx_copy = tx.clone();
-                        tx_copy.date = date;
-                        transactions.push(tx_copy)
-                    }
-                    let len = transactions.len();
-                    if len > 0 {
-                        transactions[len - 1].repeats_monthly = true;
-                    }
-                }
-            }
-            account.ledger.data.append(&mut transactions);
-        }
-
-        accounts.list_accounts();
     }
 
     pub fn save(&self) {
@@ -141,6 +117,7 @@ pub enum Message {
     DeleteAccount(usize),
     NewAccount,
     SelectAccount(usize),
+    SelectMonthly(usize),
     SubmitTx,
     RepeatsMonthly,
 }
@@ -149,7 +126,7 @@ impl Sandbox for Accounts {
     type Message = Message;
 
     fn new() -> Self {
-        // Accounts { name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), selected: None }
+        // Accounts { name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), selected: None, list_monthly: false }
         Accounts::load()
     }
 
@@ -177,11 +154,14 @@ impl Sandbox for Accounts {
             Message::DeleteAccount(i) => {
                 self.accounts.remove(i);
             }
-            Message::NewAccount => self
-                .accounts
-                .push(Account::new(mem::take(&mut self.name))),
+            Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
             Message::SelectAccount(i) => {
                 self.selected = Some(i);
+                self.list_monthly = false;
+            }
+            Message::SelectMonthly(i) => {
+                self.selected = Some(i);
+                self.list_monthly = true;
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[self.selected.unwrap()];
@@ -203,7 +183,7 @@ impl Sandbox for Accounts {
                     match NaiveDate::parse_from_str(&account.ledger.tx.date, "%Y-%m-%d") {
                         Ok(naive_date) => {
                             date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                        },
+                        }
                         Err(err) => {
                             let mut msg = "Parse Date error: ".to_string();
                             msg.push_str(&err.to_string());
@@ -216,15 +196,19 @@ impl Sandbox for Accounts {
                     amount,
                     comment: account.ledger.tx.comment.clone(),
                     date,
-                    repeats_monthly: account.ledger.tx.repeats_monthly,
-
                 });
                 account.ledger.tx = TransactionToSubmit::new();
                 account.error_str = String::new();
             }
             Message::RepeatsMonthly => {
-                let repeats_monthly = self.accounts[self.selected.unwrap()].ledger.tx.repeats_monthly;
-                self.accounts[self.selected.unwrap()].ledger.tx.repeats_monthly = !repeats_monthly;
+                let repeats_monthly = self.accounts[self.selected.unwrap()]
+                    .ledger
+                    .tx
+                    .repeats_monthly;
+                self.accounts[self.selected.unwrap()]
+                    .ledger
+                    .tx
+                    .repeats_monthly = !repeats_monthly;
             }
         }
         self.save();
@@ -232,15 +216,19 @@ impl Sandbox for Accounts {
 
     fn view(&self) -> Element<Message> {
         match self.selected {
-            None => {
-                self.list_accounts().into()
-            }
+            None => self.list_accounts().into(),
             Some(i) => {
-                let account =  &self.accounts[i];
-                let columns = account.ledger.list_transactions();
-                let columns = columns.push(button("Back").on_press(Message::Back));
-                let columns = columns.push(text(account.error_str.clone()));
-                columns.into()
+                if self.list_monthly {
+                    let account = &self.accounts[i];
+                    let columns = account.ledger.list_monthly();
+                    let columns = columns.push(text(account.error_str.clone()));
+                    columns.into()
+                } else {
+                    let account = &self.accounts[i];
+                    let columns = account.ledger.list_transactions();
+                    let columns = columns.push(text(account.error_str.clone()));
+                    columns.into()
+                }
             }
         }
     }
