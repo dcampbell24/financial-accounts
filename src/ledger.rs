@@ -38,7 +38,7 @@ impl Ledger {
         let mut total = dec!(0.00);
         for tx in self.data.iter() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_underscores()));
+            col_1 = col_1.push(text(tx.amount.separate_with_commas()));
             col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(text(tx.comment.clone()));
         }
@@ -55,7 +55,7 @@ impl Ledger {
 
         column![
             rows,
-            text(format!("\ntotal: {total}\n")),
+            text(format!("\ntotal: {}\n", total.separate_with_commas())),
             row,
             button("Back").on_press(Message::Back),
         ]
@@ -68,7 +68,7 @@ impl Ledger {
         let mut total = dec!(0.00);
         for tx in self.monthly.iter() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_underscores()));
+            col_1 = col_1.push(text(tx.amount.separate_with_commas()));
             col_2 = col_2.push(text(tx.comment.clone()));
         }
 
@@ -83,7 +83,7 @@ impl Ledger {
 
         column![
             rows,
-            text(format!("\ntotal: {total}\n")),
+            text(format!("\ntotal: {}\n", total.separate_with_commas())),
             row,
             button("Back").on_press(Message::Back),
         ]
