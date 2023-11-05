@@ -62,7 +62,7 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    pub fn empty_accounts() -> Self {
+    pub fn _empty_accounts() -> Self {
         Self {
             name: String::new(),
             selected: None,
@@ -163,7 +163,7 @@ impl Sandbox for Accounts {
     type Message = Message;
 
     fn new() -> Self {
-        // let mut self_ = Accounts::empty_accounts();
+        // let mut self_ = Accounts::_empty_accounts();
         let mut self_ = Accounts::load();
         self_.check_monthly();
         self_
