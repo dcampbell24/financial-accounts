@@ -127,7 +127,6 @@ pub struct TransactionToSubmit {
     pub amount: String,
     pub comment: String,
     pub date: String,
-    pub repeats_monthly: bool,
 }
 
 impl TransactionToSubmit {
@@ -136,7 +135,6 @@ impl TransactionToSubmit {
             amount: String::new(),
             comment: String::new(),
             date: String::new(),
-            repeats_monthly: false,
         }
     }
 }
