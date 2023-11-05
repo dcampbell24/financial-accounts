@@ -92,6 +92,10 @@ impl Ledger {
     pub fn sum(&self) -> Decimal {
         self.data.iter().map(|d| d.amount).sum()
     }
+
+    pub fn sum_monthly(&self) -> Decimal {
+        self.monthly.iter().map(|d| d.amount).sum()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

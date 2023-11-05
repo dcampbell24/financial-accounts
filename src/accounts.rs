@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, Datelike, DateTime, Months, NaiveDate, TimeZone};
+use chrono::{offset::Utc, DateTime, Datelike, Months, NaiveDate, TimeZone};
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
@@ -8,7 +8,7 @@ use thousands::Separable;
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::mem;
+use std::{mem, u64};
 
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
 
@@ -33,6 +33,9 @@ pub struct Accounts {
     name: String,
     selected: Option<usize>,
     list_monthly: bool,
+    project_months: u64,
+    project_months_str: String,
+    error_str: String,
 
     accounts: Vec<Account>,
     checked_up_to: DateTime<Utc>,
@@ -57,6 +60,40 @@ impl Accounts {
             }
         }
         self.checked_up_to = now;
+    }
+
+    pub fn empty_accounts() -> Self {
+        Self {
+            name: String::new(),
+            selected: None,
+            list_monthly: false,
+            project_months: 0,
+            project_months_str: String::new(),
+            error_str: String::new(),
+
+            accounts: Vec::new(),
+            checked_up_to: DateTime::<Utc>::default(),
+        }
+        
+    }
+
+    pub fn total(&self) -> Decimal {
+        let mut total = dec!(0.00);
+        for account in self.accounts.iter() {
+            let sum = account.ledger.sum();
+            total += sum;
+        }
+        total
+    }
+
+    pub fn total_for_months(&self) -> Decimal {
+        let mut total = dec!(0.00);
+        for account in self.accounts.iter() {
+            let sum = account.ledger.sum_monthly();
+            let times: Decimal = self.project_months.into();
+            total += sum * times
+        }
+        total
     }
 
     pub fn list_accounts(&self) -> Column<Message> {
@@ -113,8 +150,10 @@ pub enum Message {
     ChangeTx(String),
     ChangeDate(String),
     ChangeComment(String),
+    ChangeProjectMonths(String),
     DeleteAccount(usize),
     NewAccount,
+    ProjectMonths,
     SelectAccount(usize),
     SelectMonthly(usize),
     SubmitTx,
@@ -124,7 +163,7 @@ impl Sandbox for Accounts {
     type Message = Message;
 
     fn new() -> Self {
-        // Accounts { name: "".to_string(), accounts: Vec::new(), checked_up_to: DateTime::<Utc>::default(), selected: None, list_monthly: false }
+        // let mut self_ = Accounts::empty_accounts();
         let mut self_ = Accounts::load();
         self_.check_monthly();
         self_
@@ -151,10 +190,27 @@ impl Sandbox for Accounts {
             Message::ChangeComment(comment) => {
                 self.accounts[self.selected.unwrap()].ledger.tx.comment = comment
             }
+            Message::ChangeProjectMonths(i) => {
+                self.project_months_str = i;
+            }
             Message::DeleteAccount(i) => {
                 self.accounts.remove(i);
             }
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
+            Message::ProjectMonths => {
+                match self.project_months_str.parse() {
+                    Ok(i) => {
+                        self.project_months = i;
+                        self.error_str = String::new();
+                    },
+                    Err(err) => {
+                        let mut msg = "Parse Project Months error: ".to_string();
+                        msg.push_str(&err.to_string());
+                        self.error_str = msg;
+                        return;
+                    }
+                }
+            }
             Message::SelectAccount(i) => {
                 self.selected = Some(i);
                 self.list_monthly = false;
@@ -215,7 +271,17 @@ impl Sandbox for Accounts {
 
     fn view(&self) -> Element<Message> {
         match self.selected {
-            None => self.list_accounts().into(),
+            None => {
+                let mut cols = self.list_accounts();
+                cols = cols.push(row![
+                    text_input("Project Months", &self.project_months_str)
+                        .on_input(|i| Message::ChangeProjectMonths(i))
+                        .on_submit(Message::ProjectMonths),
+                    text((self.total() + self.total_for_months()).separate_with_commas()),
+                ]);
+                cols = cols.push(text(&self.error_str));
+                cols.into()
+            }
             Some(i) => {
                 if self.list_monthly {
                     let account = &self.accounts[i];
