@@ -45,7 +45,6 @@ impl Iterator for DateRange {
 pub struct Accounts {
     name: String,
     screen: Screen,
-    list_monthly: bool,
     project_months: u64,
     project_months_str: String,
     error_str: String,
@@ -80,7 +79,6 @@ impl Accounts {
         Self {
             name: String::new(),
             screen: Screen::Accounts,
-            list_monthly: false,
             project_months: 0,
             project_months_str: String::new(),
             error_str: String::new(),
@@ -210,9 +208,14 @@ impl Sandbox for Accounts {
     }
 
     fn update(&mut self, message: Message) {
+        let mut list_monthly = false;
         let selected_account = match self.screen {
             Screen::Accounts => 0,
             Screen::Account(account) => account,
+            Screen::Monthly(account) => {
+                list_monthly = true;
+                account
+            }
         };
 
         match message {
@@ -254,11 +257,9 @@ impl Sandbox for Accounts {
             }
             Message::SelectAccount(i) => {
                 self.screen = Screen::Account(i);
-                self.list_monthly = false;
             }
             Message::SelectMonthly(i) => {
-                self.screen = Screen::Account(i);
-                self.list_monthly = true;
+                self.screen = Screen::Monthly(i);
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account];
@@ -289,7 +290,7 @@ impl Sandbox for Accounts {
                         }
                     }
                 }
-                if self.list_monthly {
+                if list_monthly {
                     account.ledger.monthly.push(Transaction {
                         amount: _amount,
                         comment: account.ledger.tx.comment.clone(),
@@ -324,17 +325,16 @@ impl Sandbox for Accounts {
                 cols.into()
             }
             Screen::Account(i) => {
-                if self.list_monthly {
-                    let account = &self.accounts[i];
-                    let columns = account.ledger.list_monthly();
-                    let columns = columns.push(text(account.error_str.clone()));
-                    columns.into()
-                } else {
-                    let account = &self.accounts[i];
-                    let columns = account.ledger.list_transactions();
-                    let columns = columns.push(text(account.error_str.clone()));
-                    columns.into()
-                }
+                let account = &self.accounts[i];
+                let columns = account.ledger.list_transactions();
+                let columns = columns.push(text(account.error_str.clone()));
+                columns.into()
+            }
+            Screen::Monthly(i) => {
+                let account = &self.accounts[i];
+                let columns = account.ledger.list_monthly();
+                let columns = columns.push(text(account.error_str.clone()));
+                columns.into()
             }
         }
     }
@@ -380,4 +380,5 @@ impl Account {
 enum Screen {
     Accounts,
     Account(usize),
+    Monthly(usize),
 }
