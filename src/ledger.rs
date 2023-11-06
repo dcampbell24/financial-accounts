@@ -1,3 +1,4 @@
+use chrono::Months;
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
@@ -13,6 +14,9 @@ pub struct Ledger {
     pub tx: TransactionToSubmit,
     pub data: Vec<Transaction>,
     pub monthly: Vec<Transaction>,
+    pub filter_date: DateTime<Utc>,
+    pub filter_date_year: String, 
+    pub filter_date_month: String,
 }
 
 impl Default for Ledger {
@@ -27,6 +31,9 @@ impl Ledger {
             tx: TransactionToSubmit::new(),
             data: Vec::new(),
             monthly: Vec::new(),
+            filter_date: DateTime::<Utc>::default(),
+            filter_date_year: String::new(),
+            filter_date_month: String::new(),
         }
     }
 
@@ -36,7 +43,23 @@ impl Ledger {
         let mut col_3 = column![text("Comment ")];
 
         let mut total = dec!(0.00);
+
+        let mut filtered_tx = Vec::new();
         for tx in self.data.iter() {
+            if tx.date > self.filter_date &&
+                tx.date < self.filter_date.checked_add_months(Months::new(1)).unwrap() {
+                    filtered_tx.push(tx.clone())
+            }
+        }
+
+        let txs;
+        if self.filter_date == DateTime::<Utc>::default() {
+            txs = self.data.iter();
+        } else {
+            txs = filtered_tx.iter();
+        }
+
+        for tx in txs {
             total += tx.amount;
             col_1 = col_1.push(text(tx.amount.separate_with_commas()));
             col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")));
@@ -53,10 +76,20 @@ impl Ledger {
             button("Add").on_press(Message::SubmitTx),
         ];
 
+        let filter_date = row![
+            text_input("Year", &self.filter_date_year)
+                .on_input(|date| Message::ChangeFilterDateYear(date)),
+            text_input("Month", &self.filter_date_month)
+                .on_input(|date| Message::ChangeFilterDateMonth(date)),
+            button("Filter").on_press(Message::SubmitFilterDate),
+            text(&self.filter_date),
+        ];
+        
         column![
             rows,
             text(format!("\ntotal: {}\n", total.separate_with_commas())),
             row,
+            filter_date,
             button("Back").on_press(Message::Back),
         ]
     }

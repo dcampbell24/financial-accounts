@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, DateTime, Datelike, Months, NaiveDate, TimeZone};
+use chrono::{offset::Utc, DateTime, Datelike, LocalResult, Months, NaiveDate, TimeZone};
 use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
@@ -175,12 +175,15 @@ pub enum Message {
     ChangeDate(String),
     ChangeComment(String),
     ChangeProjectMonths(String),
+    ChangeFilterDateYear(String),
+    ChangeFilterDateMonth(String),
     DeleteAccount(usize),
     NewAccount,
     ProjectMonths,
     SelectAccount(usize),
     SelectMonthly(usize),
     SubmitTx,
+    SubmitFilterDate,
 }
 
 impl Sandbox for Accounts {
@@ -232,10 +235,16 @@ impl Sandbox for Accounts {
                 self.accounts[selected_account].ledger.tx.date = date;
             }
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account].ledger.tx.comment = comment
+                self.accounts[selected_account].ledger.tx.comment = comment;
             }
             Message::ChangeProjectMonths(i) => {
                 self.project_months_str = i;
+            }
+            Message::ChangeFilterDateYear(date) => {
+                self.accounts[selected_account].ledger.filter_date_year = date;
+            }
+            Message::ChangeFilterDateMonth(date) => {
+                self.accounts[selected_account].ledger.filter_date_month = date;
             }
             Message::DeleteAccount(i) => {
                 self.accounts.remove(i);
@@ -306,6 +315,50 @@ impl Sandbox for Accounts {
                 }
                 account.ledger.tx = TransactionToSubmit::new();
                 account.error_str = String::new();
+            }
+            Message::SubmitFilterDate => {
+                let account = &mut self.accounts[selected_account];
+                let mut _year = 0;
+                let mut _month = 0;
+
+                if account.ledger.filter_date_year == "" &&
+                    account.ledger.filter_date_month == "" {
+                        account.ledger.filter_date = DateTime::<Utc>::default();
+                        account.error_str = String::new();
+                        return;
+                }
+
+                match account.ledger.filter_date_year.parse::<i32>() {
+                    Ok(year_input) => _year = year_input,
+                    Err(err) => {
+                        let mut msg = "Parse Year error: ".to_string();
+                        msg.push_str(&err.to_string());
+                        account.error_str = msg;
+                        return;
+                    }
+                }
+                
+                match account.ledger.filter_date_month.parse::<u32>() {
+                    Ok(month_input) => _month = month_input,
+                    Err(err) => {
+                        let mut msg = "Parse Month error: ".to_string();
+                        msg.push_str(&err.to_string());
+                        account.error_str = msg;
+                        return;
+                    }
+                }
+
+                match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
+                    LocalResult::None |  LocalResult::Ambiguous(_, _) => {
+                        account.ledger.filter_date = DateTime::<Utc>::default();
+                        account.error_str = "Filter Date Month: invalid string passed".to_string();
+                        return;
+                    }
+                    LocalResult::Single(date) => {
+                        account.error_str = String::new();
+                        account.ledger.filter_date = date
+                    }
+                }
             }
         }
         self.save();
