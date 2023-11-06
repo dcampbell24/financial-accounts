@@ -1,4 +1,5 @@
 use chrono::{offset::Utc, DateTime, Datelike, Months, NaiveDate, TimeZone};
+use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
@@ -6,11 +7,23 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Name of the file to load
+    #[arg(long, default_value_t = String::new())]
+    load: String,
+
+    /// Name of the new file
+    #[arg(long, default_value_t = String::new())]
+    new: String,
+}
 
 pub struct DateRange(DateTime<Utc>, DateTime<Utc>);
 
@@ -31,11 +44,12 @@ impl Iterator for DateRange {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     name: String,
-    selected: Option<usize>,
+    screen: Screen,
     list_monthly: bool,
     project_months: u64,
     project_months_str: String,
     error_str: String,
+    filepath: String,
 
     accounts: Vec<Account>,
     checked_up_to: DateTime<Utc>,
@@ -62,14 +76,15 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    pub fn _empty_accounts() -> Self {
+    pub fn empty_accounts(filepath: &str) -> Self {
         Self {
             name: String::new(),
-            selected: None,
+            screen: Screen::Accounts,
             list_monthly: false,
             project_months: 0,
             project_months_str: String::new(),
             error_str: String::new(),
+            filepath: filepath.to_string(),
 
             accounts: Vec::new(),
             checked_up_to: DateTime::<Utc>::default(),
@@ -129,16 +144,27 @@ impl Accounts {
         cols
     }
 
-    pub fn save(&self) {
+
+    pub fn save_first(&self) {
         let j = serde_json::to_string_pretty(&self).unwrap();
-        let mut file = File::create("data/ledger.json").unwrap();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&self.filepath)
+            .unwrap();
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    pub fn load() -> Self {
+    pub fn save(&self) {
+        let j = serde_json::to_string_pretty(&self).unwrap();
+        let mut file = File::create(&self.filepath).unwrap();
+        file.write_all(j.as_bytes()).unwrap()
+    }
+
+    pub fn load(filepath: &str) -> Self {
         let mut buf = String::new();
-        let mut f = File::open("data/ledger.json").unwrap();
-        f.read_to_string(&mut buf).unwrap();
+        let mut file = File::open(filepath).unwrap();
+        file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
 }
@@ -163,10 +189,20 @@ impl Sandbox for Accounts {
     type Message = Message;
 
     fn new() -> Self {
-        // let mut self_ = Accounts::_empty_accounts();
-        let mut self_ = Accounts::load();
-        self_.check_monthly();
-        self_
+        let args = Args::parse();
+
+        let mut accounts: Accounts;
+        if args.load != "" {
+            accounts = Accounts::load(&args.load);
+        } else if args.new != "" {
+            accounts = Accounts::empty_accounts(&args.new);
+            accounts.save_first();
+        } else {
+            panic!("You must choose '--new' or '--load'")
+        }
+
+        accounts.check_monthly();
+        accounts
     }
 
     fn title(&self) -> String {
@@ -174,21 +210,26 @@ impl Sandbox for Accounts {
     }
 
     fn update(&mut self, message: Message) {
+        let selected_account = match self.screen {
+            Screen::Accounts => 0,
+            Screen::Account(account) => account,
+        };
+
         match message {
             Message::Back => {
-                self.selected = None;
+                self.screen = Screen::Accounts;
             }
             Message::ChangeAccountName(name) => {
                 self.name = name;
             }
             Message::ChangeTx(tx) => {
-                self.accounts[self.selected.unwrap()].ledger.tx.amount = tx;
+                self.accounts[selected_account].ledger.tx.amount = tx;
             }
             Message::ChangeDate(date) => {
-                self.accounts[self.selected.unwrap()].ledger.tx.date = date;
+                self.accounts[selected_account].ledger.tx.date = date;
             }
             Message::ChangeComment(comment) => {
-                self.accounts[self.selected.unwrap()].ledger.tx.comment = comment
+                self.accounts[selected_account].ledger.tx.comment = comment
             }
             Message::ChangeProjectMonths(i) => {
                 self.project_months_str = i;
@@ -212,15 +253,15 @@ impl Sandbox for Accounts {
                 }
             }
             Message::SelectAccount(i) => {
-                self.selected = Some(i);
+                self.screen = Screen::Account(i);
                 self.list_monthly = false;
             }
             Message::SelectMonthly(i) => {
-                self.selected = Some(i);
+                self.screen = Screen::Account(i);
                 self.list_monthly = true;
             }
             Message::SubmitTx => {
-                let account = &mut self.accounts[self.selected.unwrap()];
+                let account = &mut self.accounts[selected_account];
                 let amount_str = account.ledger.tx.amount.clone();
                 let mut _amount = dec!(0.00);
                 match Decimal::from_str_exact(&amount_str) {
@@ -270,8 +311,8 @@ impl Sandbox for Accounts {
     }
 
     fn view(&self) -> Element<Message> {
-        match self.selected {
-            None => {
+        match self.screen {
+            Screen::Accounts => {
                 let mut cols = self.list_accounts();
                 cols = cols.push(row![
                     text_input("Project Months", &self.project_months_str)
@@ -282,7 +323,7 @@ impl Sandbox for Accounts {
                 cols = cols.push(text(&self.error_str));
                 cols.into()
             }
-            Some(i) => {
+            Screen::Account(i) => {
                 if self.list_monthly {
                     let account = &self.accounts[i];
                     let columns = account.ledger.list_monthly();
@@ -333,4 +374,10 @@ impl Account {
             error_str: String::new(),
         }
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+enum Screen {
+    Accounts,
+    Account(usize),
 }
