@@ -11,6 +11,7 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::{mem, u64};
 
+use crate::TEXT_SIZE;
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
 
 #[derive(Parser, Debug)]
@@ -87,7 +88,6 @@ impl Accounts {
             accounts: Vec::new(),
             checked_up_to: DateTime::<Utc>::default(),
         }
-        
     }
 
     pub fn total(&self) -> Decimal {
@@ -110,21 +110,21 @@ impl Accounts {
     }
 
     pub fn list_accounts(&self) -> Column<Message> {
-        let mut col_1 = column![text("Account\n\n").size(25)].padding(5);
-        let mut col_2 = column![text("Balance\n\n").size(25)].padding(5);
-        let mut col_3 = column![text("\n".repeat(3))].padding(5);
-        let mut col_4 = column![text("\n".repeat(3))].padding(5);
-        let mut col_5 = column![text("\n".repeat(3))].padding(5);
+        let mut col_1 = column![text("Account").size(TEXT_SIZE)].padding(5);
+        let mut col_2 = column![text("Balance").size(TEXT_SIZE)].padding(5);
+        let mut col_3 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_4 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_5 = column![text("").size(TEXT_SIZE)].padding(5);
 
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
             let sum = account.ledger.sum();
             total += sum;
-            col_1 = col_1.push(text(&account.name).size(25));
-            col_2 = col_2.push(text(sum.separate_with_commas()).size(25));
+            col_1 = col_1.push(text(&account.name).size(TEXT_SIZE));
+            col_2 = col_2.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
             col_3 = col_3.push(button(" Select ").on_press(Message::SelectAccount(i)));
             col_4 = col_4.push(button(" Monthly ").on_press(Message::SelectMonthly(i)));
-            col_5 = col_5.push(button(" Delete ").on_press(Message::DeleteAccount(i)));
+            col_5 = col_5.push(button(" Delete ").on_press(Message::Delete(i)));
         }
 
         let rows = row![col_1, col_2, col_3, col_4, col_5];
@@ -132,16 +132,15 @@ impl Accounts {
             rows,
             text(format!("\ntotal: {:}", total.separate_with_commas())).size(25),
             row![
-                text("Add Account ").size(25),
-                text_input("", &self.name)
+                text("Add Account ").size(TEXT_SIZE),
+                text_input("Name", &self.name)
                     .on_submit(Message::NewAccount)
                     .on_input(|name| Message::ChangeAccountName(name))
             ],
-            text(format!("Checked Up To: {}", self.checked_up_to.to_string())),
+            text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
         cols
     }
-
 
     pub fn save_first(&self) {
         let j = serde_json::to_string_pretty(&self).unwrap();
@@ -177,7 +176,7 @@ pub enum Message {
     ChangeProjectMonths(String),
     ChangeFilterDateYear(String),
     ChangeFilterDateMonth(String),
-    DeleteAccount(usize),
+    Delete(usize),
     NewAccount,
     ProjectMonths,
     SelectAccount(usize),
@@ -246,24 +245,30 @@ impl Sandbox for Accounts {
             Message::ChangeFilterDateMonth(date) => {
                 self.accounts[selected_account].ledger.filter_date_month = date;
             }
-            Message::DeleteAccount(i) => {
-                self.accounts.remove(i);
-            }
-            Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
-            Message::ProjectMonths => {
-                match self.project_months_str.parse() {
-                    Ok(i) => {
-                        self.project_months = i;
-                        self.error_str = String::new();
-                    },
-                    Err(err) => {
-                        let mut msg = "Parse Project Months error: ".to_string();
-                        msg.push_str(&err.to_string());
-                        self.error_str = msg;
-                        return;
-                    }
+            Message::Delete(i) => match self.screen {
+                Screen::Accounts => {
+                    self.accounts.remove(i);
                 }
-            }
+                Screen::Account(_) => {
+                    self.accounts[selected_account].ledger.data.remove(i);
+                }
+                Screen::Monthly(_) => {
+                    self.accounts[selected_account].ledger.monthly.remove(i);
+                }
+            },
+            Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
+            Message::ProjectMonths => match self.project_months_str.parse() {
+                Ok(i) => {
+                    self.project_months = i;
+                    self.error_str = String::new();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Project Months error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    self.error_str = msg;
+                    return;
+                }
+            },
             Message::SelectAccount(i) => {
                 self.screen = Screen::Account(i);
             }
@@ -321,11 +326,10 @@ impl Sandbox for Accounts {
                 let mut _year = 0;
                 let mut _month = 0;
 
-                if account.ledger.filter_date_year == "" &&
-                    account.ledger.filter_date_month == "" {
-                        account.ledger.filter_date = DateTime::<Utc>::default();
-                        account.error_str = String::new();
-                        return;
+                if account.ledger.filter_date_year == "" && account.ledger.filter_date_month == "" {
+                    account.ledger.filter_date = DateTime::<Utc>::default();
+                    account.error_str = String::new();
+                    return;
                 }
 
                 match account.ledger.filter_date_year.parse::<i32>() {
@@ -337,7 +341,7 @@ impl Sandbox for Accounts {
                         return;
                     }
                 }
-                
+
                 match account.ledger.filter_date_month.parse::<u32>() {
                     Ok(month_input) => _month = month_input,
                     Err(err) => {
@@ -349,7 +353,7 @@ impl Sandbox for Accounts {
                 }
 
                 match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
-                    LocalResult::None |  LocalResult::Ambiguous(_, _) => {
+                    LocalResult::None | LocalResult::Ambiguous(_, _) => {
                         account.ledger.filter_date = DateTime::<Utc>::default();
                         account.error_str = "Filter Date Month: invalid string passed".to_string();
                         return;
@@ -372,21 +376,21 @@ impl Sandbox for Accounts {
                     text_input("Project Months", &self.project_months_str)
                         .on_input(|i| Message::ChangeProjectMonths(i))
                         .on_submit(Message::ProjectMonths),
-                    text((self.total() + self.total_for_months()).separate_with_commas()),
+                    text((self.total() + self.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
                 ]);
-                cols = cols.push(text(&self.error_str));
+                cols = cols.push(text(&self.error_str).size(TEXT_SIZE));
                 cols.into()
             }
             Screen::Account(i) => {
                 let account = &self.accounts[i];
                 let columns = account.ledger.list_transactions();
-                let columns = columns.push(text(account.error_str.clone()));
+                let columns = columns.push(text(account.error_str.clone()).size(TEXT_SIZE));
                 columns.into()
             }
             Screen::Monthly(i) => {
                 let account = &self.accounts[i];
                 let columns = account.ledger.list_monthly();
-                let columns = columns.push(text(account.error_str.clone()));
+                let columns = columns.push(text(account.error_str.clone()).size(TEXT_SIZE));
                 columns.into()
             }
         }

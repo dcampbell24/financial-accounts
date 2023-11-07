@@ -1,5 +1,5 @@
-use chrono::Months;
 use chrono::serde::ts_seconds;
+use chrono::Months;
 use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
 use rust_decimal::Decimal;
@@ -7,6 +7,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
+use crate::TEXT_SIZE;
 use crate::accounts::Message;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -15,7 +16,7 @@ pub struct Ledger {
     pub data: Vec<Transaction>,
     pub monthly: Vec<Transaction>,
     pub filter_date: DateTime<Utc>,
-    pub filter_date_year: String, 
+    pub filter_date_year: String,
     pub filter_date_month: String,
 }
 
@@ -38,17 +39,19 @@ impl Ledger {
     }
 
     pub fn list_transactions(&self) -> Column<Message> {
-        let mut col_1 = column![text("Amount ")];
-        let mut col_2 = column![text("Date ")];
-        let mut col_3 = column![text("Comment ")];
+        let mut col_1 = column![text("Amount ").size(TEXT_SIZE)];
+        let mut col_2 = column![text("Date ").size(TEXT_SIZE)];
+        let mut col_3 = column![text("Comment ").size(TEXT_SIZE)];
+        let mut col_4 = column![text("").size(TEXT_SIZE)];
 
         let mut total = dec!(0.00);
 
         let mut filtered_tx = Vec::new();
         for tx in self.data.iter() {
-            if tx.date > self.filter_date &&
-                tx.date < self.filter_date.checked_add_months(Months::new(1)).unwrap() {
-                    filtered_tx.push(tx.clone())
+            if tx.date > self.filter_date
+                && tx.date < self.filter_date.checked_add_months(Months::new(1)).unwrap()
+            {
+                filtered_tx.push(tx.clone())
             }
         }
 
@@ -59,14 +62,15 @@ impl Ledger {
             txs = filtered_tx.iter();
         }
 
-        for tx in txs {
+        for (i, tx) in txs.enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_commas()));
-            col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")));
-            col_3 = col_3.push(text(tx.comment.clone()));
+            col_1 = col_1.push(text(tx.amount.separate_with_commas()).size(TEXT_SIZE));
+            col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")).size(TEXT_SIZE));
+            col_3 = col_3.push(text(tx.comment.clone()).size(TEXT_SIZE));
+            col_4 = col_4.push(button("Delete").on_press(Message::Delete(i)));
         }
 
-        let rows = row![col_1, col_2, col_3];
+        let rows = row![col_1, col_2, col_3, col_4];
 
         let row = row![
             text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
@@ -82,12 +86,12 @@ impl Ledger {
             text_input("Month", &self.filter_date_month)
                 .on_input(|date| Message::ChangeFilterDateMonth(date)),
             button("Filter").on_press(Message::SubmitFilterDate),
-            text(&self.filter_date),
+            text(&self.filter_date).size(TEXT_SIZE),
         ];
-        
+
         column![
             rows,
-            text(format!("\ntotal: {}\n", total.separate_with_commas())),
+            text(format!("\ntotal: {}\n", total.separate_with_commas())).size(TEXT_SIZE),
             row,
             filter_date,
             button("Back").on_press(Message::Back),
@@ -95,17 +99,19 @@ impl Ledger {
     }
 
     pub fn list_monthly(&self) -> Column<Message> {
-        let mut col_1 = column![text("Amount ")];
-        let mut col_2 = column![text("Comment ")];
+        let mut col_1 = column![text("Amount ").size(TEXT_SIZE)];
+        let mut col_2 = column![text("Comment ").size(TEXT_SIZE)];
+        let mut col_3 = column![text("").size(TEXT_SIZE)];
 
         let mut total = dec!(0.00);
-        for tx in self.monthly.iter() {
+        for (i, tx) in self.monthly.iter().enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_commas()));
-            col_2 = col_2.push(text(tx.comment.clone()));
+            col_1 = col_1.push(text(tx.amount.separate_with_commas()).size(TEXT_SIZE));
+            col_2 = col_2.push(text(tx.comment.clone()).size(TEXT_SIZE));
+            col_3 = col_3.push(button("Delete").on_press(Message::Delete(i)));
         }
 
-        let rows = row![col_1, col_2];
+        let rows = row![col_1, col_2, col_3];
 
         let row = row![
             text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
@@ -116,7 +122,7 @@ impl Ledger {
 
         column![
             rows,
-            text(format!("\ntotal: {}\n", total.separate_with_commas())),
+            text(format!("\ntotal: {}\n", total.separate_with_commas())).size(TEXT_SIZE),
             row,
             button("Back").on_press(Message::Back),
         ]
