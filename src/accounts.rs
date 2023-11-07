@@ -137,7 +137,13 @@ impl Accounts {
                     .on_submit(Message::NewAccount)
                     .on_input(|name| Message::ChangeAccountName(name))
             ],
-            text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
+            row![
+                text_input("Project Months", &self.project_months_str)
+                    .on_input(|i| Message::ChangeProjectMonths(i))
+                    .on_submit(Message::ProjectMonths),
+                text((self.total() + self.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
+            ],
+            // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
         cols
     }
@@ -371,15 +377,9 @@ impl Sandbox for Accounts {
     fn view(&self) -> Element<Message> {
         match self.screen {
             Screen::Accounts => {
-                let mut cols = self.list_accounts();
-                cols = cols.push(row![
-                    text_input("Project Months", &self.project_months_str)
-                        .on_input(|i| Message::ChangeProjectMonths(i))
-                        .on_submit(Message::ProjectMonths),
-                    text((self.total() + self.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
-                ]);
-                cols = cols.push(text(&self.error_str).size(TEXT_SIZE));
-                cols.into()
+                let mut columns = self.list_accounts();
+                columns = columns.push(text(&self.error_str).size(TEXT_SIZE));
+                columns.into()
             }
             Screen::Account(i) => {
                 let account = &self.accounts[i];
