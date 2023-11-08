@@ -115,6 +115,7 @@ impl Accounts {
         let mut col_3 = column![text("").size(TEXT_SIZE)].padding(5);
         let mut col_4 = column![text("").size(TEXT_SIZE)].padding(5);
         let mut col_5 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_6 = column![text("").size(TEXT_SIZE)].padding(5);
 
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
@@ -122,17 +123,18 @@ impl Accounts {
             total += sum;
             col_1 = col_1.push(text(&account.name).size(TEXT_SIZE));
             col_2 = col_2.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
-            col_3 = col_3.push(button(" Select ").on_press(Message::SelectAccount(i)));
-            col_4 = col_4.push(button(" Monthly ").on_press(Message::SelectMonthly(i)));
-            col_5 = col_5.push(button(" Delete ").on_press(Message::Delete(i)));
+            col_3 = col_3.push(button("Select").on_press(Message::SelectAccount(i)));
+            col_4 = col_4.push(button("Monthly").on_press(Message::SelectMonthly(i)));
+            col_5 = col_5.push(button("Update").on_press(Message::UpdateAccount));
+            col_6 = col_6.push(button("Delete").on_press(Message::Delete(i)));
         }
 
-        let rows = row![col_1, col_2, col_3, col_4, col_5];
+        let rows = row![col_1, col_2, col_3, col_4, col_5, col_6];
         let cols = column![
             rows,
             text(format!("\ntotal: {:}", total.separate_with_commas())).size(25),
             row![
-                text("Add Account ").size(TEXT_SIZE),
+                text("Account ").size(TEXT_SIZE),
                 text_input("Name", &self.name)
                     .on_submit(Message::NewAccount)
                     .on_input(|name| Message::ChangeAccountName(name))
@@ -184,6 +186,7 @@ pub enum Message {
     ChangeFilterDateMonth(String),
     Delete(usize),
     NewAccount,
+    UpdateAccount,
     ProjectMonths,
     SelectAccount(usize),
     SelectMonthly(usize),
@@ -263,6 +266,7 @@ impl Sandbox for Accounts {
                 }
             },
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
+            Message::UpdateAccount => self.accounts[selected_account].name = mem::take(&mut self.name),
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
