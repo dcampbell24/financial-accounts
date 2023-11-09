@@ -177,3 +177,9 @@ impl TransactionToSubmit {
         }
     }
 }
+
+impl Default for TransactionToSubmit {
+    fn default() -> Self {
+        Self::new()
+    }
+}

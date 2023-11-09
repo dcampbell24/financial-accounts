@@ -12,7 +12,7 @@ use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::TEXT_SIZE;
-use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
+use crate::ledger::{Ledger, Transaction};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -204,8 +204,8 @@ impl Accounts {
                 }
             }
         }
-        let comment = mem::take(&mut account.ledger.tx.comment);
-        Ok(Transaction { amount, comment, date }) 
+        let tx = mem::take(&mut account.ledger.tx);
+        Ok(Transaction { amount, comment: tx.comment, date }) 
     }
 }
 
@@ -329,7 +329,6 @@ impl Sandbox for Accounts {
                             self.accounts[selected_account].ledger.data.push(tx);
                             self.accounts[selected_account].ledger.data.sort_by_key(|tx| tx.date);
                         }
-                        self.accounts[selected_account].ledger.tx = TransactionToSubmit::new();
                         self.accounts[selected_account].error_str = String::new();
                     }
                     Err(err) => {
