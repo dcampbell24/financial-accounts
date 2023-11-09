@@ -12,7 +12,7 @@ use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::TEXT_SIZE;
-use crate::ledger::{Ledger, Transaction};
+use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -173,12 +173,12 @@ impl Accounts {
         serde_json::from_str(&buf).unwrap()
     }
 
-    pub fn submit_filter_date(&mut self) -> Result<DateTime<Utc>, String> {
+    pub fn submit_filter_date(&self) -> Result<DateTime<Utc>, String> {
         let selected_account = match self.screen {
             Screen::Accounts => unreachable!(),
             Screen::Account(account) | Screen::Monthly(account) => account,
         };
-        let account = &mut self.accounts[selected_account];
+        let account = &self.accounts[selected_account];
         let mut _year = 0;
         let mut _month = 0;
 
@@ -203,7 +203,6 @@ impl Accounts {
         }
         match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
             LocalResult::None | LocalResult::Ambiguous(_, _) => {
-                account.ledger.filter_date = DateTime::<Utc>::default();
                 return Err("Filter Date error: invalid string passed".to_string());
             }
             LocalResult::Single(date) => {
@@ -212,12 +211,12 @@ impl Accounts {
         }
     }
 
-    pub fn submit_tx(&mut self) -> Result<Transaction, String> {
+    pub fn submit_tx(&self) -> Result<Transaction, String> {
         let selected_account = match self.screen {
             Screen::Accounts => unreachable!(),
             Screen::Account(account) | Screen::Monthly(account) => account,
         };
-        let account = &mut self.accounts[selected_account];
+        let account = &self.accounts[selected_account];
         let amount_str = account.ledger.tx.amount.clone();
         let amount;
         match Decimal::from_str_exact(&amount_str) {
@@ -243,8 +242,8 @@ impl Accounts {
                 }
             }
         }
-        let tx = mem::take(&mut account.ledger.tx);
-        Ok(Transaction { amount, comment: tx.comment, date }) 
+        let comment = account.ledger.tx.comment.clone(); 
+        Ok(Transaction { amount, comment, date }) 
     }
 }
 
@@ -368,6 +367,7 @@ impl Sandbox for Accounts {
                             self.accounts[selected_account].ledger.data.sort_by_key(|tx| tx.date);
                         }
                         self.accounts[selected_account].error_str = String::new();
+                        self.accounts[selected_account].ledger.tx = TransactionToSubmit::new();
                     }
                     Err(err) => {
                         self.accounts[selected_account].error_str = err;
