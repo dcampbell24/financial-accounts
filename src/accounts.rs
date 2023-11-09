@@ -9,7 +9,7 @@ use thousands::Separable;
 
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
-use std::{mem, u64, default};
+use std::{mem, u64};
 
 use crate::TEXT_SIZE;
 use crate::ledger::{Ledger, Transaction};
@@ -350,7 +350,6 @@ impl Sandbox for Accounts {
                     let mut msg = "Parse Project Months error: ".to_string();
                     msg.push_str(&err.to_string());
                     self.error_str = msg;
-                    return;
                 }
             },
             Message::SelectAccount(i) => {
