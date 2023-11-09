@@ -200,18 +200,18 @@ impl Sandbox for Accounts {
     fn new() -> Self {
         let args = Args::parse();
 
-        let mut accounts: Accounts;
         if args.load != "" {
-            accounts = Accounts::load(&args.load);
-        } else if args.new != "" {
-            accounts = Accounts::empty_accounts(&args.new);
-            accounts.save_first();
-        } else {
-            panic!("You must choose '--new' or '--load'")
+            let mut accounts = Accounts::load(&args.load);
+            accounts.check_monthly();
+            accounts.save();
+            return accounts;
         }
-
-        accounts.check_monthly();
-        accounts
+        if args.new != "" {
+            let accounts = Accounts::empty_accounts(&args.new);
+            accounts.save_first();
+            return accounts;
+        }
+        panic!("You must choose '--new' or '--load'");
     }
 
     fn title(&self) -> String {
