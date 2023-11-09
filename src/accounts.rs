@@ -9,7 +9,7 @@ use thousands::Separable;
 
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
-use std::{mem, u64};
+use std::{mem, u64, default};
 
 use crate::TEXT_SIZE;
 use crate::ledger::{Ledger, Transaction};
@@ -171,6 +171,45 @@ impl Accounts {
         let mut file = File::open(filepath).unwrap();
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
+    }
+
+    pub fn submit_filter_date(&mut self) -> Result<DateTime<Utc>, String> {
+        let selected_account = match self.screen {
+            Screen::Accounts => unreachable!(),
+            Screen::Account(account) | Screen::Monthly(account) => account,
+        };
+        let account = &mut self.accounts[selected_account];
+        let mut _year = 0;
+        let mut _month = 0;
+
+        if account.ledger.filter_date_year == "" && account.ledger.filter_date_month == "" {
+            return Ok(DateTime::<Utc>::default());
+        }
+        match account.ledger.filter_date_year.parse::<i32>() {
+            Ok(year_input) => _year = year_input,
+            Err(err) => {
+                let mut msg = "Parse Year error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        match account.ledger.filter_date_month.parse::<u32>() {
+            Ok(month_input) => _month = month_input,
+            Err(err) => {
+                let mut msg = "Parse Month error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
+            LocalResult::None | LocalResult::Ambiguous(_, _) => {
+                account.ledger.filter_date = DateTime::<Utc>::default();
+                return Err("Filter Date error: invalid string passed".to_string());
+            }
+            LocalResult::Single(date) => {
+                return Ok(date);
+            }
+        }
     }
 
     pub fn submit_tx(&mut self) -> Result<Transaction, String> {
@@ -337,45 +376,14 @@ impl Sandbox for Accounts {
                 }
             }
             Message::SubmitFilterDate => {
-                let account = &mut self.accounts[selected_account];
-                let mut _year = 0;
-                let mut _month = 0;
-
-                if account.ledger.filter_date_year == "" && account.ledger.filter_date_month == "" {
-                    account.ledger.filter_date = DateTime::<Utc>::default();
-                    account.error_str = String::new();
-                    return;
-                }
-
-                match account.ledger.filter_date_year.parse::<i32>() {
-                    Ok(year_input) => _year = year_input,
+                match self.submit_filter_date() {
+                    Ok(date) => {
+                        self.accounts[selected_account].ledger.filter_date = date;
+                        self.accounts[selected_account].error_str = String::new();
+                    }
                     Err(err) => {
-                        let mut msg = "Parse Year error: ".to_string();
-                        msg.push_str(&err.to_string());
-                        account.error_str = msg;
-                        return;
-                    }
-                }
-
-                match account.ledger.filter_date_month.parse::<u32>() {
-                    Ok(month_input) => _month = month_input,
-                    Err(err) => {
-                        let mut msg = "Parse Month error: ".to_string();
-                        msg.push_str(&err.to_string());
-                        account.error_str = msg;
-                        return;
-                    }
-                }
-
-                match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
-                    LocalResult::None | LocalResult::Ambiguous(_, _) => {
-                        account.ledger.filter_date = DateTime::<Utc>::default();
-                        account.error_str = "Filter Date Month: invalid string passed".to_string();
-                        return;
-                    }
-                    LocalResult::Single(date) => {
-                        account.error_str = String::new();
-                        account.ledger.filter_date = date
+                        self.accounts[selected_account].ledger.filter_date = DateTime::<Utc>::default();
+                        self.accounts[selected_account].error_str = err;
                     }
                 }
             }
