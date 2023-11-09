@@ -172,6 +172,41 @@ impl Accounts {
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
+
+    pub fn submit_tx(&mut self) -> Result<Transaction, String> {
+        let selected_account = match self.screen {
+            Screen::Accounts => unreachable!(),
+            Screen::Account(account) | Screen::Monthly(account) => account,
+        };
+        let account = &mut self.accounts[selected_account];
+        let amount_str = account.ledger.tx.amount.clone();
+        let amount;
+        match Decimal::from_str_exact(&amount_str) {
+            Ok(tx) => {
+                amount = tx;
+            }
+            Err(err) => {
+                let mut msg = "Parse Amount error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        let mut date = Utc::now();
+        if account.ledger.tx.date != "" {
+            match NaiveDate::parse_from_str(&account.ledger.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => {
+                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Date error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    return Err(msg);
+                }
+            }
+        }
+        let comment = mem::take(&mut account.ledger.tx.comment);
+        Ok(Transaction { amount, comment, date }) 
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -285,51 +320,22 @@ impl Sandbox for Accounts {
             Message::SelectMonthly(i) => {
                 self.screen = Screen::Monthly(i);
             }
-            Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account];
-                let amount_str = account.ledger.tx.amount.clone();
-                let mut _amount = dec!(0.00);
-                match Decimal::from_str_exact(&amount_str) {
+            Message::SubmitTx => { 
+                match self.submit_tx() {
                     Ok(tx) => {
-                        _amount = tx;
+                        if list_monthly {
+                            self.accounts[selected_account].ledger.monthly.push(tx);
+                        } else {
+                            self.accounts[selected_account].ledger.data.push(tx);
+                            self.accounts[selected_account].ledger.data.sort_by_key(|tx| tx.date);
+                        }
+                        self.accounts[selected_account].ledger.tx = TransactionToSubmit::new();
+                        self.accounts[selected_account].error_str = String::new();
                     }
                     Err(err) => {
-                        let mut msg = "Parse Amount error: ".to_string();
-                        msg.push_str(&err.to_string());
-                        account.error_str = msg;
-                        return;
+                        self.accounts[selected_account].error_str = err;
                     }
                 }
-                let mut date = Utc::now();
-                if account.ledger.tx.date != "" {
-                    match NaiveDate::parse_from_str(&account.ledger.tx.date, "%Y-%m-%d") {
-                        Ok(naive_date) => {
-                            date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                        }
-                        Err(err) => {
-                            let mut msg = "Parse Date error: ".to_string();
-                            msg.push_str(&err.to_string());
-                            account.error_str = msg;
-                            return;
-                        }
-                    }
-                }
-                if list_monthly {
-                    account.ledger.monthly.push(Transaction {
-                        amount: _amount,
-                        comment: account.ledger.tx.comment.clone(),
-                        date,
-                    });
-                } else {
-                    account.ledger.data.push(Transaction {
-                        amount: _amount,
-                        comment: account.ledger.tx.comment.clone(),
-                        date,
-                    });
-                    account.ledger.data.sort_by_key(|tx| tx.date);
-                }
-                account.ledger.tx = TransactionToSubmit::new();
-                account.error_str = String::new();
             }
             Message::SubmitFilterDate => {
                 let account = &mut self.accounts[selected_account];
