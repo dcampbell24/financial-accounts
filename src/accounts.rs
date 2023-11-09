@@ -172,79 +172,6 @@ impl Accounts {
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
-
-    pub fn submit_filter_date(&self) -> Result<DateTime<Utc>, String> {
-        let selected_account = match self.screen {
-            Screen::Accounts => unreachable!(),
-            Screen::Account(account) | Screen::Monthly(account) => account,
-        };
-        let account = &self.accounts[selected_account];
-        let mut _year = 0;
-        let mut _month = 0;
-
-        if account.ledger.filter_date_year == "" && account.ledger.filter_date_month == "" {
-            return Ok(DateTime::<Utc>::default());
-        }
-        match account.ledger.filter_date_year.parse::<i32>() {
-            Ok(year_input) => _year = year_input,
-            Err(err) => {
-                let mut msg = "Parse Year error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        match account.ledger.filter_date_month.parse::<u32>() {
-            Ok(month_input) => _month = month_input,
-            Err(err) => {
-                let mut msg = "Parse Month error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
-            LocalResult::None | LocalResult::Ambiguous(_, _) => {
-                return Err("Filter Date error: invalid string passed".to_string());
-            }
-            LocalResult::Single(date) => {
-                return Ok(date);
-            }
-        }
-    }
-
-    pub fn submit_tx(&self) -> Result<Transaction, String> {
-        let selected_account = match self.screen {
-            Screen::Accounts => unreachable!(),
-            Screen::Account(account) | Screen::Monthly(account) => account,
-        };
-        let account = &self.accounts[selected_account];
-        let amount_str = account.ledger.tx.amount.clone();
-        let amount;
-        match Decimal::from_str_exact(&amount_str) {
-            Ok(tx) => {
-                amount = tx;
-            }
-            Err(err) => {
-                let mut msg = "Parse Amount error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        let mut date = Utc::now();
-        if account.ledger.tx.date != "" {
-            match NaiveDate::parse_from_str(&account.ledger.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
-                }
-            }
-        }
-        let comment = account.ledger.tx.comment.clone(); 
-        Ok(Transaction { amount, comment, date }) 
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -357,32 +284,34 @@ impl Sandbox for Accounts {
             Message::SelectMonthly(i) => {
                 self.screen = Screen::Monthly(i);
             }
-            Message::SubmitTx => { 
-                match self.submit_tx() {
+            Message::SubmitTx => {
+                let account = &mut self.accounts[selected_account];
+                match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
-                            self.accounts[selected_account].ledger.monthly.push(tx);
+                            account.ledger.monthly.push(tx);
                         } else {
-                            self.accounts[selected_account].ledger.data.push(tx);
-                            self.accounts[selected_account].ledger.data.sort_by_key(|tx| tx.date);
+                            account.ledger.data.push(tx);
+                            account.ledger.data.sort_by_key(|tx| tx.date);
                         }
-                        self.accounts[selected_account].error_str = String::new();
-                        self.accounts[selected_account].ledger.tx = TransactionToSubmit::new();
+                        account.error_str = String::new();
+                        account.ledger.tx = TransactionToSubmit::new();
                     }
                     Err(err) => {
-                        self.accounts[selected_account].error_str = err;
+                        account.error_str = err;
                     }
                 }
             }
             Message::SubmitFilterDate => {
-                match self.submit_filter_date() {
+                let account = &mut self.accounts[selected_account];
+                match account.submit_filter_date() {
                     Ok(date) => {
-                        self.accounts[selected_account].ledger.filter_date = date;
-                        self.accounts[selected_account].error_str = String::new();
+                        account.ledger.filter_date = date;
+                        account.error_str = String::new();
                     }
                     Err(err) => {
-                        self.accounts[selected_account].ledger.filter_date = DateTime::<Utc>::default();
-                        self.accounts[selected_account].error_str = err;
+                        account.ledger.filter_date = DateTime::<Utc>::default();
+                        account.error_str = err;
                     }
                 }
             }
@@ -446,6 +375,69 @@ impl Account {
             ledger: Ledger::new(),
             error_str: String::new(),
         }
+    }
+
+    pub fn submit_filter_date(&self) -> Result<DateTime<Utc>, String> {
+        let mut _year = 0;
+        let mut _month = 0;
+
+        if self.ledger.filter_date_year == "" && self.ledger.filter_date_month == "" {
+            return Ok(DateTime::<Utc>::default());
+        }
+        match self.ledger.filter_date_year.parse::<i32>() {
+            Ok(year_input) => _year = year_input,
+            Err(err) => {
+                let mut msg = "Parse Year error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        match self.ledger.filter_date_month.parse::<u32>() {
+            Ok(month_input) => _month = month_input,
+            Err(err) => {
+                let mut msg = "Parse Month error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
+            LocalResult::None | LocalResult::Ambiguous(_, _) => {
+                return Err("Filter Date error: invalid string passed".to_string());
+            }
+            LocalResult::Single(date) => {
+                return Ok(date);
+            }
+        }
+    }
+
+    pub fn submit_tx(&self) -> Result<Transaction, String> {
+        let amount_str = self.ledger.tx.amount.clone();
+        let amount;
+        match Decimal::from_str_exact(&amount_str) {
+            Ok(tx) => {
+                amount = tx;
+            }
+            Err(err) => {
+                let mut msg = "Parse Amount error: ".to_string();
+                msg.push_str(&err.to_string());
+                return Err(msg);
+            }
+        }
+        let mut date = Utc::now();
+        if self.ledger.tx.date != "" {
+            match NaiveDate::parse_from_str(&self.ledger.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => {
+                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Date error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    return Err(msg);
+                }
+            }
+        }
+        let comment = self.ledger.tx.comment.clone(); 
+        Ok(Transaction { amount, comment, date }) 
     }
 }
 
