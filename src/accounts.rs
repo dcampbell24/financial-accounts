@@ -152,15 +152,19 @@ impl Accounts {
             col_7 = col_7.push(button("Update Name").on_press(Message::UpdateAccount(i)));
             col_8 = col_8.push(button("Delete").on_press(Message::Delete(i)));
         }
-
         let rows = row![col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8];
+
+        let mut col_1 = column![text(format!("total current month: ")).size(TEXT_SIZE)];
+        let mut col_2 = column![text(self.total_for_current_month().separate_with_commas()).size(TEXT_SIZE)];
+        col_1 = col_1.push(text(format!("total last month: ")).size(TEXT_SIZE));
+        col_2 = col_2.push(text(self.total_for_last_month().separate_with_commas()).size(TEXT_SIZE));
+        col_1 = col_1.push(text(format!("total: ")).size(TEXT_SIZE));
+        col_2 = col_2.push(text(total.separate_with_commas()).size(TEXT_SIZE));
+        let totals = row![col_1, col_2];
+        
         let cols = column![
             rows,
-            row![text(format!("total current month: {:}",
-            self.total_for_current_month().separate_with_commas())).size(25)],
-            row![text(format!("total last month: {:}",
-            self.total_for_last_month().separate_with_commas())).size(25)],
-            row![text(format!("total: {:}", total.separate_with_commas())).size(25)],
+            totals,
             row![
                 text("Account ").size(TEXT_SIZE),
                 text_input("Name", &self.name)
