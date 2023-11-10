@@ -123,9 +123,9 @@ impl Accounts {
             total += sum;
             col_1 = col_1.push(text(&account.name).size(TEXT_SIZE));
             col_2 = col_2.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
-            col_3 = col_3.push(button("Select").on_press(Message::SelectAccount(i)));
-            col_4 = col_4.push(button("Monthly").on_press(Message::SelectMonthly(i)));
-            col_5 = col_5.push(button("Update").on_press(Message::UpdateAccount(i)));
+            col_3 = col_3.push(button("Tx").on_press(Message::SelectAccount(i)));
+            col_4 = col_4.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
+            col_5 = col_5.push(button("Update Name").on_press(Message::UpdateAccount(i)));
             col_6 = col_6.push(button("Delete").on_press(Message::Delete(i)));
         }
 
