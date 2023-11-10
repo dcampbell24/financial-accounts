@@ -125,7 +125,7 @@ impl Accounts {
             col_2 = col_2.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
             col_3 = col_3.push(button("Select").on_press(Message::SelectAccount(i)));
             col_4 = col_4.push(button("Monthly").on_press(Message::SelectMonthly(i)));
-            col_5 = col_5.push(button("Update").on_press(Message::UpdateAccount));
+            col_5 = col_5.push(button("Update").on_press(Message::UpdateAccount(i)));
             col_6 = col_6.push(button("Delete").on_press(Message::Delete(i)));
         }
 
@@ -172,6 +172,20 @@ impl Accounts {
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
+
+    pub fn selected_account(&self) -> Option<usize> {
+        match self.screen {
+            Screen::Accounts => None,
+            Screen::Account(account) | Screen::Monthly(account) => Some(account),
+        }
+    }
+
+    pub fn list_monthly(&self) -> bool {
+        match self.screen {
+            Screen::Accounts | Screen::Account(_) => false,
+            Screen::Monthly(_) => true,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -186,7 +200,7 @@ pub enum Message {
     ChangeFilterDateMonth(String),
     Delete(usize),
     NewAccount,
-    UpdateAccount,
+    UpdateAccount(usize),
     ProjectMonths,
     SelectAccount(usize),
     SelectMonthly(usize),
@@ -219,15 +233,8 @@ impl Sandbox for Accounts {
     }
 
     fn update(&mut self, message: Message) {
-        let mut list_monthly = false;
-        let selected_account = match self.screen {
-            Screen::Accounts => 0,
-            Screen::Account(account) => account,
-            Screen::Monthly(account) => {
-                list_monthly = true;
-                account
-            }
-        };
+        let list_monthly = self.list_monthly();
+        let selected_account = self.selected_account();
 
         match message {
             Message::Back => {
@@ -237,36 +244,37 @@ impl Sandbox for Accounts {
                 self.name = name;
             }
             Message::ChangeTx(tx) => {
-                self.accounts[selected_account].ledger.tx.amount = tx;
+                self.accounts[selected_account.unwrap()].ledger.tx.amount = tx;
             }
             Message::ChangeDate(date) => {
-                self.accounts[selected_account].ledger.tx.date = date;
+                
+                self.accounts[selected_account.unwrap()].ledger.tx.date = date;
             }
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account].ledger.tx.comment = comment;
+                self.accounts[selected_account.unwrap()].ledger.tx.comment = comment;
             }
             Message::ChangeProjectMonths(i) => {
                 self.project_months_str = i;
             }
             Message::ChangeFilterDateYear(date) => {
-                self.accounts[selected_account].ledger.filter_date_year = date;
+                self.accounts[selected_account.unwrap()].ledger.filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts[selected_account].ledger.filter_date_month = date;
+                self.accounts[selected_account.unwrap()].ledger.filter_date_month = date;
             }
             Message::Delete(i) => match self.screen {
                 Screen::Accounts => {
                     self.accounts.remove(i);
                 }
                 Screen::Account(_) => {
-                    self.accounts[selected_account].ledger.data.remove(i);
+                    self.accounts[selected_account.unwrap()].ledger.data.remove(i);
                 }
                 Screen::Monthly(_) => {
-                    self.accounts[selected_account].ledger.monthly.remove(i);
+                    self.accounts[selected_account.unwrap()].ledger.monthly.remove(i);
                 }
             },
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
-            Message::UpdateAccount => self.accounts[selected_account].name = mem::take(&mut self.name),
+            Message::UpdateAccount(i) => self.accounts[i].name = mem::take(&mut self.name),
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
@@ -285,7 +293,7 @@ impl Sandbox for Accounts {
                 self.screen = Screen::Monthly(i);
             }
             Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
@@ -303,7 +311,7 @@ impl Sandbox for Accounts {
                 }
             }
             Message::SubmitFilterDate => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_filter_date() {
                     Ok(date) => {
                         account.ledger.filter_date = date;
