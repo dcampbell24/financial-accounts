@@ -118,34 +118,48 @@ impl Accounts {
         total
     }
 
+    pub fn total_for_last_month(&self) -> Decimal {
+        let mut total = dec!(0.00);
+        for account in self.accounts.iter() {
+            let sum = account.ledger.sum_last_month();
+            total += sum
+        }
+        total
+    }
+
     pub fn list_accounts(&self) -> Column<Message> {
         let mut col_1 = column![text("Account").size(TEXT_SIZE)].padding(5);
-        let mut col_2 = column![text("Balance").size(TEXT_SIZE)].padding(5);
-        let mut col_3 = column![text("Current Month").size(TEXT_SIZE)].padding(5);
-        let mut col_4 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_2 = column![text("Current Month").size(TEXT_SIZE)].padding(5);
+        let mut col_3 = column![text("Last Month").size(TEXT_SIZE)].padding(5);
+        let mut col_4 = column![text("Balance").size(TEXT_SIZE)].padding(5);
         let mut col_5 = column![text("").size(TEXT_SIZE)].padding(5);
         let mut col_6 = column![text("").size(TEXT_SIZE)].padding(5);
         let mut col_7 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_8 = column![text("").size(TEXT_SIZE)].padding(5);
 
         let mut total = dec!(0.00);
         for (i, account) in self.accounts.iter().enumerate() {
             let sum = account.ledger.sum();
             let current_month = account.ledger.sum_current_month();
+            let last_month = account.ledger.sum_last_month();
             total += sum;
             col_1 = col_1.push(text(&account.name).size(TEXT_SIZE));
-            col_2 = col_2.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
-            col_3 = col_3.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
-            col_4 = col_4.push(button("Tx").on_press(Message::SelectAccount(i)));
-            col_5 = col_5.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
-            col_6 = col_6.push(button("Update Name").on_press(Message::UpdateAccount(i)));
-            col_7 = col_7.push(button("Delete").on_press(Message::Delete(i)));
+            col_2 = col_2.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
+            col_3 = col_3.push(text(last_month.separate_with_commas()).size(TEXT_SIZE));
+            col_4 = col_4.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
+            col_5 = col_5.push(button("Tx").on_press(Message::SelectAccount(i)));
+            col_6 = col_6.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
+            col_7 = col_7.push(button("Update Name").on_press(Message::UpdateAccount(i)));
+            col_8 = col_8.push(button("Delete").on_press(Message::Delete(i)));
         }
 
-        let rows = row![col_1, col_2, col_3, col_4, col_5, col_6, col_7];
+        let rows = row![col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8];
         let cols = column![
             rows,
+            row![text(format!("total current month: {:}",
+            self.total_for_current_month().separate_with_commas())).size(25)],
             row![text(format!("total last month: {:}",
-                self.total_for_current_month().separate_with_commas())).size(25)],
+            self.total_for_last_month().separate_with_commas())).size(25)],
             row![text(format!("total: {:}", total.separate_with_commas())).size(25)],
             row![
                 text("Account ").size(TEXT_SIZE),

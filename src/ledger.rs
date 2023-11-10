@@ -147,6 +147,19 @@ impl Ledger {
         }
         amount
     }
+
+    pub fn sum_last_month(&self) -> Decimal {
+        let now = Utc::now();
+        let month_start = Utc.with_ymd_and_hms(now.year(), now.month() - 1, 1, 0, 0, 0).unwrap();
+        let month_end = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
+        let mut amount = dec!(0.00);
+        for tx in self.data.iter() {
+            if tx.date >= month_start && tx.date < month_end {
+                amount += tx.amount;
+            }
+        }
+        amount
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
