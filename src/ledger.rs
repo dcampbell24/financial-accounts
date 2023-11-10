@@ -1,5 +1,5 @@
 use chrono::serde::ts_seconds;
-use chrono::Months;
+use chrono::{Months, TimeZone, Datelike};
 use chrono::{offset::Utc, DateTime};
 use iced::widget::{button, column, row, text, text_input, Column};
 use rust_decimal::Decimal;
@@ -134,6 +134,18 @@ impl Ledger {
 
     pub fn sum_monthly(&self) -> Decimal {
         self.monthly.iter().map(|d| d.amount).sum()
+    }
+
+    pub fn sum_current_month(&self) -> Decimal {
+        let now = Utc::now();
+        let date = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
+        let mut amount = dec!(0.00);
+        for tx in self.data.iter() {
+            if tx.date >= date {
+                amount += tx.amount;
+            }
+        }
+        amount
     }
 }
 
