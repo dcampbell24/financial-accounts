@@ -44,7 +44,7 @@ impl Ledger {
         let mut col_3 = column![text("Comment ").size(TEXT_SIZE)];
         let mut col_4 = column![text("").size(TEXT_SIZE)];
 
-        let mut total = dec!(0.00);
+        let mut total = dec!(0);
 
         let mut filtered_tx = Vec::new();
         for tx in self.data.iter() {
@@ -103,7 +103,7 @@ impl Ledger {
         let mut col_2 = column![text("Comment ").size(TEXT_SIZE)];
         let mut col_3 = column![text("").size(TEXT_SIZE)];
 
-        let mut total = dec!(0.00);
+        let mut total = dec!(0);
         for (i, tx) in self.monthly.iter().enumerate() {
             total += tx.amount;
             col_1 = col_1.push(text(tx.amount.separate_with_commas()).size(TEXT_SIZE));
@@ -139,7 +139,7 @@ impl Ledger {
     pub fn sum_current_month(&self) -> Decimal {
         let now = Utc::now();
         let date = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
-        let mut amount = dec!(0.00);
+        let mut amount = dec!(0);
         for tx in self.data.iter() {
             if tx.date >= date {
                 amount += tx.amount;
@@ -152,9 +152,34 @@ impl Ledger {
         let now = Utc::now();
         let month_start = Utc.with_ymd_and_hms(now.year(), now.month() - 1, 1, 0, 0, 0).unwrap();
         let month_end = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
-        let mut amount = dec!(0.00);
+        let mut amount = dec!(0);
         for tx in self.data.iter() {
             if tx.date >= month_start && tx.date < month_end {
+                amount += tx.amount;
+            }
+        }
+        amount
+    }
+
+    pub fn sum_current_year(&self) -> Decimal {
+        let now = Utc::now();
+        let date = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
+        let mut amount = dec!(0);
+        for tx in self.data.iter() {
+            if tx.date >= date {
+                amount += tx.amount;
+            }
+        }
+        amount
+    }
+
+    pub fn sum_last_year(&self) -> Decimal {
+        let now = Utc::now();
+        let year_start = Utc.with_ymd_and_hms(now.year() - 1, 1, 1, 0, 0, 0).unwrap();
+        let year_end = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
+        let mut amount = dec!(0);
+        for tx in self.data.iter() {
+            if tx.date >= year_start && tx.date < year_end {
                 amount += tx.amount;
             }
         }
@@ -173,7 +198,7 @@ pub struct Transaction {
 impl Transaction {
     pub fn new() -> Self {
         Self {
-            amount: dec!(0.00),
+            amount: dec!(0),
             comment: String::new(),
             date: Utc::now(),
         }
