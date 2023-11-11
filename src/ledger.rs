@@ -7,7 +7,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
-use crate::accounts::Message;
+use crate::message::Message;
 use crate::{PADDING, TEXT_SIZE};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

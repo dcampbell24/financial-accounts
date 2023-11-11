@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, DateTime, Datelike, LocalResult, Months, NaiveDate, TimeZone};
+use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};
 use iced::{Element, Sandbox};
@@ -11,36 +11,10 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::{mem, u64};
 
-use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
+use crate::account::Account;
+use crate::ledger::{Transaction, TransactionToSubmit};
+use crate::message::Message;
 use crate::{PADDING, TEXT_SIZE};
-
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the file to load
-    #[arg(long, default_value_t = String::new())]
-    load: String,
-
-    /// Name of the new file
-    #[arg(long, default_value_t = String::new())]
-    new: String,
-}
-
-pub struct DateRange(DateTime<Utc>, DateTime<Utc>);
-
-impl Iterator for DateRange {
-    type Item = DateTime<Utc>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let old = self.0;
-        self.0 = self.0.checked_add_months(Months::new(1)).unwrap();
-        if old < self.1 {
-            Some(old)
-        } else {
-            None
-        }
-    }
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -55,8 +29,15 @@ pub struct Accounts {
     checked_up_to: DateTime<Utc>,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+enum Screen {
+    Accounts,
+    Account(usize),
+    Monthly(usize),
+}
+
 impl Accounts {
-    pub fn check_monthly(&mut self) {
+    fn check_monthly(&mut self) {
         let past = self.checked_up_to;
         let now = Utc::now();
         let day_1 = TimeZone::with_ymd_and_hms(&Utc, now.year(), now.month(), 1, 0, 0, 0).unwrap();
@@ -76,7 +57,7 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    pub fn empty_accounts(filepath: &str) -> Self {
+    fn empty_accounts(filepath: &str) -> Self {
         Self {
             name: String::new(),
             screen: Screen::Accounts,
@@ -90,7 +71,7 @@ impl Accounts {
         }
     }
 
-    pub fn total(&self) -> Decimal {
+    fn total(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum();
@@ -99,7 +80,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_months(&self) -> Decimal {
+    fn total_for_months(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum_monthly();
@@ -109,7 +90,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_current_month(&self) -> Decimal {
+    fn total_for_current_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum_current_month();
@@ -118,7 +99,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_last_month(&self) -> Decimal {
+    fn total_for_last_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum_last_month();
@@ -127,7 +108,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_current_year(&self) -> Decimal {
+    fn total_for_current_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum_current_year();
@@ -136,7 +117,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_last_year(&self) -> Decimal {
+    fn total_for_last_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
             let sum = account.ledger.sum_last_year();
@@ -146,7 +127,7 @@ impl Accounts {
     }
 
     #[rustfmt::skip]
-    pub fn list_accounts(&self) -> Column<Message> {
+    fn list_accounts(&self) -> Column<Message> {
         let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(PADDING);
         let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
         let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
@@ -213,7 +194,7 @@ impl Accounts {
         cols
     }
 
-    pub fn save_first(&self) {
+    fn save_first(&self) {
         let j = serde_json::to_string_pretty(&self).unwrap();
         let mut file = OpenOptions::new()
             .write(true)
@@ -223,27 +204,27 @@ impl Accounts {
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    pub fn save(&self) {
+    fn save(&self) {
         let j = serde_json::to_string_pretty(&self).unwrap();
         let mut file = File::create(&self.filepath).unwrap();
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    pub fn load(filepath: &str) -> Self {
+    fn load(filepath: &str) -> Self {
         let mut buf = String::new();
         let mut file = File::open(filepath).unwrap();
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
 
-    pub fn selected_account(&self) -> Option<usize> {
+    fn selected_account(&self) -> Option<usize> {
         match self.screen {
             Screen::Accounts => None,
             Screen::Account(account) | Screen::Monthly(account) => Some(account),
         }
     }
 
-    pub fn list_monthly(&self) -> bool {
+    fn list_monthly(&self) -> bool {
         match self.screen {
             Screen::Accounts | Screen::Account(_) => false,
             Screen::Monthly(_) => true,
@@ -251,24 +232,16 @@ impl Accounts {
     }
 }
 
-#[derive(Clone, Debug)]
-pub enum Message {
-    Back,
-    ChangeAccountName(String),
-    ChangeTx(String),
-    ChangeDate(String),
-    ChangeComment(String),
-    ChangeProjectMonths(String),
-    ChangeFilterDateYear(String),
-    ChangeFilterDateMonth(String),
-    Delete(usize),
-    NewAccount,
-    UpdateAccount(usize),
-    ProjectMonths,
-    SelectAccount(usize),
-    SelectMonthly(usize),
-    SubmitTx,
-    SubmitFilterDate,
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Name of the file to load
+    #[arg(long, default_value_t = String::new())]
+    load: String,
+
+    /// Name of the new file
+    #[arg(long, default_value_t = String::new())]
+    new: String,
 }
 
 impl Sandbox for Accounts {
@@ -420,95 +393,4 @@ impl Sandbox for Accounts {
             }
         }
     }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Account {
-    name: String,
-    ledger: Ledger,
-    error_str: String,
-}
-
-impl Account {
-    pub fn new(name: String) -> Self {
-        Account {
-            name,
-            ledger: Ledger::new(),
-            error_str: String::new(),
-        }
-    }
-
-    pub fn submit_filter_date(&self) -> Result<DateTime<Utc>, String> {
-        let mut _year = 0;
-        let mut _month = 0;
-
-        if self.ledger.filter_date_year == "" && self.ledger.filter_date_month == "" {
-            return Ok(DateTime::<Utc>::default());
-        }
-        match self.ledger.filter_date_year.parse::<i32>() {
-            Ok(year_input) => _year = year_input,
-            Err(err) => {
-                let mut msg = "Parse Year error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        match self.ledger.filter_date_month.parse::<u32>() {
-            Ok(month_input) => _month = month_input,
-            Err(err) => {
-                let mut msg = "Parse Month error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
-            LocalResult::None | LocalResult::Ambiguous(_, _) => {
-                return Err("Filter Date error: invalid string passed".to_string());
-            }
-            LocalResult::Single(date) => {
-                return Ok(date);
-            }
-        }
-    }
-
-    pub fn submit_tx(&self) -> Result<Transaction, String> {
-        let amount_str = self.ledger.tx.amount.clone();
-        let amount;
-        match Decimal::from_str_exact(&amount_str) {
-            Ok(tx) => {
-                amount = tx;
-            }
-            Err(err) => {
-                let mut msg = "Parse Amount error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
-        }
-        let mut date = Utc::now();
-        if self.ledger.tx.date != "" {
-            match NaiveDate::parse_from_str(&self.ledger.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
-                }
-            }
-        }
-        let comment = self.ledger.tx.comment.clone();
-        Ok(Transaction {
-            amount,
-            comment,
-            date,
-        })
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-enum Screen {
-    Accounts,
-    Account(usize),
-    Monthly(usize),
 }
