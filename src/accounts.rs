@@ -12,7 +12,7 @@ use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
-use crate::TEXT_SIZE;
+use crate::{TEXT_SIZE, PADDING};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -147,16 +147,16 @@ impl Accounts {
 
     #[rustfmt::skip]
     pub fn list_accounts(&self) -> Column<Message> {
-        let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(5);
-        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(5);
-        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(5);
-        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(5);
-        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(5);
-        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(5);
-        let mut col_6 = column![text("").size(TEXT_SIZE)].padding(5);
-        let mut col_7 = column![text("").size(TEXT_SIZE)].padding(5);
-        let mut col_8 = column![text("").size(TEXT_SIZE)].padding(5);
-        let mut col_9 = column![text("").size(TEXT_SIZE)].padding(5);
+        let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_6 = column![text("").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_7 = column![text("").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_9 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
         let mut total = dec!(0);
         for (i, account) in self.accounts.iter().enumerate() {
@@ -180,7 +180,9 @@ impl Accounts {
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
         let mut col_1 = column![text(format!("total current month: ")).size(TEXT_SIZE)];
-        let mut col_2 = column![text(self.total_for_current_month().separate_with_commas()).size(TEXT_SIZE)];
+        let mut col_2 = column![text(self.total_for_current_month().separate_with_commas())
+            .size(TEXT_SIZE)
+        ].align_items(iced::Alignment::End);
         col_1 = col_1.push(text(format!("total last month: ")).size(TEXT_SIZE));
         col_2 = col_2.push(text(self.total_for_last_month().separate_with_commas()).size(TEXT_SIZE));
         col_1 = col_1.push(text(format!("total current year: ")).size(TEXT_SIZE));
