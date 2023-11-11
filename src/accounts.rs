@@ -1,3 +1,5 @@
+//! All of the financial accounts owned by an entity.
+
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};

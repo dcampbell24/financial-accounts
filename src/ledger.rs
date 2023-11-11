@@ -1,3 +1,5 @@
+//! A record of financial transactions and repeating transactions.
+
 use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime};
 use chrono::{Datelike, Months, TimeZone};

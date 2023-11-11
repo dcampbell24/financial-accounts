@@ -1,3 +1,5 @@
+//! The messages that can be passed to iced.
+
 #[derive(Clone, Debug)]
 pub enum Message {
     Back,

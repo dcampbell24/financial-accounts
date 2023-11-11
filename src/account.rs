@@ -1,3 +1,5 @@
+//! A financial account.
+
 use chrono::{DateTime, LocalResult, NaiveDate, TimeZone, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
