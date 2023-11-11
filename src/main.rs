@@ -6,7 +6,7 @@ use iced::Sandbox;
 use crate::accounts::Accounts;
 
 const PADDING: u16 = 8;
-const TEXT_SIZE: u16 = 25;
+const TEXT_SIZE: u16 = 24;
 
 fn main() -> Result<(), iced::Error> {
     Accounts::run(iced::Settings {
