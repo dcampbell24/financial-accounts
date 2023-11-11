@@ -5,7 +5,7 @@ mod message;
 
 use std::path::Path;
 
-use iced::{Sandbox, window};
+use iced::{window, Sandbox};
 use image::io::Reader as ImageReader;
 
 use crate::accounts::Accounts;

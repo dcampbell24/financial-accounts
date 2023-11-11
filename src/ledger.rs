@@ -59,12 +59,11 @@ impl Ledger {
             }
         }
 
-        let txs;
-        if self.filter_date == DateTime::<Utc>::default() {
-            txs = self.data.iter();
+        let txs = if self.filter_date == DateTime::<Utc>::default() {
+            self.data.iter()
         } else {
-            txs = filtered_tx.iter();
-        }
+            filtered_tx.iter()
+        };
 
         for (i, tx) in txs.enumerate() {
             total += tx.amount;
@@ -77,20 +76,17 @@ impl Ledger {
         let rows = row![col_1, col_2, col_3, col_4];
 
         let row = row![
-            text_input("Amount ", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
-            text_input("Date ", &self.tx.date).on_input(|date| Message::ChangeDate(date)),
-            text_input("Comment ", &self.tx.comment)
-                .on_input(|comment| Message::ChangeComment(comment)),
+            text_input("Amount ", &self.tx.amount).on_input(Message::ChangeTx),
+            text_input("Date ", &self.tx.date).on_input(Message::ChangeDate),
+            text_input("Comment ", &self.tx.comment).on_input(Message::ChangeComment),
             button("Add").on_press(Message::SubmitTx),
         ];
 
         let filter_date = row![
-            text_input("Year", &self.filter_date_year)
-                .on_input(|date| Message::ChangeFilterDateYear(date)),
-            text_input("Month", &self.filter_date_month)
-                .on_input(|date| Message::ChangeFilterDateMonth(date)),
+            text_input("Year", &self.filter_date_year).on_input(Message::ChangeFilterDateYear),
+            text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
             button("Filter").on_press(Message::SubmitFilterDate),
-            text(&self.filter_date).size(TEXT_SIZE),
+            text(self.filter_date).size(TEXT_SIZE),
         ];
 
         column![
@@ -120,9 +116,8 @@ impl Ledger {
         let rows = row![col_1, col_2, col_3];
 
         let row = row![
-            text_input("Amount", &self.tx.amount).on_input(|amount| Message::ChangeTx(amount)),
-            text_input("Comment", &self.tx.comment)
-                .on_input(|comment| Message::ChangeComment(comment)),
+            text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             button("Add").on_press(Message::SubmitTx),
         ];
 

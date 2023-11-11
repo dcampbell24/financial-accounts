@@ -162,17 +162,17 @@ impl Accounts {
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
-        let mut col_1 = column![text(format!("total current month: ")).size(TEXT_SIZE)];
+        let mut col_1 = column![text("total current month: ").size(TEXT_SIZE)];
         let mut col_2 = column![text(self.total_for_current_month().separate_with_commas())
             .size(TEXT_SIZE)
         ].align_items(iced::Alignment::End);
-        col_1 = col_1.push(text(format!("total last month: ")).size(TEXT_SIZE));
+        col_1 = col_1.push(text("total last month: ").size(TEXT_SIZE));
         col_2 = col_2.push(text(self.total_for_last_month().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text(format!("total current year: ")).size(TEXT_SIZE));
+        col_1 = col_1.push(text("total current year: ").size(TEXT_SIZE));
         col_2 = col_2.push(text(self.total_for_current_year().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text(format!("total last year: ")).size(TEXT_SIZE));
+        col_1 = col_1.push(text("total last year: ").size(TEXT_SIZE));
         col_2 = col_2.push(text(self.total_for_last_year().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text(format!("total: ")).size(TEXT_SIZE));
+        col_1 = col_1.push(text("total: ").size(TEXT_SIZE));
         col_2 = col_2.push(text(total.separate_with_commas()).size(TEXT_SIZE));
         let totals = row![col_1, col_2];
 
@@ -183,12 +183,12 @@ impl Accounts {
                 text("Account ").size(TEXT_SIZE),
                 text_input("Name", &self.name)
                     .on_submit(Message::NewAccount)
-                    .on_input(|name| Message::ChangeAccountName(name))
+                    .on_input(Message::ChangeAccountName)
             ],
             row![
                 text("Project ").size(TEXT_SIZE),
                 text_input("Months", &self.project_months_str)
-                    .on_input(|i| Message::ChangeProjectMonths(i))
+                    .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
                 text((self.total() + self.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
             ],
@@ -253,13 +253,13 @@ impl Sandbox for Accounts {
     fn new() -> Self {
         let args = Args::parse();
 
-        if args.load != "" {
+        if !args.load.is_empty() {
             let mut accounts = Accounts::load(&args.load);
             accounts.check_monthly();
             accounts.save();
             return accounts;
         }
-        if args.new != "" {
+        if !args.new.is_empty() {
             let accounts = Accounts::empty_accounts(&args.new);
             accounts.save_first();
             return accounts;
