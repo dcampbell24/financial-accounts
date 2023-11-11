@@ -184,7 +184,8 @@ impl Accounts {
                     .on_input(|name| Message::ChangeAccountName(name))
             ],
             row![
-                text_input("Project Months", &self.project_months_str)
+                text("Project ").size(TEXT_SIZE),
+                text_input("Months", &self.project_months_str)
                     .on_input(|i| Message::ChangeProjectMonths(i))
                     .on_submit(Message::ProjectMonths),
                 text((self.total() + self.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
