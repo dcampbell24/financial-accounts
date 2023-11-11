@@ -1,14 +1,14 @@
 use chrono::serde::ts_seconds;
-use chrono::{Months, TimeZone, Datelike};
 use chrono::{offset::Utc, DateTime};
+use chrono::{Datelike, Months, TimeZone};
 use iced::widget::{button, column, row, text, text_input, Column};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
-use crate::TEXT_SIZE;
 use crate::accounts::Message;
+use crate::TEXT_SIZE;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ledger {
@@ -138,7 +138,9 @@ impl Ledger {
 
     pub fn sum_current_month(&self) -> Decimal {
         let now = Utc::now();
-        let date = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
+        let date = Utc
+            .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
+            .unwrap();
         let mut amount = dec!(0);
         for tx in self.data.iter() {
             if tx.date >= date {
@@ -150,8 +152,12 @@ impl Ledger {
 
     pub fn sum_last_month(&self) -> Decimal {
         let now = Utc::now();
-        let month_start = Utc.with_ymd_and_hms(now.year(), now.month() - 1, 1, 0, 0, 0).unwrap();
-        let month_end = Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).unwrap();
+        let month_start = Utc
+            .with_ymd_and_hms(now.year(), now.month() - 1, 1, 0, 0, 0)
+            .unwrap();
+        let month_end = Utc
+            .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
+            .unwrap();
         let mut amount = dec!(0);
         for tx in self.data.iter() {
             if tx.date >= month_start && tx.date < month_end {

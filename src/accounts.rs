@@ -11,8 +11,8 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::{mem, u64};
 
-use crate::TEXT_SIZE;
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
+use crate::TEXT_SIZE;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -145,6 +145,7 @@ impl Accounts {
         total
     }
 
+    #[rustfmt::skip]
     pub fn list_accounts(&self) -> Column<Message> {
         let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(5);
         let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(5);
@@ -189,7 +190,7 @@ impl Accounts {
         col_1 = col_1.push(text(format!("total: ")).size(TEXT_SIZE));
         col_2 = col_2.push(text(total.separate_with_commas()).size(TEXT_SIZE));
         let totals = row![col_1, col_2];
-        
+
         let cols = column![
             rows,
             totals,
@@ -307,7 +308,6 @@ impl Sandbox for Accounts {
                 self.accounts[selected_account.unwrap()].ledger.tx.amount = tx;
             }
             Message::ChangeDate(date) => {
-                
                 self.accounts[selected_account.unwrap()].ledger.tx.date = date;
             }
             Message::ChangeComment(comment) => {
@@ -317,20 +317,30 @@ impl Sandbox for Accounts {
                 self.project_months_str = i;
             }
             Message::ChangeFilterDateYear(date) => {
-                self.accounts[selected_account.unwrap()].ledger.filter_date_year = date;
+                self.accounts[selected_account.unwrap()]
+                    .ledger
+                    .filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts[selected_account.unwrap()].ledger.filter_date_month = date;
+                self.accounts[selected_account.unwrap()]
+                    .ledger
+                    .filter_date_month = date;
             }
             Message::Delete(i) => match self.screen {
                 Screen::Accounts => {
                     self.accounts.remove(i);
                 }
                 Screen::Account(_) => {
-                    self.accounts[selected_account.unwrap()].ledger.data.remove(i);
+                    self.accounts[selected_account.unwrap()]
+                        .ledger
+                        .data
+                        .remove(i);
                 }
                 Screen::Monthly(_) => {
-                    self.accounts[selected_account.unwrap()].ledger.monthly.remove(i);
+                    self.accounts[selected_account.unwrap()]
+                        .ledger
+                        .monthly
+                        .remove(i);
                 }
             },
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
@@ -485,8 +495,12 @@ impl Account {
                 }
             }
         }
-        let comment = self.ledger.tx.comment.clone(); 
-        Ok(Transaction { amount, comment, date }) 
+        let comment = self.ledger.tx.comment.clone();
+        Ok(Transaction {
+            amount,
+            comment,
+            date,
+        })
     }
 }
 
