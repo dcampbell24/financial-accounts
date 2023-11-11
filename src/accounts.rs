@@ -157,7 +157,7 @@ impl Accounts {
         let mut col_8 = column![text("").size(TEXT_SIZE)].padding(5);
         let mut col_9 = column![text("").size(TEXT_SIZE)].padding(5);
 
-        let mut total = dec!(0.00);
+        let mut total = dec!(0);
         for (i, account) in self.accounts.iter().enumerate() {
             let sum = account.ledger.sum();
             let current_month = account.ledger.sum_current_month();
