@@ -12,7 +12,7 @@ use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::ledger::{Ledger, Transaction, TransactionToSubmit};
-use crate::{TEXT_SIZE, PADDING};
+use crate::{PADDING, TEXT_SIZE};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
