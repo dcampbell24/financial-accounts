@@ -4,7 +4,8 @@ use chrono::{DateTime, LocalResult, NaiveDate, TimeZone, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::ledger::{Ledger, Transaction};
+use crate::ledger::Ledger;
+use crate::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {

@@ -14,8 +14,8 @@ use std::io::prelude::*;
 use std::{mem, u64};
 
 use crate::account::Account;
-use crate::ledger::{Transaction, TransactionToSubmit};
 use crate::message::Message;
+use crate::transaction::{Transaction, TransactionToSubmit};
 use crate::{PADDING, TEXT_SIZE};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

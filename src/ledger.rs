@@ -1,6 +1,5 @@
 //! A record of financial transactions and repeating transactions.
 
-use chrono::serde::ts_seconds;
 use chrono::{offset::Utc, DateTime};
 use chrono::{Datelike, Months, TimeZone};
 use iced::widget::{button, column, row, text, text_input, Column};
@@ -10,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use crate::message::Message;
+use crate::transaction::{Transaction, TransactionToSubmit};
 use crate::{PADDING, TEXT_SIZE};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -191,52 +191,5 @@ impl Ledger {
             }
         }
         amount
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Transaction {
-    pub amount: Decimal,
-    pub comment: String,
-    #[serde(with = "ts_seconds")]
-    pub date: DateTime<Utc>,
-}
-
-impl Transaction {
-    pub fn new() -> Self {
-        Self {
-            amount: dec!(0),
-            comment: String::new(),
-            date: Utc::now(),
-        }
-    }
-}
-
-impl Default for Transaction {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TransactionToSubmit {
-    pub amount: String,
-    pub comment: String,
-    pub date: String,
-}
-
-impl TransactionToSubmit {
-    pub fn new() -> Self {
-        Self {
-            amount: String::new(),
-            comment: String::new(),
-            date: String::new(),
-        }
-    }
-}
-
-impl Default for TransactionToSubmit {
-    fn default() -> Self {
-        Self::new()
     }
 }
