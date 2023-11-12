@@ -275,24 +275,14 @@ impl Sandbox for Accounts {
         let selected_account = self.selected_account();
 
         match message {
-            Message::Back => {
-                self.screen = Screen::Accounts;
-            }
-            Message::ChangeAccountName(name) => {
-                self.name = name;
-            }
-            Message::ChangeTx(tx) => {
-                self.accounts[selected_account.unwrap()].tx.amount = tx;
-            }
-            Message::ChangeDate(date) => {
-                self.accounts[selected_account.unwrap()].tx.date = date;
-            }
+            Message::Back => self.screen = Screen::Accounts,
+            Message::ChangeAccountName(name) => self.name = name,
+            Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
+            Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
                 self.accounts[selected_account.unwrap()].tx.comment = comment;
             }
-            Message::ChangeProjectMonths(i) => {
-                self.project_months_str = i;
-            }
+            Message::ChangeProjectMonths(i) => self.project_months_str = i,
             Message::ChangeFilterDateYear(date) => {
                 self.accounts[selected_account.unwrap()].filter_date_year = date;
             }
@@ -323,12 +313,8 @@ impl Sandbox for Accounts {
                     self.error_str = msg;
                 }
             },
-            Message::SelectAccount(i) => {
-                self.screen = Screen::Account(i);
-            }
-            Message::SelectMonthly(i) => {
-                self.screen = Screen::Monthly(i);
-            }
+            Message::SelectAccount(i) => self.screen = Screen::Account(i),
+            Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_tx() {
