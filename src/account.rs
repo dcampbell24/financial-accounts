@@ -94,6 +94,7 @@ impl Account {
             row,
             filter_date,
             button("Back").on_press(Message::Back),
+            text(self.error_str.clone()).size(TEXT_SIZE),
         ]
     }
 
@@ -125,6 +126,7 @@ impl Account {
             text(format!("\ntotal: {}\n", total.separate_with_commas())).size(TEXT_SIZE),
             row,
             button("Back").on_press(Message::Back),
+            text(self.error_str.clone()).size(TEXT_SIZE),
         ]
     }
 
