@@ -46,14 +46,14 @@ impl Accounts {
 
         if day_1 >= past && day_1 < now {
             for account in self.accounts.iter_mut() {
-                for tx in account.ledger.monthly.iter() {
-                    account.ledger.data.push(Transaction {
+                for tx in account.monthly.iter() {
+                    account.data.push(Transaction {
                         amount: tx.amount,
                         comment: tx.comment.clone(),
                         date: day_1,
                     });
                 }
-                account.ledger.data.sort_by_key(|tx| tx.date);
+                account.data.sort_by_key(|tx| tx.date);
             }
         }
         self.checked_up_to = now;
@@ -76,7 +76,7 @@ impl Accounts {
     fn total(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum();
+            let sum = account.sum();
             total += sum;
         }
         total
@@ -85,7 +85,7 @@ impl Accounts {
     fn total_for_months(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum_monthly();
+            let sum = account.sum_monthly();
             let times: Decimal = self.project_months.into();
             total += sum * times
         }
@@ -95,7 +95,7 @@ impl Accounts {
     fn total_for_current_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum_current_month();
+            let sum = account.sum_current_month();
             total += sum
         }
         total
@@ -104,7 +104,7 @@ impl Accounts {
     fn total_for_last_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum_last_month();
+            let sum = account.sum_last_month();
             total += sum
         }
         total
@@ -113,7 +113,7 @@ impl Accounts {
     fn total_for_current_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum_current_year();
+            let sum = account.sum_current_year();
             total += sum
         }
         total
@@ -122,7 +122,7 @@ impl Accounts {
     fn total_for_last_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.accounts.iter() {
-            let sum = account.ledger.sum_last_year();
+            let sum = account.sum_last_year();
             total += sum
         }
         total
@@ -143,11 +143,11 @@ impl Accounts {
 
         let mut total = dec!(0);
         for (i, account) in self.accounts.iter().enumerate() {
-            let sum = account.ledger.sum();
-            let current_month = account.ledger.sum_current_month();
-            let last_month = account.ledger.sum_last_month();
-            let current_year = account.ledger.sum_current_year();
-            let last_year = account.ledger.sum_last_year();
+            let sum = account.sum();
+            let current_month = account.sum_current_month();
+            let last_month = account.sum_last_month();
+            let current_year = account.sum_current_year();
+            let last_year = account.sum_last_year();
             total += sum;
             col_0 = col_0.push(text(&account.name).size(TEXT_SIZE));
             col_1 = col_1.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
@@ -283,42 +283,32 @@ impl Sandbox for Accounts {
                 self.name = name;
             }
             Message::ChangeTx(tx) => {
-                self.accounts[selected_account.unwrap()].ledger.tx.amount = tx;
+                self.accounts[selected_account.unwrap()].tx.amount = tx;
             }
             Message::ChangeDate(date) => {
-                self.accounts[selected_account.unwrap()].ledger.tx.date = date;
+                self.accounts[selected_account.unwrap()].tx.date = date;
             }
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account.unwrap()].ledger.tx.comment = comment;
+                self.accounts[selected_account.unwrap()].tx.comment = comment;
             }
             Message::ChangeProjectMonths(i) => {
                 self.project_months_str = i;
             }
             Message::ChangeFilterDateYear(date) => {
-                self.accounts[selected_account.unwrap()]
-                    .ledger
-                    .filter_date_year = date;
+                self.accounts[selected_account.unwrap()].filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts[selected_account.unwrap()]
-                    .ledger
-                    .filter_date_month = date;
+                self.accounts[selected_account.unwrap()].filter_date_month = date;
             }
             Message::Delete(i) => match self.screen {
                 Screen::Accounts => {
                     self.accounts.remove(i);
                 }
                 Screen::Account(_) => {
-                    self.accounts[selected_account.unwrap()]
-                        .ledger
-                        .data
-                        .remove(i);
+                    self.accounts[selected_account.unwrap()].data.remove(i);
                 }
                 Screen::Monthly(_) => {
-                    self.accounts[selected_account.unwrap()]
-                        .ledger
-                        .monthly
-                        .remove(i);
+                    self.accounts[selected_account.unwrap()].monthly.remove(i);
                 }
             },
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
@@ -345,13 +335,13 @@ impl Sandbox for Accounts {
                 match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
-                            account.ledger.monthly.push(tx);
+                            account.monthly.push(tx);
                         } else {
-                            account.ledger.data.push(tx);
-                            account.ledger.data.sort_by_key(|tx| tx.date);
+                            account.data.push(tx);
+                            account.data.sort_by_key(|tx| tx.date);
                         }
                         account.error_str = String::new();
-                        account.ledger.tx = TransactionToSubmit::new();
+                        account.tx = TransactionToSubmit::new();
                     }
                     Err(err) => {
                         account.error_str = err;
@@ -362,11 +352,11 @@ impl Sandbox for Accounts {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_filter_date() {
                     Ok(date) => {
-                        account.ledger.filter_date = date;
+                        account.filter_date = date;
                         account.error_str = String::new();
                     }
                     Err(err) => {
-                        account.ledger.filter_date = DateTime::<Utc>::default();
+                        account.filter_date = DateTime::<Utc>::default();
                         account.error_str = err;
                     }
                 }
@@ -384,13 +374,13 @@ impl Sandbox for Accounts {
             }
             Screen::Account(i) => {
                 let account = &self.accounts[i];
-                let columns = account.ledger.list_transactions();
+                let columns = account.list_transactions();
                 let columns = columns.push(text(account.error_str.clone()).size(TEXT_SIZE));
                 columns.into()
             }
             Screen::Monthly(i) => {
                 let account = &self.accounts[i];
-                let columns = account.ledger.list_monthly();
+                let columns = account.list_monthly();
                 let columns = columns.push(text(account.error_str.clone()).size(TEXT_SIZE));
                 columns.into()
             }

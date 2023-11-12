@@ -1,7 +1,7 @@
+use ::serde::{Deserialize, Serialize};
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use ::serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transaction {
