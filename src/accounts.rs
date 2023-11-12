@@ -302,11 +302,11 @@ impl Sandbox for Accounts {
                 Screen::Accounts => {
                     self.accounts.remove(i);
                 }
-                Screen::Account(_) => {
-                    self.accounts[selected_account.unwrap()].data.remove(i);
+                Screen::Account(j) => {
+                    self.accounts[j].data.remove(i);
                 }
-                Screen::Monthly(_) => {
-                    self.accounts[selected_account.unwrap()].monthly.remove(i);
+                Screen::Monthly(j) => {
+                    self.accounts[j].monthly.remove(i);
                 }
             },
             Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
