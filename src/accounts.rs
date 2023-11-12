@@ -141,20 +141,18 @@ impl Accounts {
         let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
         let mut col_9 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
-        let mut total = dec!(0);
         for (i, account) in self.accounts.iter().enumerate() {
-            let sum = account.sum();
+            let total = account.sum();
             let current_month = account.sum_current_month();
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            total += sum;
             col_0 = col_0.push(text(&account.name).size(TEXT_SIZE));
             col_1 = col_1.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
             col_2 = col_2.push(text(last_month.separate_with_commas()).size(TEXT_SIZE));
             col_3 = col_3.push(text(current_year.separate_with_commas()).size(TEXT_SIZE));
             col_4 = col_4.push(text(last_year.separate_with_commas()).size(TEXT_SIZE));
-            col_5 = col_5.push(text(sum.separate_with_commas()).size(TEXT_SIZE));
+            col_5 = col_5.push(text(total.separate_with_commas()).size(TEXT_SIZE));
             col_6 = col_6.push(button("Tx").on_press(Message::SelectAccount(i)));
             col_7 = col_7.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
             col_8 = col_8.push(button("Update Name").on_press(Message::UpdateAccount(i)));
@@ -173,7 +171,7 @@ impl Accounts {
         col_1 = col_1.push(text("total last year: ").size(TEXT_SIZE));
         col_2 = col_2.push(text(self.total_for_last_year().separate_with_commas()).size(TEXT_SIZE));
         col_1 = col_1.push(text("total: ").size(TEXT_SIZE));
-        col_2 = col_2.push(text(total.separate_with_commas()).size(TEXT_SIZE));
+        col_2 = col_2.push(text(self.total().separate_with_commas()).size(TEXT_SIZE));
         let totals = row![col_1, col_2];
 
         let cols = column![
