@@ -1,3 +1,5 @@
+//! A financial transaction.
+
 use ::serde::{Deserialize, Serialize};
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use rust_decimal::Decimal;
