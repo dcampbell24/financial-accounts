@@ -160,18 +160,20 @@ impl Accounts {
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
-        let mut col_1 = column![text("total current month: ").size(TEXT_SIZE)];
-        let mut col_2 = column![text(self.total_for_current_month().separate_with_commas())
-            .size(TEXT_SIZE)
+        let col_1 = column![
+            text("total current month: ").size(TEXT_SIZE),
+            text("total last month: ").size(TEXT_SIZE),
+            text("total current year: ").size(TEXT_SIZE),
+            text("total last year: ").size(TEXT_SIZE),
+            text("total: ").size(TEXT_SIZE),
+        ];
+        let col_2 = column![
+            text(self.total_for_current_month().separate_with_commas()).size(TEXT_SIZE),
+            text(self.total_for_last_month().separate_with_commas()).size(TEXT_SIZE),
+            text(self.total_for_current_year().separate_with_commas()).size(TEXT_SIZE),
+            text(self.total_for_last_year().separate_with_commas()).size(TEXT_SIZE),
+            text(self.total().separate_with_commas()).size(TEXT_SIZE),
         ].align_items(iced::Alignment::End);
-        col_1 = col_1.push(text("total last month: ").size(TEXT_SIZE));
-        col_2 = col_2.push(text(self.total_for_last_month().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text("total current year: ").size(TEXT_SIZE));
-        col_2 = col_2.push(text(self.total_for_current_year().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text("total last year: ").size(TEXT_SIZE));
-        col_2 = col_2.push(text(self.total_for_last_year().separate_with_commas()).size(TEXT_SIZE));
-        col_1 = col_1.push(text("total: ").size(TEXT_SIZE));
-        col_2 = col_2.push(text(self.total().separate_with_commas()).size(TEXT_SIZE));
         let totals = row![col_1, col_2];
 
         let cols = column![
