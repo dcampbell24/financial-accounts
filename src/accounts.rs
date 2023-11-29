@@ -3,7 +3,7 @@
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Element, Sandbox};
+use iced::{Element, Sandbox, Alignment};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -131,11 +131,11 @@ impl Accounts {
     #[rustfmt::skip]
     fn list_accounts(&self) -> Column<Message> {
         let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
-        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
-        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
-        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
-        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(PADDING).align_items(iced::Alignment::End);
+        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
+        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
+        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
+        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
+        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
         let mut col_6 = column![text("").size(TEXT_SIZE)].padding(PADDING);
         let mut col_7 = column![text("").size(TEXT_SIZE)].padding(PADDING);
         let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
@@ -173,7 +173,7 @@ impl Accounts {
             text(self.total_for_current_year().separate_with_commas()).size(TEXT_SIZE),
             text(self.total_for_last_year().separate_with_commas()).size(TEXT_SIZE),
             text(self.total().separate_with_commas()).size(TEXT_SIZE),
-        ].align_items(iced::Alignment::End);
+        ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
         let cols = column![
