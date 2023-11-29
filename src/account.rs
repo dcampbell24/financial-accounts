@@ -90,7 +90,7 @@ impl Account {
 
         column![
             rows,
-            text(format!("\ntotal: {}\n", total.separate_with_commas())).size(TEXT_SIZE),
+            text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row,
             filter_date,
             button("Back").on_press(Message::Back),
@@ -123,7 +123,7 @@ impl Account {
 
         column![
             rows,
-            text(format!("\ntotal: {}\n", total.separate_with_commas())).size(TEXT_SIZE),
+            text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row,
             button("Back").on_press(Message::Back),
             text(self.error_str.clone()).size(TEXT_SIZE),
