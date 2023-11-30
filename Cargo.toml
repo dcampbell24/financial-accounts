@@ -18,7 +18,6 @@ readme = "README.md"
 chrono = { version = "0.4.24", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 iced = "0.10.0"
-image = "0.24.7"
 rust_decimal = "1.29.1"
 rust_decimal_macros = "1.29.1"
 serde = { version = "1", features = ["derive"] }

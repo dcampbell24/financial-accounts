@@ -269,7 +269,7 @@ impl Sandbox for Accounts {
     }
 
     fn title(&self) -> String {
-        String::from("Ledger")
+        String::from("Fin Stat")
     }
 
     fn update(&mut self, message: Message) {
