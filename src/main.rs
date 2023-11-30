@@ -17,10 +17,10 @@ const TEXT_SIZE: u16 = 24;
 
 /// Runs the ledger application.
 pub fn main() -> Result<(), iced::Error> {
-    let icon = match ImageReader::open(Path::new("./icons/fin-stat_32x32.png")) {
+    let icon = match ImageReader::open(Path::new("./icons/fin-stat_64x64.png")) {
         Ok(icon) => icon,
         Err(_) => ImageReader::open(Path::new(
-            "/usr/share/icons/hicolor/32x32/apps/fin-stat.png",
+            "/usr/share/icons/hicolor/64x64/apps/fin-stat.png",
         ))
         .unwrap(),
     };
