@@ -3,7 +3,7 @@
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use clap::Parser;
 use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Element, Sandbox, Alignment};
+use iced::{Alignment, Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
