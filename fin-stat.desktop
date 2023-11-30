@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Ledger
+Name=Fin Stat
 Comment=Personal finance
 Exec=fin-stat --load /home/ubuntu/Documents/ledger.json
 Icon=fin-stat.png

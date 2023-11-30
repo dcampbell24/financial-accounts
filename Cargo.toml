@@ -30,5 +30,7 @@ assets = [
     ["target/release/fin-stat", "usr/bin/", "755"],
     ["README.md", "usr/share/doc/fin-stat/README.md", "644"],
     ["fin-stat.desktop", "usr/share/applications/", "644"],
-    ["icons/fin-stat_64x64.png", "usr/share/icons/hicolor/64x64/fin-stat.png", "644"]
+    ["icons/fin-stat_32x32.png", "usr/share/icons/hicolor/32x32/apps/fin-stat.png", "644"],
+    ["icons/fin-stat_64x64.png", "usr/share/icons/hicolor/64x64/apps/fin-stat.png", "644"],
+    ["icons/fin-stat_128x128.png", "usr/share/icons/hicolor/128x128/apps/fin-stat.png", "644"],
 ]
