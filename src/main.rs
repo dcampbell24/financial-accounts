@@ -1,5 +1,6 @@
 mod account;
 mod accounts;
+mod error;
 mod file_picker;
 mod message;
 mod transaction;

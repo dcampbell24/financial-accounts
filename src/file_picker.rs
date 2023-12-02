@@ -13,6 +13,7 @@ use crate::{message::Message, PADDING};
 pub struct FilePicker {
     pub current: PathBuf,
     pub filename: String,
+    pub error: String,
 }
 
 impl FilePicker {
@@ -25,11 +26,15 @@ impl FilePicker {
         FilePicker {
             current: path,
             filename: String::new(),
+            error: String::new(),
         }
     }
 
     pub fn view(&self) -> Column<Message> {
         let mut col = Column::new();
+        if !self.error.is_empty() {
+            col = col.push(row![text(&self.error)].padding(PADDING))
+        }
         if let Some(dir) = self.current.parent() {
             col = col.push(
                 row![button(text(dir.display())).on_press(Message::ChangeDir(dir.into()))]

@@ -10,11 +10,12 @@ use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use std::fs::{File, OpenOptions};
-use std::io::prelude::*;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::{mem, u64};
 
 use crate::account::Account;
+use crate::error::Error;
 use crate::file_picker::FilePicker;
 use crate::message::Message;
 use crate::transaction::{Transaction, TransactionToSubmit};
@@ -221,11 +222,11 @@ impl Accounts {
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    fn load(file_path: &PathBuf) -> Self {
+    fn load(file_path: &PathBuf) -> Result<Self, Error> {
         let mut buf = String::new();
-        let mut file = File::open(file_path).unwrap();
-        file.read_to_string(&mut buf).unwrap();
-        serde_json::from_str(&buf).unwrap()
+        let mut file = File::open(file_path)?;
+        file.read_to_string(&mut buf)?;
+        serde_json::from_str(&buf).map_err(|_| Error::Err("bad json".to_string()))
     }
 
     fn selected_account(&self) -> Option<usize> {
@@ -262,7 +263,7 @@ impl Sandbox for Accounts {
         let args = Args::parse();
 
         if !args.load.is_empty() {
-            let mut accounts = Accounts::load(&PathBuf::from(args.load));
+            let mut accounts = Accounts::load(&PathBuf::from(args.load)).unwrap();
             accounts.check_monthly();
             accounts.save();
             return accounts;
@@ -294,20 +295,31 @@ impl Sandbox for Accounts {
                 accounts.save_first();
                 *self = accounts;
                 self.screen = Screen::Accounts;
+                return;
             }
             Message::LoadFile(file) => {
-                let mut accounts = Accounts::load(&file);
-                accounts.check_monthly();
-                accounts.save();
-                *self = accounts;
-                self.screen = Screen::Accounts;
+                let accounts = Accounts::load(&file);
+                match accounts {
+                    Ok(mut accounts) => {
+                        accounts.check_monthly();
+                        accounts.save();
+                        *self = accounts;
+                        self.screen = Screen::Accounts;
+                    }
+                    Err(err) => {
+                        self.file_picker.error = format!("{:?}", err);
+                    }
+                }
+                return;
             }
             Message::ChangeDir(path_buf) => {
                 self.file_picker.current = path_buf;
+                self.file_picker.error = String::new();
                 return;
             }
             Message::ChangeFileName(file) => {
                 self.file_picker.filename = file;
+                self.file_picker.error = String::new();
                 return;
             }
             Message::Back => self.screen = Screen::Accounts,
