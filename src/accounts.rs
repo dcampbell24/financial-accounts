@@ -29,7 +29,7 @@ pub struct Accounts {
     project_months: u64,
     project_months_str: String,
     error_str: String,
-    filepath: String,
+    filepath: PathBuf,
 
     accounts: Vec<Account>,
     checked_up_to: DateTime<Utc>,
@@ -64,7 +64,7 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    fn empty_accounts(filepath: &str) -> Self {
+    fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
             file_picker: FilePicker::new(),
 
@@ -73,7 +73,7 @@ impl Accounts {
             project_months: 0,
             project_months_str: String::new(),
             error_str: String::new(),
-            filepath: filepath.to_string(),
+            filepath: file_path.to_owned(),
 
             accounts: Vec::new(),
             checked_up_to: DateTime::<Utc>::default(),
@@ -268,12 +268,12 @@ impl Sandbox for Accounts {
             return accounts;
         }
         if !args.new.is_empty() {
-            let accounts = Accounts::empty_accounts(&args.new);
+            let accounts = Accounts::empty_accounts(&PathBuf::from(args.new));
             accounts.save_first();
             return accounts;
         }
 
-        let mut accounts = Accounts::empty_accounts("");
+        let mut accounts = Accounts::empty_accounts(&PathBuf::new());
         accounts.screen = Screen::NewOrLoadFile;
         accounts
     }
@@ -287,6 +287,14 @@ impl Sandbox for Accounts {
         let selected_account = self.selected_account();
 
         match message {
+            Message::NewFile(mut file) => {
+                file.set_extension("json");
+                self.file_picker.current.push(file);
+                let accounts = Accounts::empty_accounts(&self.file_picker.current);
+                accounts.save_first();
+                *self = accounts;
+                self.screen = Screen::Accounts;
+            }
             Message::LoadFile(file) => {
                 let mut accounts = Accounts::load(&file);
                 accounts.check_monthly();
@@ -294,7 +302,14 @@ impl Sandbox for Accounts {
                 *self = accounts;
                 self.screen = Screen::Accounts;
             }
-            Message::ChangeDir(path_buf) => self.file_picker.current = path_buf,
+            Message::ChangeDir(path_buf) => {
+                self.file_picker.current = path_buf;
+                return;
+            }
+            Message::ChangeFileName(file) => {
+                self.file_picker.filename = file;
+                return;
+            }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
             Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
@@ -370,7 +385,7 @@ impl Sandbox for Accounts {
                 }
             }
         }
-        // self.save(); fixme
+        self.save();
     }
 
     fn view(&self) -> Element<Message> {

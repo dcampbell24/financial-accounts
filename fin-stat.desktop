@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Fin Stat
 Comment=Personal finance
-Exec=fin-stat --load /home/ubuntu/Documents/ledger.json
+Exec=fin-stat
 Icon=fin-stat.png
 Type=Application
 StartupNotify=true

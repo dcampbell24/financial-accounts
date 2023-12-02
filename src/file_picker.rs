@@ -36,10 +36,17 @@ impl FilePicker {
                     .padding(PADDING),
             );
         }
-        // fixme: json files to choose (Open)
         col = col.push(row![text(self.current.to_str().unwrap())].padding(PADDING));
         col = col.push(Scrollable::new(self.files().unwrap()));
-        col = col.push(row![text_input("filename", &self.filename)].padding(PADDING));
+        col = col.push(
+            row![
+                text_input("filename", &self.filename)
+                    .on_input(Message::ChangeFileName)
+                    .on_submit(Message::NewFile(PathBuf::from(self.filename.clone()))),
+                text(".json")
+            ]
+            .padding(PADDING),
+        );
         col
     }
 

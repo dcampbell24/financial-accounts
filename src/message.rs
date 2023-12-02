@@ -4,8 +4,10 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    NewFile(PathBuf),
     LoadFile(PathBuf),
     ChangeDir(PathBuf),
+    ChangeFileName(String),
     Back,
     ChangeAccountName(String),
     ChangeTx(String),
