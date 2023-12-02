@@ -11,15 +11,19 @@ use thousands::Separable;
 
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::{mem, u64};
 
 use crate::account::Account;
+use crate::file_picker::FilePicker;
 use crate::message::Message;
 use crate::transaction::{Transaction, TransactionToSubmit};
 use crate::{PADDING, TEXT_SIZE};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
+    file_picker: FilePicker,
+
     name: String,
     screen: Screen,
     project_months: u64,
@@ -33,6 +37,7 @@ pub struct Accounts {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 enum Screen {
+    NewOrLoadFile,
     Accounts,
     Account(usize),
     Monthly(usize),
@@ -61,6 +66,8 @@ impl Accounts {
 
     fn empty_accounts(filepath: &str) -> Self {
         Self {
+            file_picker: FilePicker::new(),
+
             name: String::new(),
             screen: Screen::Accounts,
             project_months: 0,
@@ -214,23 +221,23 @@ impl Accounts {
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    fn load(filepath: &str) -> Self {
+    fn load(file_path: &PathBuf) -> Self {
         let mut buf = String::new();
-        let mut file = File::open(filepath).unwrap();
+        let mut file = File::open(file_path).unwrap();
         file.read_to_string(&mut buf).unwrap();
         serde_json::from_str(&buf).unwrap()
     }
 
     fn selected_account(&self) -> Option<usize> {
         match self.screen {
-            Screen::Accounts => None,
+            Screen::NewOrLoadFile | Screen::Accounts => None,
             Screen::Account(account) | Screen::Monthly(account) => Some(account),
         }
     }
 
     fn list_monthly(&self) -> bool {
         match self.screen {
-            Screen::Accounts | Screen::Account(_) => false,
+            Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
             Screen::Monthly(_) => true,
         }
     }
@@ -255,7 +262,7 @@ impl Sandbox for Accounts {
         let args = Args::parse();
 
         if !args.load.is_empty() {
-            let mut accounts = Accounts::load(&args.load);
+            let mut accounts = Accounts::load(&PathBuf::from(args.load));
             accounts.check_monthly();
             accounts.save();
             return accounts;
@@ -265,7 +272,10 @@ impl Sandbox for Accounts {
             accounts.save_first();
             return accounts;
         }
-        panic!("You must choose '--new' or '--load'");
+
+        let mut accounts = Accounts::empty_accounts("");
+        accounts.screen = Screen::NewOrLoadFile;
+        accounts
     }
 
     fn title(&self) -> String {
@@ -277,6 +287,14 @@ impl Sandbox for Accounts {
         let selected_account = self.selected_account();
 
         match message {
+            Message::LoadFile(file) => {
+                let mut accounts = Accounts::load(&file);
+                accounts.check_monthly();
+                accounts.save();
+                *self = accounts;
+                self.screen = Screen::Accounts;
+            }
+            Message::ChangeDir(path_buf) => self.file_picker.current = path_buf,
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
             Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
@@ -292,6 +310,9 @@ impl Sandbox for Accounts {
                 self.accounts[selected_account.unwrap()].filter_date_month = date;
             }
             Message::Delete(i) => match self.screen {
+                Screen::NewOrLoadFile => {
+                    panic!("Screen::NewOrLoadFile can't be reached here");
+                }
                 Screen::Accounts => {
                     self.accounts.remove(i);
                 }
@@ -349,11 +370,12 @@ impl Sandbox for Accounts {
                 }
             }
         }
-        self.save();
+        // self.save(); fixme
     }
 
     fn view(&self) -> Element<Message> {
         match self.screen {
+            Screen::NewOrLoadFile => self.file_picker.view().into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),

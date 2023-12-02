@@ -1,5 +1,6 @@
 mod account;
 mod accounts;
+mod file_picker;
 mod message;
 mod transaction;
 
@@ -8,7 +9,7 @@ use iced::Sandbox;
 use crate::accounts::Accounts;
 
 /// The size of padding.
-const PADDING: u16 = 8;
+const PADDING: u16 = 1;
 /// The size of text widgets.
 const TEXT_SIZE: u16 = 24;
 
