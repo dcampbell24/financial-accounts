@@ -26,14 +26,16 @@ pub struct App {
     accounts: Accounts,
     file_picker: FilePicker,
     name: String,
+    screen: Screen,
 } 
 
 impl App {
-    fn new(accounts: Accounts) -> Self {
+    fn new(accounts: Accounts, screen: Screen) -> Self {
         App {
             accounts,
             file_picker: FilePicker::new(),
             name: String::new(),
+            screen,
         }
     }
 
@@ -107,11 +109,24 @@ impl App {
         cols
     }
 
+
+    fn selected_account(&self) -> Option<usize> {
+        match self.screen {
+            Screen::NewOrLoadFile | Screen::Accounts => None,
+            Screen::Account(account) | Screen::Monthly(account) => Some(account),
+        }
+    }
+
+    fn list_monthly(&self) -> bool {
+        match self.screen {
+            Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
+            Screen::Monthly(_) => true,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    screen: Screen,
     project_months: u64,
     project_months_str: String,
     error_str: String,
@@ -152,7 +167,6 @@ impl Accounts {
 
     fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
-            screen: Screen::Accounts,
             project_months: 0,
             project_months_str: String::new(),
             error_str: String::new(),
@@ -240,20 +254,6 @@ impl Accounts {
         file.read_to_string(&mut buf)?;
         serde_json::from_str(&buf).map_err(|_| Error::Err("bad json".to_string()))
     }
-
-    fn selected_account(&self) -> Option<usize> {
-        match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts => None,
-            Screen::Account(account) | Screen::Monthly(account) => Some(account),
-        }
-    }
-
-    fn list_monthly(&self) -> bool {
-        match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
-            Screen::Monthly(_) => true,
-        }
-    }
 }
 
 #[derive(Parser, Debug)]
@@ -273,22 +273,23 @@ impl Sandbox for App {
 
     fn new() -> Self {
         let args = Args::parse();
+        let screen = Screen::Accounts;
 
         if !args.load.is_empty() {
             let mut accounts = Accounts::load(&PathBuf::from(args.load)).unwrap();
             accounts.check_monthly();
             accounts.save();
-            return App::new(accounts);
+            return App::new(accounts, screen);
         }
         if !args.new.is_empty() {
             let accounts = Accounts::empty_accounts(&PathBuf::from(args.new));
             accounts.save_first();
-            return App::new(accounts);
+            return App::new(accounts, screen);
         }
 
-        let mut accounts = Accounts::empty_accounts(&PathBuf::new());
-        accounts.screen = Screen::NewOrLoadFile;
-        App::new(accounts)
+        let accounts = Accounts::empty_accounts(&PathBuf::new());
+        let screen = Screen::NewOrLoadFile;
+        App::new(accounts, screen)
     }
 
     fn title(&self) -> String {
@@ -296,8 +297,8 @@ impl Sandbox for App {
     }
 
     fn update(&mut self, message: Message) {
-        let list_monthly = self.accounts.list_monthly();
-        let selected_account = self.accounts.selected_account();
+        let list_monthly = self.list_monthly();
+        let selected_account = self.selected_account();
 
         match message {
             Message::NewFile(mut file) => {
@@ -306,7 +307,7 @@ impl Sandbox for App {
                 let accounts = Accounts::empty_accounts(&self.file_picker.current);
                 accounts.save_first();
                 self.accounts = accounts;
-                self.accounts.screen = Screen::Accounts;
+                self.screen = Screen::Accounts;
                 return;
             }
             Message::LoadFile(file) => {
@@ -316,7 +317,7 @@ impl Sandbox for App {
                         accounts.check_monthly();
                         accounts.save();
                         self.accounts = accounts;
-                        self.accounts.screen = Screen::Accounts;
+                        self.screen = Screen::Accounts;
                     }
                     Err(err) => {
                         self.file_picker.error = format!("{:?}", err);
@@ -334,7 +335,7 @@ impl Sandbox for App {
                 self.file_picker.error = String::new();
                 return;
             }
-            Message::Back => self.accounts.screen = Screen::Accounts,
+            Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
             Message::ChangeTx(tx) => self.accounts.inner[selected_account.unwrap()].tx.amount = tx,
             Message::ChangeDate(date) => self.accounts.inner[selected_account.unwrap()].tx.date = date,
@@ -348,7 +349,7 @@ impl Sandbox for App {
             Message::ChangeFilterDateMonth(date) => {
                 self.accounts.inner[selected_account.unwrap()].filter_date_month = date;
             }
-            Message::Delete(i) => match self.accounts.screen {
+            Message::Delete(i) => match self.screen {
                 Screen::NewOrLoadFile => {
                     panic!("Screen::NewOrLoadFile can't be reached here");
                 }
@@ -375,8 +376,8 @@ impl Sandbox for App {
                     self.accounts.error_str = msg;
                 }
             },
-            Message::SelectAccount(i) => self.accounts.screen = Screen::Account(i),
-            Message::SelectMonthly(i) => self.accounts.screen = Screen::Monthly(i),
+            Message::SelectAccount(i) => self.screen = Screen::Account(i),
+            Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
                 let account = &mut self.accounts.inner[selected_account.unwrap()];
                 match account.submit_tx() {
@@ -413,7 +414,7 @@ impl Sandbox for App {
     }
 
     fn view(&self) -> Element<Message> {
-        match self.accounts.screen {
+        match self.screen {
             Screen::NewOrLoadFile => self.file_picker.view().into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts.inner[i].list_transactions().into(),
