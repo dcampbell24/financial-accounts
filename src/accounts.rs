@@ -25,6 +25,7 @@ use crate::{PADDING, TEXT_SIZE};
 pub struct App {
     accounts: Accounts,
     error_str: String,
+    file_path: PathBuf,
     file_picker: FilePicker,
     name: String,
     project_months: u64,
@@ -33,10 +34,11 @@ pub struct App {
 } 
 
 impl App {
-    fn new(accounts: Accounts, screen: Screen) -> Self {
+    fn new(accounts: Accounts, file_path: &PathBuf, screen: Screen) -> Self {
         App {
             accounts,
             error_str: String::new(),
+            file_path: file_path.to_owned(),
             file_picker: FilePicker::new(),
             name: String::new(),
             project_months: 0,
@@ -133,10 +135,8 @@ impl App {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    filepath: PathBuf,
-
-    inner: Vec<Account>,
     checked_up_to: DateTime<Utc>,
+    inner: Vec<Account>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -168,12 +168,10 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    fn empty_accounts(file_path: &PathBuf) -> Self {
+    fn empty_accounts() -> Self {
         Self {
-            filepath: file_path.to_owned(),
-
-            inner: Vec::new(),
             checked_up_to: DateTime::<Utc>::default(),
+            inner: Vec::new(),
         }
     }
 
@@ -232,19 +230,19 @@ impl Accounts {
         total
     }
 
-    fn save_first(&self) {
-        let j = serde_json::to_string_pretty(&self).unwrap();
+    fn save_first(file_path: &PathBuf) {
+        let j = serde_json::to_string_pretty(file_path).unwrap();
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(&self.filepath)
+            .open(file_path)
             .unwrap();
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    fn save(&self) {
-        let j = serde_json::to_string_pretty(&self).unwrap();
-        let mut file = File::create(&self.filepath).unwrap();
+    fn save(file_path: &PathBuf) {
+        let j = serde_json::to_string_pretty(file_path).unwrap();
+        let mut file = File::create(file_path).unwrap();
         file.write_all(j.as_bytes()).unwrap()
     }
 
@@ -276,20 +274,23 @@ impl Sandbox for App {
         let screen = Screen::Accounts;
 
         if !args.load.is_empty() {
-            let mut accounts = Accounts::load(&PathBuf::from(args.load)).unwrap();
+            let path_buf = PathBuf::from(args.load);
+            let mut accounts = Accounts::load(&path_buf).unwrap();
             accounts.check_monthly();
-            accounts.save();
-            return App::new(accounts, screen);
+            Accounts::save(&path_buf);
+            return App::new(accounts, &path_buf, screen);
         }
         if !args.new.is_empty() {
-            let accounts = Accounts::empty_accounts(&PathBuf::from(args.new));
-            accounts.save_first();
-            return App::new(accounts, screen);
+            let path_buf = PathBuf::from(args.new);
+            let accounts = Accounts::empty_accounts();
+            Accounts::save_first(&path_buf);
+            return App::new(accounts, &path_buf, screen);
         }
 
-        let accounts = Accounts::empty_accounts(&PathBuf::new());
+        let path_buf = PathBuf::new();
+        let accounts = Accounts::empty_accounts();
         let screen = Screen::NewOrLoadFile;
-        App::new(accounts, screen)
+        App::new(accounts, &path_buf, screen)
     }
 
     fn title(&self) -> String {
@@ -304,8 +305,8 @@ impl Sandbox for App {
             Message::NewFile(mut file) => {
                 file.set_extension("json");
                 self.file_picker.current.push(file);
-                let accounts = Accounts::empty_accounts(&self.file_picker.current);
-                accounts.save_first();
+                let accounts = Accounts::empty_accounts();
+                Accounts::save_first(&self.file_picker.current);
                 self.accounts = accounts;
                 self.screen = Screen::Accounts;
                 return;
@@ -315,7 +316,7 @@ impl Sandbox for App {
                 match accounts {
                     Ok(mut accounts) => {
                         accounts.check_monthly();
-                        accounts.save();
+                        Accounts::save(&file);
                         self.accounts = accounts;
                         self.screen = Screen::Accounts;
                     }
@@ -410,7 +411,7 @@ impl Sandbox for App {
                 }
             }
         }
-        self.accounts.save();
+        Accounts::save(&self.file_path);
     }
 
     fn view(&self) -> Element<Message> {
