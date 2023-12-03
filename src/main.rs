@@ -5,9 +5,8 @@ mod file_picker;
 mod message;
 mod transaction;
 
+use accounts::App;
 use iced::Sandbox;
-
-use crate::accounts::Accounts;
 
 /// The size of padding.
 const PADDING: u16 = 1;
@@ -16,7 +15,7 @@ const TEXT_SIZE: u16 = 24;
 
 /// Runs the ledger application.
 pub fn main() -> Result<(), iced::Error> {
-    Accounts::run(iced::Settings {
+    App::run(iced::Settings {
         window: iced::window::Settings {
             size: (1280, 720),
             ..iced::window::Settings::default()

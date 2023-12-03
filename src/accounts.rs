@@ -21,10 +21,15 @@ use crate::message::Message;
 use crate::transaction::{Transaction, TransactionToSubmit};
 use crate::{PADDING, TEXT_SIZE};
 
+#[derive(Clone, Debug)]
+pub struct App {
+    file_picker: FilePicker,
+    accounts: Accounts,
+} 
+
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    file_picker: FilePicker,
-
     name: String,
     screen: Screen,
     project_months: u64,
@@ -32,7 +37,7 @@ pub struct Accounts {
     error_str: String,
     filepath: PathBuf,
 
-    accounts: Vec<Account>,
+    inner: Vec<Account>,
     checked_up_to: DateTime<Utc>,
 }
 
@@ -51,7 +56,7 @@ impl Accounts {
         let day_1 = TimeZone::with_ymd_and_hms(&Utc, now.year(), now.month(), 1, 0, 0, 0).unwrap();
 
         if day_1 >= past && day_1 < now {
-            for account in self.accounts.iter_mut() {
+            for account in self.inner.iter_mut() {
                 for tx in account.monthly.iter() {
                     account.data.push(Transaction {
                         amount: tx.amount,
@@ -67,8 +72,6 @@ impl Accounts {
 
     fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
-            file_picker: FilePicker::new(),
-
             name: String::new(),
             screen: Screen::Accounts,
             project_months: 0,
@@ -76,14 +79,14 @@ impl Accounts {
             error_str: String::new(),
             filepath: file_path.to_owned(),
 
-            accounts: Vec::new(),
+            inner: Vec::new(),
             checked_up_to: DateTime::<Utc>::default(),
         }
     }
 
     fn total(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum();
             total += sum;
         }
@@ -92,7 +95,7 @@ impl Accounts {
 
     fn total_for_months(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum_monthly();
             let times: Decimal = self.project_months.into();
             total += sum * times
@@ -102,7 +105,7 @@ impl Accounts {
 
     fn total_for_current_month(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum_current_month();
             total += sum
         }
@@ -111,7 +114,7 @@ impl Accounts {
 
     fn total_for_last_month(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum_last_month();
             total += sum
         }
@@ -120,7 +123,7 @@ impl Accounts {
 
     fn total_for_current_year(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum_current_year();
             total += sum
         }
@@ -129,7 +132,7 @@ impl Accounts {
 
     fn total_for_last_year(&self) -> Decimal {
         let mut total = dec!(0);
-        for account in self.accounts.iter() {
+        for account in self.inner.iter() {
             let sum = account.sum_last_year();
             total += sum
         }
@@ -149,7 +152,7 @@ impl Accounts {
         let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
         let mut col_9 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
-        for (i, account) in self.accounts.iter().enumerate() {
+        for (i, account) in self.inner.iter().enumerate() {
             let total = account.sum();
             let current_month = account.sum_current_month();
             let last_month = account.sum_last_month();
@@ -256,7 +259,7 @@ struct Args {
     new: String,
 }
 
-impl Sandbox for Accounts {
+impl Sandbox for App {
     type Message = Message;
 
     fn new() -> Self {
@@ -266,17 +269,17 @@ impl Sandbox for Accounts {
             let mut accounts = Accounts::load(&PathBuf::from(args.load)).unwrap();
             accounts.check_monthly();
             accounts.save();
-            return accounts;
+            return App { file_picker: FilePicker::new(), accounts };
         }
         if !args.new.is_empty() {
             let accounts = Accounts::empty_accounts(&PathBuf::from(args.new));
             accounts.save_first();
-            return accounts;
+            return App { file_picker: FilePicker::new(), accounts };
         }
 
         let mut accounts = Accounts::empty_accounts(&PathBuf::new());
         accounts.screen = Screen::NewOrLoadFile;
-        accounts
+        App { file_picker: FilePicker::new(), accounts }
     }
 
     fn title(&self) -> String {
@@ -284,8 +287,8 @@ impl Sandbox for Accounts {
     }
 
     fn update(&mut self, message: Message) {
-        let list_monthly = self.list_monthly();
-        let selected_account = self.selected_account();
+        let list_monthly = self.accounts.list_monthly();
+        let selected_account = self.accounts.selected_account();
 
         match message {
             Message::NewFile(mut file) => {
@@ -293,8 +296,8 @@ impl Sandbox for Accounts {
                 self.file_picker.current.push(file);
                 let accounts = Accounts::empty_accounts(&self.file_picker.current);
                 accounts.save_first();
-                *self = accounts;
-                self.screen = Screen::Accounts;
+                self.accounts = accounts;
+                self.accounts.screen = Screen::Accounts;
                 return;
             }
             Message::LoadFile(file) => {
@@ -303,8 +306,8 @@ impl Sandbox for Accounts {
                     Ok(mut accounts) => {
                         accounts.check_monthly();
                         accounts.save();
-                        *self = accounts;
-                        self.screen = Screen::Accounts;
+                        self.accounts = accounts;
+                        self.accounts.screen = Screen::Accounts;
                     }
                     Err(err) => {
                         self.file_picker.error = format!("{:?}", err);
@@ -322,51 +325,51 @@ impl Sandbox for Accounts {
                 self.file_picker.error = String::new();
                 return;
             }
-            Message::Back => self.screen = Screen::Accounts,
-            Message::ChangeAccountName(name) => self.name = name,
-            Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
-            Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
+            Message::Back => self.accounts.screen = Screen::Accounts,
+            Message::ChangeAccountName(name) => self.accounts.name = name,
+            Message::ChangeTx(tx) => self.accounts.inner[selected_account.unwrap()].tx.amount = tx,
+            Message::ChangeDate(date) => self.accounts.inner[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account.unwrap()].tx.comment = comment;
+                self.accounts.inner[selected_account.unwrap()].tx.comment = comment;
             }
-            Message::ChangeProjectMonths(i) => self.project_months_str = i,
+            Message::ChangeProjectMonths(i) => self.accounts.project_months_str = i,
             Message::ChangeFilterDateYear(date) => {
-                self.accounts[selected_account.unwrap()].filter_date_year = date;
+                self.accounts.inner[selected_account.unwrap()].filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts[selected_account.unwrap()].filter_date_month = date;
+                self.accounts.inner[selected_account.unwrap()].filter_date_month = date;
             }
-            Message::Delete(i) => match self.screen {
+            Message::Delete(i) => match self.accounts.screen {
                 Screen::NewOrLoadFile => {
                     panic!("Screen::NewOrLoadFile can't be reached here");
                 }
                 Screen::Accounts => {
-                    self.accounts.remove(i);
+                    self.accounts.inner.remove(i);
                 }
                 Screen::Account(j) => {
-                    self.accounts[j].data.remove(i);
+                    self.accounts.inner[j].data.remove(i);
                 }
                 Screen::Monthly(j) => {
-                    self.accounts[j].monthly.remove(i);
+                    self.accounts.inner[j].monthly.remove(i);
                 }
             },
-            Message::NewAccount => self.accounts.push(Account::new(mem::take(&mut self.name))),
-            Message::UpdateAccount(i) => self.accounts[i].name = mem::take(&mut self.name),
-            Message::ProjectMonths => match self.project_months_str.parse() {
+            Message::NewAccount => self.accounts.inner.push(Account::new(mem::take(&mut self.accounts.name))),
+            Message::UpdateAccount(i) => self.accounts.inner[i].name = mem::take(&mut self.accounts.name),
+            Message::ProjectMonths => match self.accounts.project_months_str.parse() {
                 Ok(i) => {
-                    self.project_months = i;
-                    self.error_str = String::new();
+                    self.accounts.project_months = i;
+                    self.accounts.error_str = String::new();
                 }
                 Err(err) => {
                     let mut msg = "Parse Project Months error: ".to_string();
                     msg.push_str(&err.to_string());
-                    self.error_str = msg;
+                    self.accounts.error_str = msg;
                 }
             },
-            Message::SelectAccount(i) => self.screen = Screen::Account(i),
-            Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
+            Message::SelectAccount(i) => self.accounts.screen = Screen::Account(i),
+            Message::SelectMonthly(i) => self.accounts.screen = Screen::Monthly(i),
             Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account.unwrap()];
+                let account = &mut self.accounts.inner[selected_account.unwrap()];
                 match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
@@ -384,7 +387,7 @@ impl Sandbox for Accounts {
                 }
             }
             Message::SubmitFilterDate => {
-                let account = &mut self.accounts[selected_account.unwrap()];
+                let account = &mut self.accounts.inner[selected_account.unwrap()];
                 match account.submit_filter_date() {
                     Ok(date) => {
                         account.filter_date = date;
@@ -397,15 +400,15 @@ impl Sandbox for Accounts {
                 }
             }
         }
-        self.save();
+        self.accounts.save();
     }
 
     fn view(&self) -> Element<Message> {
-        match self.screen {
+        match self.accounts.screen {
             Screen::NewOrLoadFile => self.file_picker.view().into(),
-            Screen::Accounts => self.list_accounts().into(),
-            Screen::Account(i) => self.accounts[i].list_transactions().into(),
-            Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
+            Screen::Accounts => self.accounts.list_accounts().into(),
+            Screen::Account(i) => self.accounts.inner[i].list_transactions().into(),
+            Screen::Monthly(i) => self.accounts.inner[i].list_monthly().into(),
         }
     }
 }
