@@ -184,7 +184,6 @@ impl Sandbox for App {
                 self.accounts = accounts;
                 self.file_path = self.file_picker.current.clone();
                 self.screen = Screen::Accounts;
-                return;
             }
             Message::LoadFile(file) => {
                 let accounts = Accounts::load(&file);
@@ -200,17 +199,14 @@ impl Sandbox for App {
                         self.file_picker.error = format!("{:?}", err);
                     }
                 }
-                return;
             }
             Message::ChangeDir(path_buf) => {
                 self.file_picker.current = path_buf;
                 self.file_picker.error = String::new();
-                return;
             }
             Message::ChangeFileName(file) => {
                 self.file_picker.filename = file;
                 self.file_picker.error = String::new();
-                return;
             }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
@@ -232,19 +228,25 @@ impl Sandbox for App {
                 }
                 Screen::Accounts => {
                     self.accounts.inner.remove(i);
-                }
+                    self.accounts.save(&self.file_path);
+                } // save
                 Screen::Account(j) => {
                     self.accounts[j].data.remove(i);
-                }
+                    self.accounts.save(&self.file_path);
+                } // save
                 Screen::Monthly(j) => {
                     self.accounts[j].monthly.remove(i);
-                }
+                    self.accounts.save(&self.file_path);
+                } // save
             },
             Message::NewAccount => self
                 .accounts
                 .inner
                 .push(Account::new(mem::take(&mut self.name))),
-            Message::UpdateAccount(i) => self.accounts[i].name = mem::take(&mut self.name),
+            Message::UpdateAccount(i) => {
+                self.accounts[i].name = mem::take(&mut self.name);
+                self.accounts.save(&self.file_path);
+            }
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
@@ -270,6 +272,7 @@ impl Sandbox for App {
                         }
                         account.error_str = String::new();
                         account.tx = TransactionToSubmit::new();
+                        self.accounts.save(&self.file_path);
                     }
                     Err(err) => {
                         account.error_str = err;
@@ -290,7 +293,6 @@ impl Sandbox for App {
                 }
             }
         }
-        self.accounts.save(&self.file_path);
     }
 
     fn view(&self) -> Element<Message> {
