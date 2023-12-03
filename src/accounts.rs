@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
+use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
-use std::u64;
+use std::{u64, usize};
 
 use crate::account::Account;
 use crate::error::Error;
@@ -132,5 +133,19 @@ impl Accounts {
         let mut file = File::open(file_path)?;
         file.read_to_string(&mut buf)?;
         serde_json::from_str(&buf).map_err(|_| Error::Err("bad json".to_string()))
+    }
+}
+
+impl Index<usize> for Accounts {
+    type Output = Account;
+
+    fn index(&self, i: usize) -> &Self::Output {
+        &self.inner[i]
+    }
+}
+
+impl IndexMut<usize> for Accounts {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
+        &mut self.inner[i]
     }
 }

@@ -1,18 +1,20 @@
-use std::{path::PathBuf, mem};
+use std::{mem, path::PathBuf};
 
 use chrono::{DateTime, Utc};
 use clap::{command, Parser};
 use iced::{
     widget::{button, column, row, text, text_input, Column},
-    Alignment, Sandbox, Element,
+    Alignment, Element, Sandbox,
 };
 use thousands::Separable;
 
 use crate::{
+    account::Account,
     accounts::{Accounts, Screen},
     file_picker::FilePicker,
     message::Message,
-    PADDING, TEXT_SIZE, account::Account, transaction::TransactionToSubmit,
+    transaction::TransactionToSubmit,
+    PADDING, TEXT_SIZE,
 };
 
 #[derive(Parser, Debug)]
@@ -210,19 +212,17 @@ impl Sandbox for App {
             }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
-            Message::ChangeTx(tx) => self.accounts.inner[selected_account.unwrap()].tx.amount = tx,
-            Message::ChangeDate(date) => {
-                self.accounts.inner[selected_account.unwrap()].tx.date = date
-            }
+            Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
+            Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
-                self.accounts.inner[selected_account.unwrap()].tx.comment = comment;
+                self.accounts[selected_account.unwrap()].tx.comment = comment;
             }
             Message::ChangeProjectMonths(i) => self.project_months_str = i,
             Message::ChangeFilterDateYear(date) => {
-                self.accounts.inner[selected_account.unwrap()].filter_date_year = date;
+                self.accounts[selected_account.unwrap()].filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts.inner[selected_account.unwrap()].filter_date_month = date;
+                self.accounts[selected_account.unwrap()].filter_date_month = date;
             }
             Message::Delete(i) => match self.screen {
                 Screen::NewOrLoadFile => {
@@ -232,17 +232,17 @@ impl Sandbox for App {
                     self.accounts.inner.remove(i);
                 }
                 Screen::Account(j) => {
-                    self.accounts.inner[j].data.remove(i);
+                    self.accounts[j].data.remove(i);
                 }
                 Screen::Monthly(j) => {
-                    self.accounts.inner[j].monthly.remove(i);
+                    self.accounts[j].monthly.remove(i);
                 }
             },
             Message::NewAccount => self
                 .accounts
                 .inner
                 .push(Account::new(mem::take(&mut self.name))),
-            Message::UpdateAccount(i) => self.accounts.inner[i].name = mem::take(&mut self.name),
+            Message::UpdateAccount(i) => self.accounts[i].name = mem::take(&mut self.name),
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
@@ -257,7 +257,7 @@ impl Sandbox for App {
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
-                let account = &mut self.accounts.inner[selected_account.unwrap()];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
@@ -275,7 +275,7 @@ impl Sandbox for App {
                 }
             }
             Message::SubmitFilterDate => {
-                let account = &mut self.accounts.inner[selected_account.unwrap()];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_filter_date() {
                     Ok(date) => {
                         account.filter_date = date;
@@ -295,8 +295,8 @@ impl Sandbox for App {
         match self.screen {
             Screen::NewOrLoadFile => self.file_picker.view().into(),
             Screen::Accounts => self.list_accounts().into(),
-            Screen::Account(i) => self.accounts.inner[i].list_transactions().into(),
-            Screen::Monthly(i) => self.accounts.inner[i].list_monthly().into(),
+            Screen::Account(i) => self.accounts[i].list_transactions().into(),
+            Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
         }
     }
 }
