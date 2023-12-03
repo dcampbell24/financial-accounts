@@ -24,6 +24,7 @@ use crate::{PADDING, TEXT_SIZE};
 #[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
+    error_str: String,
     file_picker: FilePicker,
     name: String,
     project_months: u64,
@@ -35,6 +36,7 @@ impl App {
     fn new(accounts: Accounts, screen: Screen) -> Self {
         App {
             accounts,
+            error_str: String::new(),
             file_picker: FilePicker::new(),
             name: String::new(),
             project_months: 0,
@@ -107,7 +109,7 @@ impl App {
                     .on_submit(Message::ProjectMonths),
                 text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
             ],
-            text(&self.accounts.error_str).size(TEXT_SIZE),
+            text(&self.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
         cols
@@ -131,7 +133,6 @@ impl App {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    error_str: String,
     filepath: PathBuf,
 
     inner: Vec<Account>,
@@ -169,7 +170,6 @@ impl Accounts {
 
     fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
-            error_str: String::new(),
             filepath: file_path.to_owned(),
 
             inner: Vec::new(),
@@ -368,12 +368,12 @@ impl Sandbox for App {
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
-                    self.accounts.error_str = String::new();
+                    self.error_str = String::new();
                 }
                 Err(err) => {
                     let mut msg = "Parse Project Months error: ".to_string();
                     msg.push_str(&err.to_string());
-                    self.accounts.error_str = msg;
+                    self.error_str = msg;
                 }
             },
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
