@@ -26,6 +26,7 @@ pub struct App {
     accounts: Accounts,
     file_picker: FilePicker,
     name: String,
+    project_months: u64,
     screen: Screen,
 } 
 
@@ -35,6 +36,7 @@ impl App {
             accounts,
             file_picker: FilePicker::new(),
             name: String::new(),
+            project_months: 0,
             screen,
         }
     }
@@ -101,7 +103,7 @@ impl App {
                 text_input("Months", &self.accounts.project_months_str)
                     .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
-                text((self.accounts.total() + self.accounts.total_for_months()).separate_with_commas()).size(TEXT_SIZE),
+                text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
             ],
             text(&self.accounts.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
@@ -127,7 +129,6 @@ impl App {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    project_months: u64,
     project_months_str: String,
     error_str: String,
     filepath: PathBuf,
@@ -167,7 +168,6 @@ impl Accounts {
 
     fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
-            project_months: 0,
             project_months_str: String::new(),
             error_str: String::new(),
             filepath: file_path.to_owned(),
@@ -186,11 +186,11 @@ impl Accounts {
         total
     }
 
-    fn total_for_months(&self) -> Decimal {
+    fn total_for_months(&self, project_months: u64) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_monthly();
-            let times: Decimal = self.project_months.into();
+            let times: Decimal = project_months.into();
             total += sum * times
         }
         total
@@ -367,7 +367,7 @@ impl Sandbox for App {
             Message::UpdateAccount(i) => self.accounts.inner[i].name = mem::take(&mut self.name),
             Message::ProjectMonths => match self.accounts.project_months_str.parse() {
                 Ok(i) => {
-                    self.accounts.project_months = i;
+                    self.project_months = i;
                     self.accounts.error_str = String::new();
                 }
                 Err(err) => {
