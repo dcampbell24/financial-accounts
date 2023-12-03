@@ -112,8 +112,8 @@ impl Accounts {
         total
     }
 
-    pub fn save_first(file_path: &PathBuf) {
-        let j = serde_json::to_string_pretty(file_path).unwrap();
+    pub fn save_first(&self, file_path: &PathBuf) {
+        let j = serde_json::to_string_pretty(self).unwrap();
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -122,8 +122,8 @@ impl Accounts {
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    pub fn save(file_path: &PathBuf) {
-        let j = serde_json::to_string_pretty(file_path).unwrap();
+    pub fn save(&self, file_path: &PathBuf) {
+        let j = serde_json::to_string_pretty(self).unwrap();
         let mut file = File::create(file_path).unwrap();
         file.write_all(j.as_bytes()).unwrap()
     }

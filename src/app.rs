@@ -151,13 +151,13 @@ impl Sandbox for App {
             let path_buf = PathBuf::from(args.load);
             let mut accounts = Accounts::load(&path_buf).unwrap();
             accounts.check_monthly();
-            Accounts::save(&path_buf);
+            accounts.save(&path_buf);
             return App::new(accounts, &path_buf, screen);
         }
         if !args.new.is_empty() {
             let path_buf = PathBuf::from(args.new);
             let accounts = Accounts::empty_accounts();
-            Accounts::save_first(&path_buf);
+            accounts.save_first(&path_buf);
             return App::new(accounts, &path_buf, screen);
         }
 
@@ -178,10 +178,11 @@ impl Sandbox for App {
         match message {
             Message::NewFile(mut file) => {
                 file.set_extension("json");
-                self.file_picker.current.push(file);
+                self.file_picker.current.push(file.clone());
                 let accounts = Accounts::empty_accounts();
-                Accounts::save_first(&self.file_picker.current);
+                accounts.save_first(&self.file_picker.current);
                 self.accounts = accounts;
+                self.file_path = file;
                 self.screen = Screen::Accounts;
                 return;
             }
@@ -190,8 +191,9 @@ impl Sandbox for App {
                 match accounts {
                     Ok(mut accounts) => {
                         accounts.check_monthly();
-                        Accounts::save(&file);
+                        accounts.save(&file);
                         self.accounts = accounts;
+                        self.file_path = file;
                         self.screen = Screen::Accounts;
                     }
                     Err(err) => {
@@ -288,7 +290,7 @@ impl Sandbox for App {
                 }
             }
         }
-        Accounts::save(&self.file_path);
+        self.accounts.save(&self.file_path);
     }
 
     fn view(&self) -> Element<Message> {
