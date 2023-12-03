@@ -18,7 +18,9 @@ pub struct Account {
     pub name: String,
     #[serde(skip)]
     pub tx: TransactionToSubmit,
+    #[serde(rename = "transactions")]
     pub data: Vec<Transaction>,
+    #[serde(rename = "monthly_transactions")]
     pub monthly: Vec<Transaction>,
     #[serde(skip)]
     pub filter_date: DateTime<Utc>,
