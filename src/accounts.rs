@@ -2,12 +2,10 @@
 
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use clap::Parser;
-use iced::widget::{button, column, row, text, text_input, Column};
-use iced::{Alignment, Element, Sandbox};
+use iced::{Element, Sandbox};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use thousands::Separable;
 
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -15,132 +13,19 @@ use std::path::PathBuf;
 use std::{mem, u64};
 
 use crate::account::Account;
+use crate::app::App;
 use crate::error::Error;
-use crate::file_picker::FilePicker;
 use crate::message::Message;
 use crate::transaction::{Transaction, TransactionToSubmit};
-use crate::{PADDING, TEXT_SIZE};
-
-#[derive(Clone, Debug)]
-pub struct App {
-    accounts: Accounts,
-    error_str: String,
-    file_path: PathBuf,
-    file_picker: FilePicker,
-    name: String,
-    project_months: u64,
-    project_months_str: String,
-    screen: Screen,
-} 
-
-impl App {
-    fn new(accounts: Accounts, file_path: &PathBuf, screen: Screen) -> Self {
-        App {
-            accounts,
-            error_str: String::new(),
-            file_path: file_path.to_owned(),
-            file_picker: FilePicker::new(),
-            name: String::new(),
-            project_months: 0,
-            project_months_str: String::new(),
-            screen,
-        }
-    }
-
-    #[rustfmt::skip]
-    fn list_accounts(&self) -> Column<Message> {
-        let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_6 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_7 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_9 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-
-        for (i, account) in self.accounts.inner.iter().enumerate() {
-            let total = account.sum();
-            let current_month = account.sum_current_month();
-            let last_month = account.sum_last_month();
-            let current_year = account.sum_current_year();
-            let last_year = account.sum_last_year();
-            col_0 = col_0.push(text(&account.name).size(TEXT_SIZE));
-            col_1 = col_1.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
-            col_2 = col_2.push(text(last_month.separate_with_commas()).size(TEXT_SIZE));
-            col_3 = col_3.push(text(current_year.separate_with_commas()).size(TEXT_SIZE));
-            col_4 = col_4.push(text(last_year.separate_with_commas()).size(TEXT_SIZE));
-            col_5 = col_5.push(text(total.separate_with_commas()).size(TEXT_SIZE));
-            col_6 = col_6.push(button("Tx").on_press(Message::SelectAccount(i)));
-            col_7 = col_7.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
-            col_8 = col_8.push(button("Update Name").on_press(Message::UpdateAccount(i)));
-            col_9 = col_9.push(button("Delete").on_press(Message::Delete(i)));
-        }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
-
-        let col_1 = column![
-            text("total current month: ").size(TEXT_SIZE),
-            text("total last month: ").size(TEXT_SIZE),
-            text("total current year: ").size(TEXT_SIZE),
-            text("total last year: ").size(TEXT_SIZE),
-            text("total: ").size(TEXT_SIZE),
-        ];
-        let col_2 = column![
-            text(self.accounts.total_for_current_month().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_last_month().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_current_year().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_last_year().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total().separate_with_commas()).size(TEXT_SIZE),
-        ].align_items(Alignment::End);
-        let totals = row![col_1, col_2];
-
-        let cols = column![
-            rows,
-            totals,
-            row![
-                text("Account ").size(TEXT_SIZE),
-                text_input("Name", &self.name)
-                    .on_submit(Message::NewAccount)
-                    .on_input(Message::ChangeAccountName)
-            ],
-            row![
-                text("Project ").size(TEXT_SIZE),
-                text_input("Months", &self.project_months_str)
-                    .on_input(Message::ChangeProjectMonths)
-                    .on_submit(Message::ProjectMonths),
-                text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
-            ],
-            text(&self.error_str).size(TEXT_SIZE),
-            // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
-        ];
-        cols
-    }
-
-
-    fn selected_account(&self) -> Option<usize> {
-        match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts => None,
-            Screen::Account(account) | Screen::Monthly(account) => Some(account),
-        }
-    }
-
-    fn list_monthly(&self) -> bool {
-        match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
-            Screen::Monthly(_) => true,
-        }
-    }
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    checked_up_to: DateTime<Utc>,
-    inner: Vec<Account>,
+    pub checked_up_to: DateTime<Utc>,
+    pub inner: Vec<Account>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-enum Screen {
+pub enum Screen {
     NewOrLoadFile,
     Accounts,
     Account(usize),
@@ -175,7 +60,7 @@ impl Accounts {
         }
     }
 
-    fn total(&self) -> Decimal {
+    pub fn total(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum();
@@ -184,7 +69,7 @@ impl Accounts {
         total
     }
 
-    fn total_for_months(&self, project_months: u64) -> Decimal {
+    pub fn total_for_months(&self, project_months: u64) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_monthly();
@@ -194,7 +79,7 @@ impl Accounts {
         total
     }
 
-    fn total_for_current_month(&self) -> Decimal {
+    pub fn total_for_current_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_current_month();
@@ -203,7 +88,7 @@ impl Accounts {
         total
     }
 
-    fn total_for_last_month(&self) -> Decimal {
+    pub fn total_for_last_month(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_last_month();
@@ -212,7 +97,7 @@ impl Accounts {
         total
     }
 
-    fn total_for_current_year(&self) -> Decimal {
+    pub fn total_for_current_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_current_year();
@@ -221,7 +106,7 @@ impl Accounts {
         total
     }
 
-    fn total_for_last_year(&self) -> Decimal {
+    pub fn total_for_last_year(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_last_year();
@@ -339,7 +224,9 @@ impl Sandbox for App {
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.name = name,
             Message::ChangeTx(tx) => self.accounts.inner[selected_account.unwrap()].tx.amount = tx,
-            Message::ChangeDate(date) => self.accounts.inner[selected_account.unwrap()].tx.date = date,
+            Message::ChangeDate(date) => {
+                self.accounts.inner[selected_account.unwrap()].tx.date = date
+            }
             Message::ChangeComment(comment) => {
                 self.accounts.inner[selected_account.unwrap()].tx.comment = comment;
             }
@@ -364,7 +251,10 @@ impl Sandbox for App {
                     self.accounts.inner[j].monthly.remove(i);
                 }
             },
-            Message::NewAccount => self.accounts.inner.push(Account::new(mem::take(&mut self.name))),
+            Message::NewAccount => self
+                .accounts
+                .inner
+                .push(Account::new(mem::take(&mut self.name))),
             Message::UpdateAccount(i) => self.accounts.inner[i].name = mem::take(&mut self.name),
             Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {

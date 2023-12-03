@@ -1,11 +1,12 @@
 mod account;
 mod accounts;
+mod app;
 mod error;
 mod file_picker;
 mod message;
 mod transaction;
 
-use accounts::App;
+use app::App;
 use iced::Sandbox;
 
 /// The size of padding.
