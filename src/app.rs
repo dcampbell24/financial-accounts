@@ -229,16 +229,16 @@ impl Sandbox for App {
                 Screen::Accounts => {
                     self.accounts.inner.remove(i);
                     self.accounts.save(&self.file_path);
-                } // save
+                }
                 Screen::Account(j) => {
                     self.accounts[j].data.remove(i);
                     self.accounts.save(&self.file_path);
-                } // save
+                }
                 Screen::Monthly(j) => {
                     self.accounts[j].monthly.remove(i);
                     self.accounts.save(&self.file_path);
-                } // save
-            },
+                }
+            }
             Message::NewAccount => self
                 .accounts
                 .inner
@@ -257,7 +257,7 @@ impl Sandbox for App {
                     msg.push_str(&err.to_string());
                     self.error_str = msg;
                 }
-            },
+            }
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
