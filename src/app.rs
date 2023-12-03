@@ -31,14 +31,14 @@ struct Args {
 
 #[derive(Clone, Debug)]
 pub struct App {
-    pub accounts: Accounts,
-    pub error_str: String,
-    pub file_path: PathBuf,
-    pub file_picker: FilePicker,
-    pub name: String,
-    pub project_months: u64,
-    pub project_months_str: String,
-    pub screen: Screen,
+    accounts: Accounts,
+    error_str: String,
+    file_path: PathBuf,
+    file_picker: FilePicker,
+    name: String,
+    project_months: u64,
+    project_months_str: String,
+    screen: Screen,
 }
 
 impl App {
