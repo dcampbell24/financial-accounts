@@ -27,6 +27,7 @@ pub struct App {
     file_picker: FilePicker,
     name: String,
     project_months: u64,
+    project_months_str: String,
     screen: Screen,
 } 
 
@@ -37,6 +38,7 @@ impl App {
             file_picker: FilePicker::new(),
             name: String::new(),
             project_months: 0,
+            project_months_str: String::new(),
             screen,
         }
     }
@@ -100,7 +102,7 @@ impl App {
             ],
             row![
                 text("Project ").size(TEXT_SIZE),
-                text_input("Months", &self.accounts.project_months_str)
+                text_input("Months", &self.project_months_str)
                     .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
                 text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
@@ -129,7 +131,6 @@ impl App {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    project_months_str: String,
     error_str: String,
     filepath: PathBuf,
 
@@ -168,7 +169,6 @@ impl Accounts {
 
     fn empty_accounts(file_path: &PathBuf) -> Self {
         Self {
-            project_months_str: String::new(),
             error_str: String::new(),
             filepath: file_path.to_owned(),
 
@@ -342,7 +342,7 @@ impl Sandbox for App {
             Message::ChangeComment(comment) => {
                 self.accounts.inner[selected_account.unwrap()].tx.comment = comment;
             }
-            Message::ChangeProjectMonths(i) => self.accounts.project_months_str = i,
+            Message::ChangeProjectMonths(i) => self.project_months_str = i,
             Message::ChangeFilterDateYear(date) => {
                 self.accounts.inner[selected_account.unwrap()].filter_date_year = date;
             }
@@ -365,7 +365,7 @@ impl Sandbox for App {
             },
             Message::NewAccount => self.accounts.inner.push(Account::new(mem::take(&mut self.name))),
             Message::UpdateAccount(i) => self.accounts.inner[i].name = mem::take(&mut self.name),
-            Message::ProjectMonths => match self.accounts.project_months_str.parse() {
+            Message::ProjectMonths => match self.project_months_str.parse() {
                 Ok(i) => {
                     self.project_months = i;
                     self.accounts.error_str = String::new();
