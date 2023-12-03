@@ -178,11 +178,11 @@ impl Sandbox for App {
         match message {
             Message::NewFile(mut file) => {
                 file.set_extension("json");
-                self.file_picker.current.push(file.clone());
+                self.file_picker.current.push(file);
                 let accounts = Accounts::empty_accounts();
                 accounts.save_first(&self.file_picker.current);
                 self.accounts = accounts;
-                self.file_path = file;
+                self.file_path = self.file_picker.current.clone();
                 self.screen = Screen::Accounts;
                 return;
             }
