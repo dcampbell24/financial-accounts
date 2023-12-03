@@ -18,6 +18,7 @@ use crate::transaction::Transaction;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
+    #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
 }
 
