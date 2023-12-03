@@ -16,12 +16,17 @@ use crate::{
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
+    #[serde(skip)]
     pub tx: TransactionToSubmit,
     pub data: Vec<Transaction>,
     pub monthly: Vec<Transaction>,
+    #[serde(skip)]
     pub filter_date: DateTime<Utc>,
+    #[serde(skip)]
     pub filter_date_year: String,
+    #[serde(skip)]
     pub filter_date_month: String,
+    #[serde(skip)]
     pub error_str: String,
 }
 
