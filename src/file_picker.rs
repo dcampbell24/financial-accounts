@@ -98,7 +98,28 @@ impl FilePicker {
             }
 
             if file_type.is_symlink() {
-                col = col.push(row![text(&file_name)].padding(PADDING));
+                let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
+                if let Ok(metadata) = fs::metadata(&file_path) {
+                    if metadata.is_file() && is_json.is_match(&file_path_real.to_str().unwrap()) {
+                        let s = format!("{} -> {:?}", &file_name, &file_path_real);
+                        col = col.push(
+                            row![button(text(&s))
+                                .style(iced::theme::Button::Custom(Box::new(GreenButton)))
+                                .on_press(Message::LoadFile(file_path.clone()))]
+                            .padding(PADDING),
+                        );
+                    } else if metadata.is_dir() {
+                        let s = format!("{} -> {:?}", &file_name, &file_path_real);
+                        col = col.push(
+                            row![
+                                button(text(&s)).on_press(Message::ChangeDir(file_path.to_owned()))
+                            ]
+                            .padding(PADDING),
+                        );
+                    }
+                } else {
+                    col = col.push(row![text(&file_name)].padding(PADDING));
+                }
             }
         }
         Ok(col)
