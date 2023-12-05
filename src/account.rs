@@ -47,11 +47,11 @@ impl Account {
     }
 
     pub fn list_transactions(&self) -> Column<Message> {
-        let mut col_1 = column![text("Amount").size(TEXT_SIZE)]
+        let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
             .padding(PADDING)
             .align_items(iced::Alignment::End);
-        let mut col_2 = column![text("Date").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_3 = column![text("Comment").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_2 = column![text(" Date ").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_3 = column![text(" Comment ").size(TEXT_SIZE)].padding(PADDING);
         let mut col_4 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
         let mut total = dec!(0);
@@ -86,9 +86,9 @@ impl Account {
         let rows = row![col_1, col_2, col_3, col_4];
 
         let row = row![
-            text_input("Amount ", &self.tx.amount).on_input(Message::ChangeTx),
-            text_input("Date ", &self.tx.date).on_input(Message::ChangeDate),
-            text_input("Comment ", &self.tx.comment).on_input(Message::ChangeComment),
+            text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            text_input("Date", &self.tx.date).on_input(Message::ChangeDate),
+            text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             button("Add").on_press(Message::SubmitTx),
         ];
 
@@ -110,10 +110,10 @@ impl Account {
     }
 
     pub fn list_monthly(&self) -> Column<Message> {
-        let mut col_1 = column![text("Amount").size(TEXT_SIZE)]
+        let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
             .padding(PADDING)
             .align_items(iced::Alignment::End);
-        let mut col_2 = column![text("Comment").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_2 = column![text(" Comment ").size(TEXT_SIZE)].padding(PADDING);
         let mut col_3 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
         let mut total = dec!(0);
