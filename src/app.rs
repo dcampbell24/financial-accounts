@@ -57,16 +57,16 @@ impl App {
 
     #[rustfmt::skip]
     pub fn list_accounts(&self) -> Column<Message> {
-        let mut col_0 = column![text("Account").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_1 = column![text("Current Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_2 = column![text("Last Month").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_3 = column![text("Current Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_4 = column![text("Last Year").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_5 = column![text("Balance").size(TEXT_SIZE)].padding(PADDING).align_items(Alignment::End);
-        let mut col_6 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_7 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_8 = column![text("").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_9 = column![text("").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_0 = column![text(" Account ").size(TEXT_SIZE)];
+        let mut col_1 = column![text(" Current Month ").size(TEXT_SIZE)].align_items(Alignment::End);
+        let mut col_2 = column![text(" Last Month ").size(TEXT_SIZE)].align_items(Alignment::End);
+        let mut col_3 = column![text(" Current Year ").size(TEXT_SIZE)].align_items(Alignment::End);
+        let mut col_4 = column![text(" Last Year ").size(TEXT_SIZE)].align_items(Alignment::End);
+        let mut col_5 = column![text(" Balance ").size(TEXT_SIZE)].align_items(Alignment::End);
+        let mut col_6 = column![text("").size(TEXT_SIZE)];
+        let mut col_7 = column![text("").size(TEXT_SIZE)];
+        let mut col_8 = column![text("").size(TEXT_SIZE)];
+        let mut col_9 = column![text("").size(TEXT_SIZE)];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let total = account.sum();
@@ -105,20 +105,22 @@ impl App {
 
         let cols = column![
             rows,
+            row![text("")],
             totals,
+            row![text("")],
             row![
                 text("Account ").size(TEXT_SIZE),
                 text_input("Name", &self.name)
                     .on_submit(Message::NewAccount)
                     .on_input(Message::ChangeAccountName)
-            ],
+            ].padding(PADDING),
             row![
                 text("Project ").size(TEXT_SIZE),
                 text_input("Months", &self.project_months_str)
                     .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
                 text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
-            ],
+            ].padding(PADDING),
             text(&self.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -238,9 +240,11 @@ impl Sandbox for App {
                     self.accounts[j].monthly.remove(i);
                     self.accounts.save(&self.file_path);
                 }
-            }
+            },
             Message::NewAccount => {
-                self.accounts.inner.push(Account::new(mem::take(&mut self.name)));
+                self.accounts
+                    .inner
+                    .push(Account::new(mem::take(&mut self.name)));
                 self.accounts.save(&self.file_path);
             }
             Message::UpdateAccount(i) => {
@@ -257,7 +261,7 @@ impl Sandbox for App {
                     msg.push_str(&err.to_string());
                     self.error_str = msg;
                 }
-            }
+            },
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {

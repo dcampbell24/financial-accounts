@@ -73,10 +73,14 @@ impl Account {
 
         for (i, tx) in txs.enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_commas()).size(TEXT_SIZE));
-            col_2 = col_2.push(text(tx.date.format("%Y-%m-%d %Z ")).size(TEXT_SIZE));
-            col_3 = col_3.push(text(tx.comment.clone()).size(TEXT_SIZE));
-            col_4 = col_4.push(button("Delete").on_press(Message::Delete(i)));
+            col_1 = col_1.push(
+                row![text(tx.amount.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING),
+            );
+            col_2 = col_2
+                .push(row![text(tx.date.format("%Y-%m-%d %Z ")).size(TEXT_SIZE)].padding(PADDING));
+            col_3 = col_3.push(row![text(tx.comment.clone()).size(TEXT_SIZE)].padding(PADDING));
+            col_4 =
+                col_4.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
 
         let rows = row![col_1, col_2, col_3, col_4];
@@ -98,8 +102,8 @@ impl Account {
         column![
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
-            row,
-            filter_date,
+            row.padding(PADDING),
+            filter_date.padding(PADDING),
             button("Back").on_press(Message::Back),
             text(self.error_str.clone()).size(TEXT_SIZE),
         ]
@@ -115,9 +119,12 @@ impl Account {
         let mut total = dec!(0);
         for (i, tx) in self.monthly.iter().enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text(tx.amount.separate_with_commas()).size(TEXT_SIZE));
-            col_2 = col_2.push(text(tx.comment.clone()).size(TEXT_SIZE));
-            col_3 = col_3.push(button("Delete").on_press(Message::Delete(i)));
+            col_1 = col_1.push(
+                row![text(tx.amount.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING),
+            );
+            col_2 = col_2.push(row![text(tx.comment.clone()).size(TEXT_SIZE)].padding(PADDING));
+            col_3 =
+                col_3.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
 
         let rows = row![col_1, col_2, col_3];
@@ -131,7 +138,7 @@ impl Account {
         column![
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
-            row,
+            row.padding(PADDING),
             button("Back").on_press(Message::Back),
             text(self.error_str.clone()).size(TEXT_SIZE),
         ]
