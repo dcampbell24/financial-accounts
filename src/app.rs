@@ -74,16 +74,16 @@ impl App {
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            col_0 = col_0.push(text(&account.name).size(TEXT_SIZE));
-            col_1 = col_1.push(text(current_month.separate_with_commas()).size(TEXT_SIZE));
-            col_2 = col_2.push(text(last_month.separate_with_commas()).size(TEXT_SIZE));
-            col_3 = col_3.push(text(current_year.separate_with_commas()).size(TEXT_SIZE));
-            col_4 = col_4.push(text(last_year.separate_with_commas()).size(TEXT_SIZE));
-            col_5 = col_5.push(text(total.separate_with_commas()).size(TEXT_SIZE));
-            col_6 = col_6.push(button("Tx").on_press(Message::SelectAccount(i)));
-            col_7 = col_7.push(button("Monthly Tx").on_press(Message::SelectMonthly(i)));
-            col_8 = col_8.push(button("Update Name").on_press(Message::UpdateAccount(i)));
-            col_9 = col_9.push(button("Delete").on_press(Message::Delete(i)));
+            col_0 = col_0.push(row![text(&account.name).size(TEXT_SIZE)].padding(PADDING));
+            col_1 = col_1.push(row![text(current_month.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_2 = col_2.push(row![text(last_month.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_3 = col_3.push(row![text(current_year.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_4 = col_4.push(row![text(last_year.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_5 = col_5.push(row![text(total.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_6 = col_6.push(row![button("Tx").on_press(Message::SelectAccount(i))].padding(PADDING));
+            col_7 = col_7.push(row![button("Monthly Tx").on_press(Message::SelectMonthly(i))].padding(PADDING));
+            col_8 = col_8.push(row![button("Update Name").on_press(Message::UpdateAccount(i))].padding(PADDING));
+            col_9 = col_9.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
@@ -239,10 +239,10 @@ impl Sandbox for App {
                     self.accounts.save(&self.file_path);
                 }
             }
-            Message::NewAccount => self
-                .accounts
-                .inner
-                .push(Account::new(mem::take(&mut self.name))),
+            Message::NewAccount => {
+                self.accounts.inner.push(Account::new(mem::take(&mut self.name)));
+                self.accounts.save(&self.file_path);
+            }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.name);
                 self.accounts.save(&self.file_path);
