@@ -87,14 +87,19 @@ impl Account {
 
         let row = row![
             text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            text(" "),
             text_input("Date", &self.tx.date).on_input(Message::ChangeDate),
+            text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
+            text(" "),
             button("Add").on_press(Message::SubmitTx),
         ];
 
         let filter_date = row![
             text_input("Year", &self.filter_date_year).on_input(Message::ChangeFilterDateYear),
+            text(" "),
             text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
+            text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
             text(self.filter_date).size(TEXT_SIZE),
         ];
@@ -131,7 +136,9 @@ impl Account {
 
         let row = row![
             text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
+            text(" "),
             button("Add").on_press(Message::SubmitTx),
         ];
 
