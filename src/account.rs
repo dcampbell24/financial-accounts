@@ -9,7 +9,7 @@ use thousands::Separable;
 
 use crate::{
     message::Message,
-    transaction::{Transaction, TransactionToSubmit, TransactionMonthly},
+    transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
     PADDING, TEXT_SIZE,
 };
 

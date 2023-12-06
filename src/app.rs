@@ -13,7 +13,7 @@ use crate::{
     accounts::{Accounts, Screen},
     file_picker::FilePicker,
     message::Message,
-    transaction::{TransactionToSubmit, TransactionMonthly},
+    transaction::{TransactionMonthly, TransactionToSubmit},
     PADDING, TEXT_SIZE,
 };
 

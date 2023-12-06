@@ -52,7 +52,10 @@ impl Default for TransactionMonthly {
 
 impl From<Transaction> for TransactionMonthly {
     fn from(transaction: Transaction) -> Self {
-        TransactionMonthly { amount: transaction.amount, comment: transaction.comment }
+        TransactionMonthly {
+            amount: transaction.amount,
+            comment: transaction.comment,
+        }
     }
 }
 
