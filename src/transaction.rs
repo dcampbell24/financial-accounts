@@ -30,6 +30,33 @@ impl Default for Transaction {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TransactionMonthly {
+    pub amount: Decimal,
+    pub comment: String,
+}
+
+impl TransactionMonthly {
+    pub fn new() -> Self {
+        Self {
+            amount: dec!(0),
+            comment: String::new(),
+        }
+    }
+}
+
+impl Default for TransactionMonthly {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<Transaction> for TransactionMonthly {
+    fn from(transaction: Transaction) -> Self {
+        TransactionMonthly { amount: transaction.amount, comment: transaction.comment }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TransactionToSubmit {
     pub amount: String,
     pub comment: String,

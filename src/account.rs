@@ -9,7 +9,7 @@ use thousands::Separable;
 
 use crate::{
     message::Message,
-    transaction::{Transaction, TransactionToSubmit},
+    transaction::{Transaction, TransactionToSubmit, TransactionMonthly},
     PADDING, TEXT_SIZE,
 };
 
@@ -21,7 +21,7 @@ pub struct Account {
     #[serde(rename = "transactions")]
     pub data: Vec<Transaction>,
     #[serde(rename = "monthly_transactions")]
-    pub monthly: Vec<Transaction>,
+    pub monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
     pub filter_date: DateTime<Utc>,
     #[serde(skip)]

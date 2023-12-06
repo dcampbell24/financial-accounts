@@ -13,7 +13,7 @@ use crate::{
     accounts::{Accounts, Screen},
     file_picker::FilePicker,
     message::Message,
-    transaction::TransactionToSubmit,
+    transaction::{TransactionToSubmit, TransactionMonthly},
     PADDING, TEXT_SIZE,
 };
 
@@ -269,7 +269,7 @@ impl Sandbox for App {
                 match account.submit_tx() {
                     Ok(tx) => {
                         if list_monthly {
-                            account.monthly.push(tx);
+                            account.monthly.push(TransactionMonthly::from(tx));
                         } else {
                             account.data.push(tx);
                             account.data.sort_by_key(|tx| tx.date);
