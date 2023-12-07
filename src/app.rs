@@ -21,11 +21,11 @@ use crate::{
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Name of the file to load
-    #[arg(long, value_name = "FILE")]
+    #[arg(long, value_name = "FILE", exclusive = true)]
     load: Option<String>,
 
     /// Name of the new file
-    #[arg(long, value_name = "FILE")]
+    #[arg(long, value_name = "FILE", exclusive = true)]
     new: Option<String>,
 }
 
@@ -148,10 +148,6 @@ impl Sandbox for App {
     fn new() -> Self {
         let args = Args::parse();
         let screen = Screen::Accounts;
-
-        if args.load.is_some() && args.new.is_some() {
-            panic!("You can't both load and create a file.")
-        }
 
         if let Some(arg) = args.load {
             let path_buf = PathBuf::from(arg);
