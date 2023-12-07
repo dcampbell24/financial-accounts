@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about)]
 struct Args {
     /// Name of the file to load
     #[arg(long, value_name = "FILE", exclusive = true)]
