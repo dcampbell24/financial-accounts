@@ -21,11 +21,11 @@ use crate::{
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Name of the file to load
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::new(), value_name = "FILE")]
     load: String,
 
     /// Name of the new file
-    #[arg(long, default_value_t = String::new())]
+    #[arg(long, default_value_t = String::new(), value_name = "FILE")]
     new: String,
 }
 
