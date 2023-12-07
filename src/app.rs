@@ -21,12 +21,12 @@ use crate::{
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Name of the file to load
-    #[arg(long, default_value_t = String::new(), value_name = "FILE")]
-    load: String,
+    #[arg(long, value_name = "FILE")]
+    load: Option<String>,
 
     /// Name of the new file
-    #[arg(long, default_value_t = String::new(), value_name = "FILE")]
-    new: String,
+    #[arg(long, value_name = "FILE")]
+    new: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -149,19 +149,19 @@ impl Sandbox for App {
         let args = Args::parse();
         let screen = Screen::Accounts;
 
-        if !args.load.is_empty() && !args.new.is_empty() {
+        if args.load.is_some() && args.new.is_some() {
             panic!("You can't both load and create a file.")
         }
 
-        if !args.load.is_empty() {
-            let path_buf = PathBuf::from(args.load);
+        if let Some(arg) = args.load {
+            let path_buf = PathBuf::from(arg);
             let mut accounts = Accounts::load(&path_buf).unwrap();
             accounts.check_monthly();
             accounts.save(&path_buf);
             return App::new(accounts, &path_buf, screen);
         }
-        if !args.new.is_empty() {
-            let path_buf = PathBuf::from(args.new);
+        if let Some(arg) = args.new {
+            let path_buf = PathBuf::from(arg);
             let accounts = Accounts::empty_accounts();
             accounts.save_first(&path_buf);
             return App::new(accounts, &path_buf, screen);
