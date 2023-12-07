@@ -149,6 +149,10 @@ impl Sandbox for App {
         let args = Args::parse();
         let screen = Screen::Accounts;
 
+        if !args.load.is_empty() && !args.new.is_empty() {
+            panic!("You can't both load and create a file.")
+        }
+
         if !args.load.is_empty() {
             let path_buf = PathBuf::from(args.load);
             let mut accounts = Accounts::load(&path_buf).unwrap();
