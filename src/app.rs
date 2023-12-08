@@ -1,6 +1,5 @@
 use std::{mem, path::PathBuf};
 
-use chrono::{DateTime, Utc};
 use clap::{command, Parser};
 use iced::{
     widget::{button, column, row, text, text_input, Column},
@@ -291,7 +290,7 @@ impl Sandbox for App {
                         account.error_str = String::new();
                     }
                     Err(err) => {
-                        account.filter_date = DateTime::<Utc>::default();
+                        account.filter_date = None;
                         account.error_str = err;
                     }
                 }

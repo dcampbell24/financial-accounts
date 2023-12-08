@@ -23,7 +23,7 @@ pub struct Account {
     #[serde(rename = "monthly_transactions")]
     pub monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
-    pub filter_date: DateTime<Utc>,
+    pub filter_date: Option<DateTime<Utc>>,
     #[serde(skip)]
     pub filter_date_year: String,
     #[serde(skip)]
@@ -39,7 +39,7 @@ impl Account {
             tx: TransactionToSubmit::new(),
             data: Vec::new(),
             monthly: Vec::new(),
-            filter_date: DateTime::<Utc>::default(),
+            filter_date: None,
             filter_date_year: String::new(),
             filter_date_month: String::new(),
             error_str: String::new(),
@@ -55,23 +55,19 @@ impl Account {
         let mut col_4 = column![text("").size(TEXT_SIZE)].padding(PADDING);
 
         let mut total = dec!(0);
+        let mut txs = &self.data;
 
         let mut filtered_tx = Vec::new();
-        for tx in self.data.iter() {
-            if tx.date > self.filter_date
-                && tx.date < self.filter_date.checked_add_months(Months::new(1)).unwrap()
-            {
-                filtered_tx.push(tx.clone())
+        if let Some(date) = self.filter_date {
+            for tx in self.data.iter() {
+                if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
+                    filtered_tx.push(tx.clone())
+                }
             }
+            txs = &filtered_tx;
         }
 
-        let txs = if self.filter_date == DateTime::<Utc>::default() {
-            self.data.iter()
-        } else {
-            filtered_tx.iter()
-        };
-
-        for (i, tx) in txs.enumerate() {
+        for (i, tx) in txs.iter().enumerate() {
             total += tx.amount;
             col_1 = col_1.push(
                 row![text(tx.amount.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING),
@@ -101,7 +97,6 @@ impl Account {
             text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
             text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
-            text(self.filter_date).size(TEXT_SIZE),
         ];
 
         column![
@@ -151,12 +146,12 @@ impl Account {
         ]
     }
 
-    pub fn submit_filter_date(&self) -> Result<DateTime<Utc>, String> {
+    pub fn submit_filter_date(&self) -> Result<Option<DateTime<Utc>>, String> {
         let mut _year = 0;
         let mut _month = 0;
 
         if self.filter_date_year.is_empty() && self.filter_date_month.is_empty() {
-            return Ok(DateTime::<Utc>::default());
+            return Ok(None);
         }
         match self.filter_date_year.parse::<i32>() {
             Ok(year_input) => _year = year_input,
@@ -178,7 +173,7 @@ impl Account {
             LocalResult::None | LocalResult::Ambiguous(_, _) => {
                 Err("Filter Date error: invalid string passed".to_string())
             }
-            LocalResult::Single(date) => Ok(date),
+            LocalResult::Single(date) => Ok(Some(date)),
         }
     }
 
