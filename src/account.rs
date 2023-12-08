@@ -1,7 +1,7 @@
 //! A financial account.
 
 use chrono::{DateTime, Datelike, LocalResult, Months, NaiveDate, TimeZone, Utc};
-use iced::widget::{button, column, row, text, text_input, Column};
+use iced::widget::{button, column, row, text, text_input, Scrollable};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -46,7 +46,7 @@ impl Account {
         }
     }
 
-    pub fn list_transactions(&self) -> Column<Message> {
+    pub fn list_transactions(&self) -> Scrollable<Message> {
         let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
             .padding(PADDING)
             .align_items(iced::Alignment::End);
@@ -89,6 +89,7 @@ impl Account {
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
             button("Add").on_press(Message::SubmitTx),
+            text(" ".repeat(4)),
         ];
 
         let filter_date = row![
@@ -97,19 +98,22 @@ impl Account {
             text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
             text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
+            text(" ".repeat(4)),
         ];
 
-        column![
+        let col = column![
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
             filter_date.padding(PADDING),
             button("Back").on_press(Message::Back),
             text(self.error_str.clone()).size(TEXT_SIZE),
-        ]
+        ];
+
+        Scrollable::new(col)
     }
 
-    pub fn list_monthly(&self) -> Column<Message> {
+    pub fn list_monthly(&self) -> Scrollable<Message> {
         let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
             .padding(PADDING)
             .align_items(iced::Alignment::End);
@@ -135,15 +139,18 @@ impl Account {
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
             button("Add").on_press(Message::SubmitTx),
+            text(" ".repeat(4)),
         ];
 
-        column![
+        let col = column![
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
             button("Back").on_press(Message::Back),
             text(self.error_str.clone()).size(TEXT_SIZE),
-        ]
+        ];
+
+        Scrollable::new(col)
     }
 
     pub fn submit_filter_date(&self) -> Result<Option<DateTime<Utc>>, String> {

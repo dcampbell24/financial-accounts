@@ -2,7 +2,7 @@ use std::{mem, path::PathBuf};
 
 use clap::{command, Parser};
 use iced::{
-    widget::{button, column, row, text, text_input, Column},
+    widget::{button, column, row, text, text_input, Scrollable},
     Alignment, Element, Sandbox,
 };
 use thousands::Separable;
@@ -55,7 +55,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    pub fn list_accounts(&self) -> Column<Message> {
+    pub fn list_accounts(&self) -> Scrollable<Message> {
         let mut col_0 = column![text(" Account ").size(TEXT_SIZE)];
         let mut col_1 = column![text(" Current Month ").size(TEXT_SIZE)].align_items(Alignment::End);
         let mut col_2 = column![text(" Last Month ").size(TEXT_SIZE)].align_items(Alignment::End);
@@ -111,7 +111,8 @@ impl App {
                 text("Account ").size(TEXT_SIZE),
                 text_input("Name", &self.name)
                     .on_submit(Message::NewAccount)
-                    .on_input(Message::ChangeAccountName)
+                    .on_input(Message::ChangeAccountName),
+                text(" ".repeat(4)),
             ].padding(PADDING),
             row![
                 text("Project ").size(TEXT_SIZE),
@@ -119,11 +120,13 @@ impl App {
                     .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
                 text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
+                text(" ".repeat(4)),
             ].padding(PADDING),
             text(&self.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
-        cols
+
+        Scrollable::new(cols)
     }
 
     pub fn selected_account(&self) -> Option<usize> {
