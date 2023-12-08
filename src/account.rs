@@ -185,8 +185,7 @@ impl Account {
     }
 
     pub fn submit_tx(&self) -> Result<Transaction, String> {
-        let amount_str = self.tx.amount.clone();
-        let amount = match Decimal::from_str_exact(&amount_str) {
+        let amount = match Decimal::from_str_exact(&self.tx.amount) {
             Ok(tx) => tx,
             Err(err) => {
                 let mut msg = "Parse Amount error: ".to_string();
@@ -207,10 +206,10 @@ impl Account {
                 }
             }
         }
-        let comment = self.tx.comment.clone();
+
         Ok(Transaction {
             amount,
-            comment,
+            comment: self.tx.comment.clone(),
             date,
         })
     }
