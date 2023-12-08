@@ -74,7 +74,7 @@ impl Account {
             );
             col_2 = col_2
                 .push(row![text(tx.date.format("%Y-%m-%d %Z ")).size(TEXT_SIZE)].padding(PADDING));
-            col_3 = col_3.push(row![text(tx.comment.clone()).size(TEXT_SIZE)].padding(PADDING));
+            col_3 = col_3.push(row![text(&tx.comment).size(TEXT_SIZE)].padding(PADDING));
             col_4 =
                 col_4.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
@@ -107,7 +107,7 @@ impl Account {
             row.padding(PADDING),
             filter_date.padding(PADDING),
             button("Back").on_press(Message::Back),
-            text(self.error_str.clone()).size(TEXT_SIZE),
+            text(&self.error_str).size(TEXT_SIZE),
         ];
 
         Scrollable::new(col)
@@ -126,7 +126,7 @@ impl Account {
             col_1 = col_1.push(
                 row![text(tx.amount.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING),
             );
-            col_2 = col_2.push(row![text(tx.comment.clone()).size(TEXT_SIZE)].padding(PADDING));
+            col_2 = col_2.push(row![text(&tx.comment).size(TEXT_SIZE)].padding(PADDING));
             col_3 =
                 col_3.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
@@ -147,7 +147,7 @@ impl Account {
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
             button("Back").on_press(Message::Back),
-            text(self.error_str.clone()).size(TEXT_SIZE),
+            text(&self.error_str).size(TEXT_SIZE),
         ];
 
         Scrollable::new(col)
