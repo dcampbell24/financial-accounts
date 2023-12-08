@@ -13,7 +13,7 @@ use crate::{
     file_picker::FilePicker,
     message::Message,
     transaction::{TransactionMonthly, TransactionToSubmit},
-    PADDING, TEXT_SIZE, EDGE_PADDING,
+    EDGE_PADDING, PADDING, TEXT_SIZE,
 };
 
 #[derive(Parser, Debug)]
@@ -228,9 +228,13 @@ impl Sandbox for App {
             Message::ChangeFilterDateMonth(date) => {
                 self.accounts[selected_account.unwrap()].filter_date_month = date;
             }
-            Message::ChangeProjectMonths(months) => match months.parse() {
-                Ok(months) => self.project_months = Some(months),
-                Err(_) => self.project_months = None,
+            Message::ChangeProjectMonths(months) => {
+                if months.is_empty() {
+                    self.project_months = None;
+                }
+                if let Ok(months) = months.parse() {
+                    self.project_months = Some(months);
+                }
             }
             Message::Delete(i) => match self.screen {
                 Screen::NewOrLoadFile => {

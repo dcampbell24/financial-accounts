@@ -10,7 +10,7 @@ use thousands::Separable;
 use crate::{
     message::Message,
     transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    PADDING, TEXT_SIZE, EDGE_PADDING,
+    EDGE_PADDING, PADDING, TEXT_SIZE,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
