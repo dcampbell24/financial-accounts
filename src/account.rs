@@ -10,7 +10,7 @@ use thousands::Separable;
 use crate::{
     message::Message,
     transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    PADDING, TEXT_SIZE,
+    PADDING, TEXT_SIZE, EDGE_PADDING,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -89,7 +89,7 @@ impl Account {
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
             button("Add").on_press(Message::SubmitTx),
-            text(" ".repeat(4)),
+            text(" ".repeat(EDGE_PADDING)),
         ];
 
         let filter_date = row![
@@ -98,7 +98,7 @@ impl Account {
             text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
             text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
-            text(" ".repeat(4)),
+            text(" ".repeat(EDGE_PADDING)),
         ];
 
         let col = column![
@@ -139,7 +139,7 @@ impl Account {
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
             button("Add").on_press(Message::SubmitTx),
-            text(" ".repeat(4)),
+            text(" ".repeat(EDGE_PADDING)),
         ];
 
         let col = column![

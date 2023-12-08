@@ -13,7 +13,7 @@ use crate::{
     file_picker::FilePicker,
     message::Message,
     transaction::{TransactionMonthly, TransactionToSubmit},
-    PADDING, TEXT_SIZE,
+    PADDING, TEXT_SIZE, EDGE_PADDING,
 };
 
 #[derive(Parser, Debug)]
@@ -120,7 +120,7 @@ impl App {
                     .on_input(Message::ChangeProjectMonths)
                     .on_submit(Message::ProjectMonths),
                 text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
-                text(" ".repeat(4)),
+                text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             text(&self.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
