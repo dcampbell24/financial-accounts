@@ -58,6 +58,13 @@ impl Accounts {
         }
     }
 
+    pub fn project_months(&self, months: Option<u64>) -> Decimal {
+        match months {
+            Some(months) => self.total() + self.total_for_months(months),
+            None => self.total(),
+        }
+    }
+
     pub fn total(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {

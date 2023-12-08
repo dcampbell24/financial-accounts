@@ -31,12 +31,10 @@ struct Args {
 #[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
-    error_str: String,
     file_path: PathBuf,
     file_picker: FilePicker,
-    name: String,
-    project_months: u64,
-    project_months_str: String,
+    account_name: String,
+    project_months: Option<u64>,
     screen: Screen,
 }
 
@@ -44,12 +42,10 @@ impl App {
     pub fn new(accounts: Accounts, file_path: &PathBuf, screen: Screen) -> Self {
         App {
             accounts,
-            error_str: String::new(),
             file_path: file_path.to_owned(),
             file_picker: FilePicker::new(),
-            name: String::new(),
-            project_months: 0,
-            project_months_str: String::new(),
+            account_name: String::new(),
+            project_months: None,
             screen,
         }
     }
@@ -102,6 +98,18 @@ impl App {
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
+        let mut name = text_input("Name", &self.account_name)
+            .on_input(Message::ChangeAccountName);
+        if !self.account_name.is_empty() {
+            name = name.on_submit(Message::NewAccount);
+        }
+
+        let mut months = match self.project_months {
+            Some(months) => text_input("Months", &months.to_string()),
+            None => text_input("Months", ""),
+        };
+        months = months.on_input(Message::ChangeProjectMonths);
+
         let cols = column![
             rows,
             row![text("")],
@@ -109,20 +117,15 @@ impl App {
             row![text("")],
             row![
                 text("Account ").size(TEXT_SIZE),
-                text_input("Name", &self.name)
-                    .on_submit(Message::NewAccount)
-                    .on_input(Message::ChangeAccountName),
-                text(" ".repeat(4)),
+                name,
+                text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             row![
                 text("Project ").size(TEXT_SIZE),
-                text_input("Months", &self.project_months_str)
-                    .on_input(Message::ChangeProjectMonths)
-                    .on_submit(Message::ProjectMonths),
-                text((self.accounts.total() + self.accounts.total_for_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
+                months,
+                text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            text(&self.error_str).size(TEXT_SIZE),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -213,18 +216,21 @@ impl Sandbox for App {
                 self.file_picker.error = String::new();
             }
             Message::Back => self.screen = Screen::Accounts,
-            Message::ChangeAccountName(name) => self.name = name,
+            Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
             Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
                 self.accounts[selected_account.unwrap()].tx.comment = comment;
             }
-            Message::ChangeProjectMonths(i) => self.project_months_str = i,
             Message::ChangeFilterDateYear(date) => {
                 self.accounts[selected_account.unwrap()].filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
                 self.accounts[selected_account.unwrap()].filter_date_month = date;
+            }
+            Message::ChangeProjectMonths(months) => match months.parse() {
+                Ok(months) => self.project_months = Some(months),
+                Err(_) => self.project_months = None,
             }
             Message::Delete(i) => match self.screen {
                 Screen::NewOrLoadFile => {
@@ -246,24 +252,13 @@ impl Sandbox for App {
             Message::NewAccount => {
                 self.accounts
                     .inner
-                    .push(Account::new(mem::take(&mut self.name)));
+                    .push(Account::new(mem::take(&mut self.account_name)));
                 self.accounts.save(&self.file_path);
             }
             Message::UpdateAccount(i) => {
-                self.accounts[i].name = mem::take(&mut self.name);
+                self.accounts[i].name = mem::take(&mut self.account_name);
                 self.accounts.save(&self.file_path);
             }
-            Message::ProjectMonths => match self.project_months_str.parse() {
-                Ok(i) => {
-                    self.project_months = i;
-                    self.error_str = String::new();
-                }
-                Err(err) => {
-                    let mut msg = "Parse Project Months error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    self.error_str = msg;
-                }
-            },
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
