@@ -61,7 +61,7 @@ impl From<Transaction> for TransactionMonthly {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TransactionToSubmit {
-    pub amount: String,
+    pub amount: Option<Decimal>,
     pub comment: String,
     pub date: String,
 }
@@ -69,7 +69,7 @@ pub struct TransactionToSubmit {
 impl TransactionToSubmit {
     pub fn new() -> Self {
         Self {
-            amount: String::new(),
+            amount: None,
             comment: String::new(),
             date: String::new(),
         }

@@ -225,7 +225,15 @@ impl Sandbox for App {
             }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
-            Message::ChangeTx(tx) => self.accounts[selected_account.unwrap()].tx.amount = tx,
+            Message::ChangeTx(tx) => {
+                if tx.is_empty() {
+                    self.accounts[selected_account.unwrap()].tx.amount = None; 
+                }
+                match tx.parse() {
+                    Ok(amount) => self.accounts[selected_account.unwrap()].tx.amount = Some(amount),
+                    Err(_) => {},
+                }
+            }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
                 self.accounts[selected_account.unwrap()].tx.comment = comment;

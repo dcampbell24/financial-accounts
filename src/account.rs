@@ -1,7 +1,7 @@
 //! A financial account.
 
 use chrono::{DateTime, Datelike, LocalResult, Months, NaiveDate, TimeZone, Utc};
-use iced::widget::{button, column, row, text, text_input, Scrollable};
+use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -46,6 +46,13 @@ impl Account {
         }
     }
 
+    fn amount_view(&self) -> TextInput<Message> {
+        match &self.tx.amount {
+            Some(amount) => text_input("Amount", &amount.to_string()).on_input(Message::ChangeTx),
+            None => text_input("Amount", "").on_input(Message::ChangeTx),
+        }
+    }
+
     pub fn list_transactions(&self) -> Scrollable<Message> {
         let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
             .padding(PADDING)
@@ -82,7 +89,7 @@ impl Account {
         let rows = row![col_1, col_2, col_3, col_4];
 
         let row = row![
-            text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            self.amount_view(),
             text(" "),
             text_input("Date", &self.tx.date).on_input(Message::ChangeDate),
             text(" "),
@@ -134,7 +141,7 @@ impl Account {
         let rows = row![col_1, col_2, col_3];
 
         let row = row![
-            text_input("Amount", &self.tx.amount).on_input(Message::ChangeTx),
+            self.amount_view(),
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
@@ -185,14 +192,11 @@ impl Account {
     }
 
     pub fn submit_tx(&self) -> Result<Transaction, String> {
-        let amount = match Decimal::from_str_exact(&self.tx.amount) {
-            Ok(tx) => tx,
-            Err(err) => {
-                let mut msg = "Parse Amount error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
+        let amount = match self.tx.amount {
+            Some(tx) => tx,
+            None => { return Err(String::new()); },
         };
+
         let mut date = Utc::now();
         if !self.tx.date.is_empty() {
             match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
