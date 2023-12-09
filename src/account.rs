@@ -162,7 +162,6 @@ impl Account {
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
             button("Back").on_press(Message::Back),
-            text(&self.error_str).size(TEXT_SIZE),
         ];
 
         Scrollable::new(col)
