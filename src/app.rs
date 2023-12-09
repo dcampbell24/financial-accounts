@@ -236,7 +236,7 @@ impl Sandbox for App {
             }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account.unwrap()].tx.comment = comment;
+                self.accounts[selected_account.unwrap()].tx.comment = comment.trim().to_string();
             }
             Message::ChangeFilterDateYear(date) => {
                 self.accounts[selected_account.unwrap()].filter_date_year = date;
