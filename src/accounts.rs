@@ -121,14 +121,14 @@ impl Accounts {
         total
     }
 
-    pub fn save_first(&self, file_path: &PathBuf) {
-        let j = serde_json::to_string_pretty(self).unwrap();
+    pub fn save_first(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
+        let j = serde_json::to_string_pretty(self)?;
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(file_path)
-            .unwrap();
-        file.write_all(j.as_bytes()).unwrap()
+            .open(file_path)?;
+        file.write_all(j.as_bytes())?;
+        Ok(())
     }
 
     pub fn save(&self, file_path: &PathBuf) {

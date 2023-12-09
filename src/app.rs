@@ -165,7 +165,9 @@ impl Sandbox for App {
         if let Some(arg) = args.new {
             let path_buf = PathBuf::from(arg);
             let accounts = Accounts::empty_accounts();
-            accounts.save_first(&path_buf);
+            accounts
+                .save_first(&path_buf)
+                .unwrap_or_else(|err| panic!("error creating {:?}: {}", &path_buf, err));
             return App::new(accounts, &path_buf, screen);
         }
 
@@ -185,12 +187,16 @@ impl Sandbox for App {
 
         match message {
             Message::NewFile(mut file) => {
+                let mut file_path = self.file_picker.current.clone();
                 file.set_extension("json");
-                self.file_picker.current.push(file);
+                file_path.push(file);
                 let accounts = Accounts::empty_accounts();
-                accounts.save_first(&self.file_picker.current);
+                if let Err(err) = accounts.save_first(&file_path) {
+                    self.file_picker.error = format!("error creating {:?}: {}", &file_path, err);
+                    return;
+                }
                 self.accounts = accounts;
-                self.file_path = self.file_picker.current.clone();
+                self.file_path = file_path;
                 self.screen = Screen::Accounts;
             }
             Message::LoadFile(file) => {
