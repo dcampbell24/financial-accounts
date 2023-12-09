@@ -210,7 +210,7 @@ impl Sandbox for App {
                         self.screen = Screen::Accounts;
                     }
                     Err(err) => {
-                        self.file_picker.error = format!("{:?}", err);
+                        self.file_picker.error = format!("error loading {:?}: {}", &file, err);
                     }
                 }
             }
