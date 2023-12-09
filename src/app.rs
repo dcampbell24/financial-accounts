@@ -316,16 +316,8 @@ impl Sandbox for App {
             }
             Message::SubmitFilterDate => {
                 let account = &mut self.accounts[selected_account.unwrap()];
-                match account.submit_filter_date() {
-                    Ok(date) => {
-                        account.filter_date = date;
-                        account.error_str = String::new();
-                    }
-                    Err(err) => {
-                        account.filter_date = None;
-                        account.error_str = err;
-                    }
-                }
+                account.filter_date = account.submit_filter_date();
+                account.error_str = String::new();
             }
         }
     }

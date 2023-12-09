@@ -1,6 +1,6 @@
 //! A financial account.
 
-use chrono::{DateTime, Datelike, LocalResult, Months, NaiveDate, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -172,24 +172,16 @@ impl Account {
         Scrollable::new(col)
     }
 
-    pub fn submit_filter_date(&self) -> Result<Option<DateTime<Utc>>, String> {
-        let mut _year = 0;
-        let mut _month = 0;
-
-        match self.filter_date_year {
-            Some(year) => _year = year,
-            None => return Ok(None),
-        }
-        match self.filter_date_month {
-            Some(month) => _month = month,
-            None => return Ok(None),
-        }
-        match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
-            LocalResult::None | LocalResult::Ambiguous(_, _) => {
-                Err("Filter Date error: invalid string passed".to_string())
-            }
-            LocalResult::Single(date) => Ok(Some(date)),
-        }
+    pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
+        let year = match self.filter_date_year {
+            Some(year) => year,
+            None => return None,
+        };
+        let month = match self.filter_date_month {
+            Some(month) => month,
+            None => return None,
+        };
+        Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
     pub fn submit_tx(&self) -> Result<Transaction, String> {
