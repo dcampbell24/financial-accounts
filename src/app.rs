@@ -156,7 +156,8 @@ impl Sandbox for App {
 
         if let Some(arg) = args.load {
             let path_buf = PathBuf::from(arg);
-            let mut accounts = Accounts::load(&path_buf).unwrap();
+            let mut accounts = Accounts::load(&path_buf)
+                .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
             accounts.check_monthly();
             accounts.save(&path_buf);
             return App::new(accounts, &path_buf, screen);
