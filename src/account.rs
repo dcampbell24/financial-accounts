@@ -27,7 +27,7 @@ pub struct Account {
     #[serde(skip)]
     pub filter_date_year: String,
     #[serde(skip)]
-    pub filter_date_month: String,
+    pub filter_date_month: Option<u32>,
     #[serde(skip)]
     pub error_str: String,
 }
@@ -41,7 +41,7 @@ impl Account {
             monthly: Vec::new(),
             filter_date: None,
             filter_date_year: String::new(),
-            filter_date_month: String::new(),
+            filter_date_month: None,
             error_str: String::new(),
         }
     }
@@ -99,10 +99,16 @@ impl Account {
             text(" ".repeat(EDGE_PADDING)),
         ];
 
+        let mut month = match &self.filter_date_month {
+            Some(month) => text_input("Month", &month.to_string()),
+            None => text_input("Month", ""),
+        };
+        month = month.on_input(Message::ChangeFilterDateMonth);
+
         let filter_date = row![
             text_input("Year", &self.filter_date_year).on_input(Message::ChangeFilterDateYear),
             text(" "),
-            text_input("Month", &self.filter_date_month).on_input(Message::ChangeFilterDateMonth),
+            month,
             text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
             text(" ".repeat(EDGE_PADDING)),
@@ -166,7 +172,7 @@ impl Account {
         let mut _year = 0;
         let mut _month = 0;
 
-        if self.filter_date_year.is_empty() && self.filter_date_month.is_empty() {
+        if self.filter_date_year.is_empty() && self.filter_date_month.is_none() {
             return Ok(None);
         }
         match self.filter_date_year.parse::<i32>() {
@@ -177,13 +183,9 @@ impl Account {
                 return Err(msg);
             }
         }
-        match self.filter_date_month.parse::<u32>() {
-            Ok(month_input) => _month = month_input,
-            Err(err) => {
-                let mut msg = "Parse Month error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
+        match self.filter_date_month {
+            Some(month) => _month = month,
+            None => return Ok(None),
         }
         match TimeZone::with_ymd_and_hms(&Utc, _year, _month, 1, 0, 0, 0) {
             LocalResult::None | LocalResult::Ambiguous(_, _) => {

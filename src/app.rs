@@ -242,7 +242,14 @@ impl Sandbox for App {
                 self.accounts[selected_account.unwrap()].filter_date_year = date;
             }
             Message::ChangeFilterDateMonth(date) => {
-                self.accounts[selected_account.unwrap()].filter_date_month = date;
+                if date.is_empty() {
+                    self.accounts[selected_account.unwrap()].filter_date_month = None;
+                }
+                if let Ok(date) = date.parse() {
+                    if date > 0 && date < 13 {
+                        self.accounts[selected_account.unwrap()].filter_date_month = Some(date)
+                    }
+                }
             }
             Message::ChangeProjectMonths(months) => {
                 if months.is_empty() {
