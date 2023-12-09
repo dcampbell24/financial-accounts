@@ -194,7 +194,9 @@ impl Account {
     pub fn submit_tx(&self) -> Result<Transaction, String> {
         let amount = match self.tx.amount {
             Some(tx) => tx,
-            None => { return Err(String::new()); },
+            None => {
+                return Err(String::new());
+            }
         };
 
         let mut date = Utc::now();

@@ -51,9 +51,9 @@ impl App {
     }
 
     pub fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
-            self.accounts = accounts;
-            self.file_path = file_path;
-            self.screen = screen;
+        self.accounts = accounts;
+        self.file_path = file_path;
+        self.screen = screen;
     }
 
     #[rustfmt::skip]
@@ -206,18 +206,16 @@ impl Sandbox for App {
                 }
                 self.new_(accounts, file_path, Screen::Accounts);
             }
-            Message::LoadFile(file_path) => {
-                match Accounts::load(&file_path) {
-                    Ok(mut accounts) => {
-                        accounts.check_monthly();
-                        accounts.save(&file_path);
-                        self.new_(accounts, file_path, Screen::Accounts);
-                    }
-                    Err(err) => {
-                        self.file_picker.error = format!("error loading {:?}: {}", &file_path, err);
-                    }
+            Message::LoadFile(file_path) => match Accounts::load(&file_path) {
+                Ok(mut accounts) => {
+                    accounts.check_monthly();
+                    accounts.save(&file_path);
+                    self.new_(accounts, file_path, Screen::Accounts);
                 }
-            }
+                Err(err) => {
+                    self.file_picker.error = format!("error loading {:?}: {}", &file_path, err);
+                }
+            },
             Message::ChangeDir(path_buf) => {
                 self.file_picker.current = path_buf;
                 self.file_picker.error = String::new();
@@ -230,11 +228,10 @@ impl Sandbox for App {
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
             Message::ChangeTx(tx) => {
                 if tx.is_empty() {
-                    self.accounts[selected_account.unwrap()].tx.amount = None; 
+                    self.accounts[selected_account.unwrap()].tx.amount = None;
                 }
-                match tx.parse() {
-                    Ok(amount) => self.accounts[selected_account.unwrap()].tx.amount = Some(amount),
-                    Err(_) => {},
+                if let Ok(amount) = tx.parse() {
+                    self.accounts[selected_account.unwrap()].tx.amount = Some(amount);
                 }
             }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
