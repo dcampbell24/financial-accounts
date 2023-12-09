@@ -109,6 +109,7 @@ impl Account {
         ];
 
         let col = column![
+            row![text(&self.name).size(TEXT_SIZE)],
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
@@ -150,6 +151,7 @@ impl Account {
         ];
 
         let col = column![
+            row![text(&self.name).size(TEXT_SIZE)],
             rows,
             text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
