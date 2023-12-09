@@ -5,6 +5,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
@@ -12,7 +13,7 @@ use std::path::PathBuf;
 use std::{u64, usize};
 
 use crate::account::Account;
-use crate::error::Error;
+// use crate::error::Error;
 use crate::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -136,11 +137,12 @@ impl Accounts {
         file.write_all(j.as_bytes()).unwrap()
     }
 
-    pub fn load(file_path: &PathBuf) -> Result<Self, Error> {
+    pub fn load(file_path: &PathBuf) -> Result<Self, Box<dyn Error>> {
         let mut buf = String::new();
         let mut file = File::open(file_path)?;
         file.read_to_string(&mut buf)?;
-        serde_json::from_str(&buf).map_err(|_| Error::Err("bad json".to_string()))
+        let accounts = serde_json::from_str(&buf)?;
+        Ok(accounts)
     }
 }
 
