@@ -239,14 +239,21 @@ impl Sandbox for App {
                 self.accounts[selected_account.unwrap()].tx.comment = comment.trim().to_string();
             }
             Message::ChangeFilterDateYear(date) => {
-                self.accounts[selected_account.unwrap()].filter_date_year = date;
+                if date.is_empty() {
+                    self.accounts[selected_account.unwrap()].filter_date_year = None;
+                }
+                if let Ok(date) = date.parse() {
+                    if (0..3_000).contains(&date) {
+                        self.accounts[selected_account.unwrap()].filter_date_year = Some(date)
+                    }
+                }
             }
             Message::ChangeFilterDateMonth(date) => {
                 if date.is_empty() {
                     self.accounts[selected_account.unwrap()].filter_date_month = None;
                 }
                 if let Ok(date) = date.parse() {
-                    if date > 0 && date < 13 {
+                    if (1..13).contains(&date) {
                         self.accounts[selected_account.unwrap()].filter_date_month = Some(date)
                     }
                 }

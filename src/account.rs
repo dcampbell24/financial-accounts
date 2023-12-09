@@ -25,7 +25,7 @@ pub struct Account {
     #[serde(skip)]
     pub filter_date: Option<DateTime<Utc>>,
     #[serde(skip)]
-    pub filter_date_year: String,
+    pub filter_date_year: Option<i32>,
     #[serde(skip)]
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
@@ -40,7 +40,7 @@ impl Account {
             data: Vec::new(),
             monthly: Vec::new(),
             filter_date: None,
-            filter_date_year: String::new(),
+            filter_date_year: None,
             filter_date_month: None,
             error_str: String::new(),
         }
@@ -99,6 +99,11 @@ impl Account {
             text(" ".repeat(EDGE_PADDING)),
         ];
 
+        let mut year = match &self.filter_date_year {
+            Some(year) => text_input("Year", &year.to_string()),
+            None => text_input("Year", ""),
+        };
+        year = year.on_input(Message::ChangeFilterDateYear);
         let mut month = match &self.filter_date_month {
             Some(month) => text_input("Month", &month.to_string()),
             None => text_input("Month", ""),
@@ -106,7 +111,7 @@ impl Account {
         month = month.on_input(Message::ChangeFilterDateMonth);
 
         let filter_date = row![
-            text_input("Year", &self.filter_date_year).on_input(Message::ChangeFilterDateYear),
+            year,
             text(" "),
             month,
             text(" "),
@@ -171,16 +176,9 @@ impl Account {
         let mut _year = 0;
         let mut _month = 0;
 
-        if self.filter_date_year.is_empty() && self.filter_date_month.is_none() {
-            return Ok(None);
-        }
-        match self.filter_date_year.parse::<i32>() {
-            Ok(year_input) => _year = year_input,
-            Err(err) => {
-                let mut msg = "Parse Year error: ".to_string();
-                msg.push_str(&err.to_string());
-                return Err(msg);
-            }
+        match self.filter_date_year {
+            Some(year) => _year = year,
+            None => return Ok(None),
         }
         match self.filter_date_month {
             Some(month) => _month = month,
