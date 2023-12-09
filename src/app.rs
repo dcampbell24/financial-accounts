@@ -193,6 +193,9 @@ impl Sandbox for App {
 
         match message {
             Message::NewFile(mut file) => {
+                if file.as_os_str().is_empty() {
+                    return;
+                }
                 let mut file_path = self.file_picker.current.clone();
                 file.set_extension("json");
                 file_path.push(file);
@@ -220,7 +223,7 @@ impl Sandbox for App {
                 self.file_picker.error = String::new();
             }
             Message::ChangeFileName(file) => {
-                self.file_picker.filename = file;
+                self.file_picker.filename = file.trim().to_string();
                 self.file_picker.error = String::new();
             }
             Message::Back => self.screen = Screen::Accounts,
