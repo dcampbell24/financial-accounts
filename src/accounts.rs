@@ -13,7 +13,6 @@ use std::path::PathBuf;
 use std::{u64, usize};
 
 use crate::account::Account;
-// use crate::error::Error;
 use crate::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -59,7 +58,7 @@ impl Accounts {
         }
     }
 
-    pub fn project_months(&self, months: Option<u64>) -> Decimal {
+    pub fn project_months(&self, months: Option<u16>) -> Decimal {
         match months {
             Some(months) => self.total() + self.total_for_months(months),
             None => self.total(),
@@ -75,7 +74,7 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_months(&self, project_months: u64) -> Decimal {
+    pub fn total_for_months(&self, project_months: u16) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             let sum = account.sum_monthly();

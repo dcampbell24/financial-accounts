@@ -34,7 +34,7 @@ pub struct App {
     file_path: PathBuf,
     file_picker: FilePicker,
     account_name: String,
-    project_months: Option<u64>,
+    project_months: Option<u16>,
     screen: Screen,
 }
 
