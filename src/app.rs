@@ -50,6 +50,12 @@ impl App {
         }
     }
 
+    pub fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
+            self.accounts = accounts;
+            self.file_path = file_path;
+            self.screen = screen;
+    }
+
     #[rustfmt::skip]
     pub fn list_accounts(&self) -> Scrollable<Message> {
         let mut col_0 = column![text(" Account ").size(TEXT_SIZE)];
@@ -195,22 +201,17 @@ impl Sandbox for App {
                     self.file_picker.error = format!("error creating {:?}: {}", &file_path, err);
                     return;
                 }
-                self.accounts = accounts;
-                self.file_path = file_path;
-                self.screen = Screen::Accounts;
+                self.new_(accounts, file_path, Screen::Accounts);
             }
-            Message::LoadFile(file) => {
-                let accounts = Accounts::load(&file);
-                match accounts {
+            Message::LoadFile(file_path) => {
+                match Accounts::load(&file_path) {
                     Ok(mut accounts) => {
                         accounts.check_monthly();
-                        accounts.save(&file);
-                        self.accounts = accounts;
-                        self.file_path = file;
-                        self.screen = Screen::Accounts;
+                        accounts.save(&file_path);
+                        self.new_(accounts, file_path, Screen::Accounts);
                     }
                     Err(err) => {
-                        self.file_picker.error = format!("error loading {:?}: {}", &file, err);
+                        self.file_picker.error = format!("error loading {:?}: {}", &file_path, err);
                     }
                 }
             }
