@@ -39,10 +39,10 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(accounts: Accounts, file_path: &PathBuf, screen: Screen) -> Self {
+    pub fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
         App {
             accounts,
-            file_path: file_path.to_owned(),
+            file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
             project_months: None,
@@ -160,7 +160,7 @@ impl Sandbox for App {
                 .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
             accounts.check_monthly();
             accounts.save(&path_buf);
-            return App::new(accounts, &path_buf, screen);
+            return App::new(accounts, path_buf, screen);
         }
         if let Some(arg) = args.new {
             let path_buf = PathBuf::from(arg);
@@ -168,13 +168,13 @@ impl Sandbox for App {
             accounts
                 .save_first(&path_buf)
                 .unwrap_or_else(|err| panic!("error creating {:?}: {}", &path_buf, err));
-            return App::new(accounts, &path_buf, screen);
+            return App::new(accounts, path_buf, screen);
         }
 
         let path_buf = PathBuf::new();
         let accounts = Accounts::empty_accounts();
         let screen = Screen::NewOrLoadFile;
-        App::new(accounts, &path_buf, screen)
+        App::new(accounts, path_buf, screen)
     }
 
     fn title(&self) -> String {
