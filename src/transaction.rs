@@ -59,7 +59,7 @@ impl From<Transaction> for TransactionMonthly {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct TransactionToSubmit {
     pub amount: Option<Decimal>,
     pub comment: String,
