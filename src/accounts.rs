@@ -22,7 +22,7 @@ pub struct Accounts {
     pub inner: Vec<Account>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub enum Screen {
     NewOrLoadFile,
     Accounts,
