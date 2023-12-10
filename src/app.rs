@@ -83,7 +83,11 @@ impl App {
             col_5 = col_5.push(row![text(total.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
             col_6 = col_6.push(row![button("Tx").on_press(Message::SelectAccount(i))].padding(PADDING));
             col_7 = col_7.push(row![button("Monthly Tx").on_press(Message::SelectMonthly(i))].padding(PADDING));
-            col_8 = col_8.push(row![button("Update Name").on_press(Message::UpdateAccount(i))].padding(PADDING));
+            let mut update_name = button("Update Name");
+            if !self.account_name.is_empty() {
+                update_name = update_name.on_press(Message::UpdateAccount(i));
+            }
+            col_8 = col_8.push(row![update_name].padding(PADDING));
             col_9 = col_9.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
