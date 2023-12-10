@@ -3,13 +3,12 @@ use iced::{
     Color,
 };
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 
 use std::{fs, path::PathBuf};
 
 use crate::{message::Message, PADDING};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct FilePicker {
     pub current: PathBuf,
     pub filename: String,
