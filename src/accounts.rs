@@ -51,7 +51,7 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
-    pub fn empty_accounts() -> Self {
+    pub fn new() -> Self {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
