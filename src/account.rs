@@ -89,6 +89,10 @@ impl Account {
 
         let rows = row![col_1, col_2, col_3, col_4];
 
+        let mut add = button("Add");
+        if !self.tx.amount.is_none() {
+            add = add.on_press(Message::SubmitTx);
+        }
         let row = row![
             self.amount_view(),
             text(" "),
@@ -96,7 +100,7 @@ impl Account {
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
-            button("Add").on_press(Message::SubmitTx),
+            add,
             text(" ".repeat(EDGE_PADDING)),
         ];
 
@@ -153,12 +157,16 @@ impl Account {
 
         let rows = row![col_1, col_2, col_3];
 
+        let mut add = button("Add");
+        if !self.tx.amount.is_none() {
+            add = add.on_press(Message::SubmitTx);
+        }
         let row = row![
             self.amount_view(),
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
-            button("Add").on_press(Message::SubmitTx),
+            add,
             text(" ".repeat(EDGE_PADDING)),
         ];
 
@@ -186,12 +194,7 @@ impl Account {
     }
 
     pub fn submit_tx(&self) -> Result<Transaction, String> {
-        let amount = match self.tx.amount {
-            Some(tx) => tx,
-            None => {
-                return Err(String::new());
-            }
-        };
+        let amount = self.tx.amount.unwrap();
 
         let mut date = Utc::now();
         if !self.tx.date.is_empty() {
