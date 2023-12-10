@@ -47,10 +47,11 @@ impl Account {
     }
 
     fn amount_view(&self) -> TextInput<Message> {
-        match &self.tx.amount {
-            Some(amount) => text_input("Amount", &amount.to_string()).on_input(Message::ChangeTx),
-            None => text_input("Amount", "").on_input(Message::ChangeTx),
-        }
+        let amount = match &self.tx.amount {
+            Some(amount) => text_input("Amount", &amount.to_string()),
+            None => text_input("Amount", ""),
+        };
+        amount.on_input(Message::ChangeTx)
     }
 
     pub fn list_transactions(&self) -> Scrollable<Message> {
