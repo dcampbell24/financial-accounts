@@ -13,6 +13,7 @@ pub struct FilePicker {
     pub current: PathBuf,
     pub filename: String,
     pub error: String,
+    show_hidden_files: bool,
 }
 
 impl FilePicker {
@@ -26,6 +27,7 @@ impl FilePicker {
             current: path,
             filename: String::new(),
             error: String::new(),
+            show_hidden_files: false,
         }
     }
 
@@ -70,7 +72,7 @@ impl FilePicker {
             let file_name = dir.file_name();
             let file_name = match file_name.into_string() {
                 Ok(s) => {
-                    if s.starts_with('.') {
+                    if !self.show_hidden_files && s.starts_with('.') {
                         continue;
                     }
                     s
