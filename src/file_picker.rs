@@ -46,7 +46,7 @@ impl FilePicker {
             row![
                 text_input("filename", &self.filename)
                     .on_input(Message::ChangeFileName)
-                    .on_submit(Message::NewFile(PathBuf::from(self.filename.clone()))),
+                    .on_submit(Message::NewFile(PathBuf::from(&self.filename))),
                 text(".json")
             ]
             .padding(PADDING),
