@@ -90,7 +90,7 @@ impl Account {
         let rows = row![col_1, col_2, col_3, col_4];
 
         let mut add = button("Add");
-        if !self.tx.amount.is_none() {
+        if self.tx.amount.is_some() {
             add = add.on_press(Message::SubmitTx);
         }
         let row = row![
@@ -158,7 +158,7 @@ impl Account {
         let rows = row![col_1, col_2, col_3];
 
         let mut add = button("Add");
-        if !self.tx.amount.is_none() {
+        if self.tx.amount.is_some() {
             add = add.on_press(Message::SubmitTx);
         }
         let row = row![

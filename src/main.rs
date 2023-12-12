@@ -6,7 +6,7 @@ mod message;
 mod transaction;
 
 use app::App;
-use iced::Sandbox;
+use iced::Application;
 
 /// The size of padding.
 const PADDING: u16 = 1;

@@ -2,8 +2,11 @@ use std::{mem, path::PathBuf};
 
 use clap::{command, Parser};
 use iced::{
+    executor,
+    keyboard::{self, KeyCode, Modifiers},
+    subscription,
     widget::{button, column, row, text, text_input, Scrollable},
-    Alignment, Element, Sandbox,
+    Alignment, Application, Command, Element, Event, Theme,
 };
 use thousands::Separable;
 
@@ -157,10 +160,13 @@ impl App {
     }
 }
 
-impl Sandbox for App {
+impl Application for App {
     type Message = Message;
+    type Theme = Theme;
+    type Executor = executor::Default;
+    type Flags = ();
 
-    fn new() -> Self {
+    fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
         let args = Args::parse();
 
         if let Some(arg) = args.load {
@@ -169,7 +175,10 @@ impl Sandbox for App {
                 .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
             accounts.check_monthly();
             accounts.save(&path_buf);
-            return App::new(accounts, path_buf, Screen::Accounts);
+            return (
+                App::new(accounts, path_buf, Screen::Accounts),
+                Command::none(),
+            );
         }
         if let Some(arg) = args.new {
             let path_buf = PathBuf::from(arg);
@@ -177,24 +186,30 @@ impl Sandbox for App {
             accounts
                 .save_first(&path_buf)
                 .unwrap_or_else(|err| panic!("error creating {:?}: {}", &path_buf, err));
-            return App::new(accounts, path_buf, Screen::Accounts);
+            return (
+                App::new(accounts, path_buf, Screen::Accounts),
+                Command::none(),
+            );
         }
 
-        App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile)
+        (
+            App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
         String::from("Fin Stat")
     }
 
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> Command<Message> {
         let list_monthly = self.list_monthly();
         let selected_account = self.selected_account();
 
         match message {
             Message::NewFile(mut file) => {
                 if file.as_os_str().is_empty() {
-                    return;
+                    return Command::none();
                 }
                 let mut file_path = self.file_picker.current.clone();
                 file.set_extension("json");
@@ -202,7 +217,7 @@ impl Sandbox for App {
                 let accounts = Accounts::new();
                 if let Err(err) = accounts.save_first(&file_path) {
                     self.file_picker.error = format!("error creating {:?}: {}", &file_path, err);
-                    return;
+                    return Command::none();
                 }
                 self.new_(accounts, file_path, Screen::Accounts);
             }
@@ -223,6 +238,9 @@ impl Sandbox for App {
             Message::ChangeFileName(file) => {
                 self.file_picker.filename = file.trim().to_string();
                 self.file_picker.error = String::new();
+            }
+            Message::HiddenFilesToggle => {
+                self.file_picker.show_hidden_files = !self.file_picker.show_hidden_files;
             }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
@@ -320,6 +338,7 @@ impl Sandbox for App {
                 account.error_str = String::new();
             }
         }
+        Command::none()
     }
 
     fn view(&self) -> Element<Message> {
@@ -329,5 +348,21 @@ impl Sandbox for App {
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
         }
+    }
+
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        subscription::events_with(|event, _status| {
+            let mut subscription = None;
+            if let Event::Keyboard(keyboard::Event::KeyPressed {
+                key_code,
+                modifiers,
+            }) = event
+            {
+                if key_code == KeyCode::H && modifiers == Modifiers::CTRL {
+                    subscription = Some(Message::HiddenFilesToggle);
+                }
+            }
+            subscription
+        })
     }
 }

@@ -8,6 +8,7 @@ pub enum Message {
     LoadFile(PathBuf),
     ChangeDir(PathBuf),
     ChangeFileName(String),
+    HiddenFilesToggle,
     Back,
     ChangeAccountName(String),
     ChangeTx(String),

@@ -13,7 +13,7 @@ pub struct FilePicker {
     pub current: PathBuf,
     pub filename: String,
     pub error: String,
-    show_hidden_files: bool,
+    pub show_hidden_files: bool,
 }
 
 impl FilePicker {
@@ -89,10 +89,8 @@ impl FilePicker {
                 );
             } else if file_type.is_dir() {
                 col = col.push(
-                    row![
-                        button(text(&file_name)).on_press(Message::ChangeDir(file_path))
-                    ]
-                    .padding(PADDING),
+                    row![button(text(&file_name)).on_press(Message::ChangeDir(file_path))]
+                        .padding(PADDING),
                 );
             } else if file_type.is_symlink() {
                 let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
