@@ -6,7 +6,7 @@ use regex::Regex;
 
 use std::{fs, path::PathBuf};
 
-use crate::{message::Message, PADDING};
+use crate::app::{Message, PADDING};
 
 #[derive(Clone, Debug)]
 pub struct FilePicker {

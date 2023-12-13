@@ -1,3 +1,5 @@
+pub mod account;
+
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -10,22 +12,14 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 use std::{u64, usize};
 
-use crate::account::Account;
-use crate::transaction::Transaction;
+use crate::app::accounts::account::Account;
+use crate::app::accounts::account::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
-}
-
-#[derive(Clone, Debug)]
-pub enum Screen {
-    NewOrLoadFile,
-    Accounts,
-    Account(usize),
-    Monthly(usize),
 }
 
 impl Accounts {

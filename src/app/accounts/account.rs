@@ -1,3 +1,5 @@
+pub mod transaction;
+
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
 use rust_decimal::Decimal;
@@ -5,9 +7,9 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
-use crate::{
-    message::Message,
-    transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
+use crate::app::{
+    Message,
+    accounts::account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
     EDGE_PADDING, PADDING, TEXT_SIZE,
 };
 

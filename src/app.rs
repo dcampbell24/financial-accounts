@@ -1,3 +1,8 @@
+mod accounts;
+mod file_picker;
+mod message;
+mod screen;
+
 use std::{mem, path::PathBuf};
 
 use clap::{command, Parser};
@@ -10,14 +15,17 @@ use iced::{
 };
 use thousands::Separable;
 
-use crate::{
-    account::Account,
-    accounts::{Accounts, Screen},
+use crate::app::{
+    accounts::{account::Account, Accounts},
+    accounts::account::transaction::{TransactionMonthly, TransactionToSubmit},
     file_picker::FilePicker,
     message::Message,
-    transaction::{TransactionMonthly, TransactionToSubmit},
-    EDGE_PADDING, PADDING, TEXT_SIZE,
+    screen::Screen,
 };
+
+const PADDING: u16 = 1;
+const EDGE_PADDING: usize = 4;
+const TEXT_SIZE: u16 = 24;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
