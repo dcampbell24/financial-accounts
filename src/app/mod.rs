@@ -1,3 +1,4 @@
+mod account;
 mod accounts;
 mod file_picker;
 mod message;
@@ -16,8 +17,9 @@ use iced::{
 use thousands::Separable;
 
 use crate::app::{
-    accounts::{account::Account, Accounts},
-    accounts::account::transaction::{TransactionMonthly, TransactionToSubmit},
+    account::transaction::{TransactionMonthly, TransactionToSubmit},
+    account::Account,
+    accounts::Accounts,
     file_picker::FilePicker,
     message::Message,
     screen::Screen,

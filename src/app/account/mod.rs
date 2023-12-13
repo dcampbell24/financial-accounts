@@ -8,9 +8,8 @@ use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use crate::app::{
-    Message,
-    accounts::account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    EDGE_PADDING, PADDING, TEXT_SIZE,
+    account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
+    Message, EDGE_PADDING, PADDING, TEXT_SIZE,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
