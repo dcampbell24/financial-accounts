@@ -1,5 +1,3 @@
-//! The messages that can be passed to iced.
-
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]

@@ -31,6 +31,7 @@ struct Args {
     new: Option<String>,
 }
 
+/// The fin-stat application.
 #[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
@@ -42,7 +43,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
+    fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
         App {
             accounts,
             file_path,
@@ -53,14 +54,14 @@ impl App {
         }
     }
 
-    pub fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
+    fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
         self.accounts = accounts;
         self.file_path = file_path;
         self.screen = screen;
     }
 
     #[rustfmt::skip]
-    pub fn list_accounts(&self) -> Scrollable<Message> {
+    fn list_accounts(&self) -> Scrollable<Message> {
         let mut col_0 = column![text(" Account ").size(TEXT_SIZE)];
         let mut col_1 = column![text(" Current Month ").size(TEXT_SIZE)].align_items(Alignment::End);
         let mut col_2 = column![text(" Last Month ").size(TEXT_SIZE)].align_items(Alignment::End);
@@ -145,14 +146,14 @@ impl App {
         Scrollable::new(cols)
     }
 
-    pub fn selected_account(&self) -> Option<usize> {
+    fn selected_account(&self) -> Option<usize> {
         match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
             Screen::Account(account) | Screen::Monthly(account) => Some(account),
         }
     }
 
-    pub fn list_monthly(&self) -> bool {
+    fn list_monthly(&self) -> bool {
         match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
             Screen::Monthly(_) => true,

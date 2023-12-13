@@ -1,5 +1,3 @@
-//! All of the financial accounts owned by an entity.
-
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;

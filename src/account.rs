@@ -1,5 +1,3 @@
-//! A financial account.
-
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
 use rust_decimal::Decimal;
