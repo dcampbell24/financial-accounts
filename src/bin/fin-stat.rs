@@ -1,8 +1,7 @@
 use fin_stat::app::App;
 use iced::Application;
 
-/// Runs the Fin Stat application.
-pub fn main() -> Result<(), iced::Error> {
+fn main() -> Result<(), iced::Error> {
     App::run(iced::Settings {
         window: iced::window::Settings {
             size: (1280, 720),
