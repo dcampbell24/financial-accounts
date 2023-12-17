@@ -190,6 +190,10 @@ impl FilePicker {
         }
         Ok(col)
     }
+
+    pub fn show_hidden_files_toggle(&mut self) {
+        self.show_hidden_files = !self.show_hidden_files;
+    }
 }
 
 struct GreenButton;
