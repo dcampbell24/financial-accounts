@@ -1,5 +1,7 @@
 pub mod transaction;
 
+use std::mem::take;
+
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
 use rust_decimal::Decimal;
@@ -12,11 +14,15 @@ use crate::app::{
     Message, EDGE_PADDING, PADDING, TEXT_SIZE,
 };
 
+use self::transaction::TransactionMonthlyToSubmit;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
     #[serde(skip)]
     pub tx: TransactionToSubmit,
+    #[serde(skip)]
+    pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
     pub data: Vec<Transaction>,
     #[serde(rename = "monthly_transactions")]
@@ -36,6 +42,7 @@ impl Account {
         Account {
             name,
             tx: TransactionToSubmit::new(),
+            tx_monthly: TransactionMonthlyToSubmit::new(),
             data: Vec::new(),
             monthly: Vec::new(),
             filter_date: None,
@@ -156,12 +163,17 @@ impl Account {
 
         let rows = row![col_1, col_2, col_3];
 
+        let mut amount = match &self.tx_monthly.amount {
+            Some(amount) => text_input("Amount", &amount.to_string()),
+            None => text_input("Amount", ""),
+        };
+        amount = amount.on_input(Message::ChangeTx);
         let mut add = button("Add");
-        if self.tx.amount.is_some() {
+        if self.tx_monthly.amount.is_some() {
             add = add.on_press(Message::SubmitTx);
         }
         let row = row![
-            self.amount_view(),
+            amount,
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
@@ -214,6 +226,15 @@ impl Account {
             comment: self.tx.comment.clone(),
             date,
         })
+    }
+
+    pub fn submit_tx_monthly(&mut self) {
+        let tx = take(&mut self.tx_monthly);
+        let tx = TransactionMonthly {
+            amount: tx.amount.unwrap(),
+            comment: tx.comment,
+        };
+        self.monthly.push(tx);
     }
 
     pub fn sum(&self) -> Decimal {

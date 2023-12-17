@@ -17,7 +17,7 @@ use iced::{
 use thousands::Separable;
 
 use crate::app::{
-    account::transaction::{TransactionMonthly, TransactionToSubmit},
+    account::transaction::TransactionToSubmit,
     account::Account,
     accounts::Accounts,
     file_picker::FilePicker,
@@ -256,11 +256,20 @@ impl Application for App {
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
             Message::ChangeTx(tx) => {
-                if tx.is_empty() {
-                    self.accounts[selected_account.unwrap()].tx.amount = None;
-                }
-                if let Ok(amount) = tx.parse() {
-                    self.accounts[selected_account.unwrap()].tx.amount = Some(amount);
+                if list_monthly {
+                    if tx.is_empty() {
+                        self.accounts[selected_account.unwrap()].tx_monthly.amount = None;
+                    }
+                    if let Ok(amount) = tx.parse() {
+                        self.accounts[selected_account.unwrap()].tx_monthly.amount = Some(amount);
+                    }
+                } else {
+                    if tx.is_empty() {
+                        self.accounts[selected_account.unwrap()].tx.amount = None;
+                    }
+                    if let Ok(amount) = tx.parse() {
+                        self.accounts[selected_account.unwrap()].tx.amount = Some(amount);
+                    }
                 }
             }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
@@ -326,20 +335,21 @@ impl Application for App {
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account.unwrap()];
-                match account.submit_tx() {
-                    Ok(tx) => {
-                        if list_monthly {
-                            account.monthly.push(TransactionMonthly::from(tx));
-                        } else {
+
+                if list_monthly {
+                    account.submit_tx_monthly();
+                } else {
+                    match account.submit_tx() {
+                        Ok(tx) => {
                             account.data.push(tx);
                             account.data.sort_by_key(|tx| tx.date);
+                            account.error_str = String::new();
+                            account.tx = TransactionToSubmit::new();
+                            self.accounts.save(&self.file_path);
                         }
-                        account.error_str = String::new();
-                        account.tx = TransactionToSubmit::new();
-                        self.accounts.save(&self.file_path);
-                    }
-                    Err(err) => {
-                        account.error_str = err;
+                        Err(err) => {
+                            account.error_str = err;
+                        }
                     }
                 }
             }

@@ -10,7 +10,7 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 use std::{u64, usize};
 
-use crate::app::account::{Account, transaction::Transaction};
+use crate::app::account::{transaction::Transaction, Account};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {

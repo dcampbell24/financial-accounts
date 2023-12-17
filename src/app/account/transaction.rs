@@ -1,6 +1,6 @@
-use ::serde::{Deserialize, Serialize};
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transaction {
@@ -8,21 +8,6 @@ pub struct Transaction {
     pub comment: String,
     #[serde(with = "ts_seconds")]
     pub date: DateTime<Utc>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TransactionMonthly {
-    pub amount: Decimal,
-    pub comment: String,
-}
-
-impl From<Transaction> for TransactionMonthly {
-    fn from(transaction: Transaction) -> Self {
-        TransactionMonthly {
-            amount: transaction.amount,
-            comment: transaction.comment,
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -43,6 +28,33 @@ impl TransactionToSubmit {
 }
 
 impl Default for TransactionToSubmit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TransactionMonthly {
+    pub amount: Decimal,
+    pub comment: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TransactionMonthlyToSubmit {
+    pub amount: Option<Decimal>,
+    pub comment: String,
+}
+
+impl TransactionMonthlyToSubmit {
+    pub fn new() -> Self {
+        Self {
+            amount: None,
+            comment: String::new(),
+        }
+    }
+}
+
+impl Default for TransactionMonthlyToSubmit {
     fn default() -> Self {
         Self::new()
     }
