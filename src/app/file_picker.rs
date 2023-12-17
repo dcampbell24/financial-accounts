@@ -1,3 +1,4 @@
+use clap::Parser;
 use iced::{
     widget::{button, row, text, text_input, Column, Scrollable},
     Color,
@@ -8,6 +9,20 @@ use std::{fs, path::PathBuf};
 
 use crate::app::{Message, PADDING};
 
+use super::accounts::Accounts;
+
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// Name of the file to load
+    #[arg(long, value_name = "FILE", exclusive = true)]
+    load: Option<String>,
+
+    /// Name of the new file
+    #[arg(long, value_name = "FILE", exclusive = true)]
+    new: Option<String>,
+}
+
 #[derive(Clone, Debug)]
 pub struct FilePicker {
     pub current: PathBuf,
@@ -17,6 +32,28 @@ pub struct FilePicker {
 }
 
 impl FilePicker {
+    pub fn load_or_new_file() -> Option<(Accounts, PathBuf)> {
+        let args = Args::parse();
+
+        if let Some(arg) = args.load {
+            let path_buf = PathBuf::from(arg);
+            let mut accounts = Accounts::load(&path_buf)
+                .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
+            accounts.check_monthly();
+            accounts.save(&path_buf);
+            return Some((accounts, path_buf));
+        }
+        if let Some(arg) = args.new {
+            let path_buf = PathBuf::from(arg);
+            let accounts = Accounts::new();
+            accounts
+                .save_first(&path_buf)
+                .unwrap_or_else(|err| panic!("error creating {:?}: {}", &path_buf, err));
+            return Some((accounts, path_buf));
+        }
+        None
+    }
+
     pub fn new() -> Self {
         let path = match fs::canonicalize(".") {
             Ok(path) => path,
@@ -29,6 +66,42 @@ impl FilePicker {
             error: String::new(),
             show_hidden_files: false,
         }
+    }
+
+    pub fn new_file(&mut self, mut file: PathBuf) -> Option<(Accounts, PathBuf)> {
+        if file.as_os_str().is_empty() {
+            return None;
+        }
+
+        let mut file_path = self.current.clone();
+        file.set_extension("json");
+        file_path.push(file);
+        let accounts = Accounts::new();
+        if let Err(err) = accounts.save_first(&file_path) {
+            self.error = format!("error creating {:?}: {}", &file_path, err);
+            return None;
+        }
+        Some((accounts, file_path))
+    }
+
+    pub fn load_file(&mut self, file_path: &PathBuf) -> Option<Accounts> {
+        match Accounts::load(&file_path) {
+            Ok(accounts) => Some(accounts),
+            Err(err) => {
+                self.error = format!("error loading {:?}: {}", &file_path, err);
+                None
+            }
+        }
+    }
+
+    pub fn change_dir(&mut self, path_buf: PathBuf) {
+        self.current = path_buf;
+        self.error = String::new();
+    }
+
+    pub fn change_file_name(&mut self, file: String) {
+        self.filename = file.trim().to_string();
+        self.error = String::new();
     }
 
     pub fn view(&self) -> Column<Message> {

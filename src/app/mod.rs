@@ -6,7 +6,6 @@ mod screen;
 
 use std::{mem, path::PathBuf};
 
-use clap::{command, Parser};
 use iced::{
     executor,
     keyboard::{self, KeyCode, Modifiers},
@@ -17,29 +16,13 @@ use iced::{
 use thousands::Separable;
 
 use crate::app::{
-    account::transaction::TransactionToSubmit,
-    account::Account,
-    accounts::Accounts,
-    file_picker::FilePicker,
-    message::Message,
-    screen::Screen,
+    account::transaction::TransactionToSubmit, account::Account, accounts::Accounts,
+    file_picker::FilePicker, message::Message, screen::Screen,
 };
 
 const PADDING: u16 = 1;
 const EDGE_PADDING: usize = 4;
 const TEXT_SIZE: u16 = 24;
-
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-    /// Name of the file to load
-    #[arg(long, value_name = "FILE", exclusive = true)]
-    load: Option<String>,
-
-    /// Name of the new file
-    #[arg(long, value_name = "FILE", exclusive = true)]
-    new: Option<String>,
-}
 
 /// The fin-stat application.
 #[derive(Clone, Debug)]
@@ -178,35 +161,16 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
-        let args = Args::parse();
-
-        if let Some(arg) = args.load {
-            let path_buf = PathBuf::from(arg);
-            let mut accounts = Accounts::load(&path_buf)
-                .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
-            accounts.check_monthly();
-            accounts.save(&path_buf);
-            return (
+        match FilePicker::load_or_new_file() {
+            Some((accounts, path_buf)) => (
                 App::new(accounts, path_buf, Screen::Accounts),
                 Command::none(),
-            );
-        }
-        if let Some(arg) = args.new {
-            let path_buf = PathBuf::from(arg);
-            let accounts = Accounts::new();
-            accounts
-                .save_first(&path_buf)
-                .unwrap_or_else(|err| panic!("error creating {:?}: {}", &path_buf, err));
-            return (
-                App::new(accounts, path_buf, Screen::Accounts),
+            ),
+            None => (
+                App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
                 Command::none(),
-            );
+            ),
         }
-
-        (
-            App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
-            Command::none(),
-        )
     }
 
     fn title(&self) -> String {
@@ -218,38 +182,20 @@ impl Application for App {
         let selected_account = self.selected_account();
 
         match message {
-            Message::NewFile(mut file) => {
-                if file.as_os_str().is_empty() {
-                    return Command::none();
+            Message::NewFile(file) => {
+                if let Some((accounts, file_path)) = self.file_picker.new_file(file) {
+                    self.new_(accounts, file_path, Screen::Accounts);
                 }
-                let mut file_path = self.file_picker.current.clone();
-                file.set_extension("json");
-                file_path.push(file);
-                let accounts = Accounts::new();
-                if let Err(err) = accounts.save_first(&file_path) {
-                    self.file_picker.error = format!("error creating {:?}: {}", &file_path, err);
-                    return Command::none();
-                }
-                self.new_(accounts, file_path, Screen::Accounts);
             }
-            Message::LoadFile(file_path) => match Accounts::load(&file_path) {
-                Ok(mut accounts) => {
+            Message::LoadFile(file_path) => {
+                if let Some(mut accounts) = self.file_picker.load_file(&file_path) {
                     accounts.check_monthly();
                     accounts.save(&file_path);
                     self.new_(accounts, file_path, Screen::Accounts);
                 }
-                Err(err) => {
-                    self.file_picker.error = format!("error loading {:?}: {}", &file_path, err);
-                }
-            },
-            Message::ChangeDir(path_buf) => {
-                self.file_picker.current = path_buf;
-                self.file_picker.error = String::new();
             }
-            Message::ChangeFileName(file) => {
-                self.file_picker.filename = file.trim().to_string();
-                self.file_picker.error = String::new();
-            }
+            Message::ChangeDir(path) => self.file_picker.change_dir(path),
+            Message::ChangeFileName(file) => self.file_picker.change_file_name(file),
             Message::HiddenFilesToggle => {
                 self.file_picker.show_hidden_files = !self.file_picker.show_hidden_files;
             }
