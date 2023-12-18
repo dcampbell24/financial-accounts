@@ -188,9 +188,7 @@ impl Application for App {
                 }
             }
             Message::LoadFile(file_path) => {
-                if let Some(mut accounts) = self.file_picker.load_file(&file_path) {
-                    accounts.check_monthly();
-                    accounts.save(&file_path);
+                if let Some(accounts) = self.file_picker.load_file(&file_path) {
                     self.new_(accounts, file_path, Screen::Accounts);
                 }
             }

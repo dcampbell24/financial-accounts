@@ -25,10 +25,10 @@ struct Args {
 
 #[derive(Clone, Debug)]
 pub struct FilePicker {
-    pub current: PathBuf,
-    pub filename: String,
-    pub error: String,
-    pub show_hidden_files: bool,
+    current: PathBuf,
+    filename: String,
+    error: String,
+    show_hidden_files: bool,
 }
 
 impl FilePicker {
@@ -86,7 +86,11 @@ impl FilePicker {
 
     pub fn load_file(&mut self, file_path: &PathBuf) -> Option<Accounts> {
         match Accounts::load(&file_path) {
-            Ok(accounts) => Some(accounts),
+            Ok(mut accounts) => {
+                accounts.check_monthly();
+                accounts.save(&file_path);
+                Some(accounts)
+            }
             Err(err) => {
                 self.error = format!("error loading {:?}: {}", &file_path, err);
                 None
