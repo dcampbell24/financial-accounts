@@ -13,6 +13,7 @@ use iced::{
     widget::{button, column, row, text, text_input, Scrollable},
     Alignment, Application, Command, Element, Event, Theme,
 };
+use rust_decimal::Decimal;
 use thousands::Separable;
 
 use crate::app::{
@@ -198,20 +199,11 @@ impl Application for App {
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
             Message::ChangeTx(tx) => {
+                let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
-                    if tx.is_empty() {
-                        self.accounts[selected_account.unwrap()].tx_monthly.amount = None;
-                    }
-                    if let Ok(amount) = tx.parse() {
-                        self.accounts[selected_account.unwrap()].tx_monthly.amount = Some(amount);
-                    }
+                    set_amount(&mut account.tx_monthly.amount, &tx);
                 } else {
-                    if tx.is_empty() {
-                        self.accounts[selected_account.unwrap()].tx.amount = None;
-                    }
-                    if let Ok(amount) = tx.parse() {
-                        self.accounts[selected_account.unwrap()].tx.amount = Some(amount);
-                    }
+                    set_amount(&mut account.tx.amount, &tx);
                 }
             }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
@@ -327,5 +319,13 @@ impl Application for App {
             }
             subscription
         })
+    }
+}
+
+fn set_amount(amount: &mut Option<Decimal>, string: &str) {
+    if string.is_empty() {
+        *amount = None;
+    } else if let Ok(amount_) = string.parse() {
+        *amount = Some(amount_);
     }
 }
