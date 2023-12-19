@@ -85,10 +85,10 @@ impl FilePicker {
     }
 
     pub fn load_file(&mut self, file_path: &PathBuf) -> Option<Accounts> {
-        match Accounts::load(&file_path) {
+        match Accounts::load(file_path) {
             Ok(mut accounts) => {
                 accounts.check_monthly();
-                accounts.save(&file_path);
+                accounts.save(file_path);
                 Some(accounts)
             }
             Err(err) => {
