@@ -12,8 +12,6 @@ homepage = "https://github.com/dcampbell24/fin-stat"
 repository = "https://github.com/dcampbell24/fin-stat"
 readme = "README.md"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
@@ -31,7 +29,10 @@ assets = [
     ["README.md", "usr/share/doc/fin-stat/README.md", "644"],
     ["fin-stat.desktop", "usr/share/applications/", "644"],
     ["icons/fin-stat_16x16.png", "usr/share/icons/hicolor/16x16/apps/fin-stat.png", "644"],
+    ["icons/fin-stat_22x22.png", "usr/share/icons/hicolor/22x22/apps/fin-stat.png", "644"],
+    ["icons/fin-stat_24x24.png", "usr/share/icons/hicolor/24x24/apps/fin-stat.png", "644"],
     ["icons/fin-stat_32x32.png", "usr/share/icons/hicolor/32x32/apps/fin-stat.png", "644"],
+    ["icons/fin-stat_42x42.png", "usr/share/icons/hicolor/42x42/apps/fin-stat.png", "644"],
     ["icons/fin-stat_64x64.png", "usr/share/icons/hicolor/64x64/apps/fin-stat.png", "644"],
     ["icons/fin-stat_128x128.png", "usr/share/icons/hicolor/128x128/apps/fin-stat.png", "644"],
 ]
