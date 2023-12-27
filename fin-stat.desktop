@@ -2,7 +2,7 @@
 Name=Fin Stat
 Comment=Personal finance
 Exec=fin-stat
-Icon=fin-stat.png
+Icon=fin-stat
 Type=Application
 StartupNotify=true
 Categories=Office;Finance
