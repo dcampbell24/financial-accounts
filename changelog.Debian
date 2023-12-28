@@ -1,6 +1,6 @@
 fin-stat (0.1.0-1) unstable; urgency=medium
 
-   * Initial Release. Closes: #nnnn
+   * Initial Release. Closes: #1059593
    * This is my first Debian package.
 
  -- David Campbell <dcampbell24@gmail.com>  Wed, 27 Dec 2023 20:00:00 -0500
