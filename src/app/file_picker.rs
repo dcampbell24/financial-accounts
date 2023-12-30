@@ -14,11 +14,11 @@ use super::accounts::Accounts;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-    /// Name of the file to load
+    /// load FILE
     #[arg(long, value_name = "FILE", exclusive = true)]
     load: Option<String>,
 
-    /// Name of the new file
+    /// Create a new FILE
     #[arg(long, value_name = "FILE", exclusive = true)]
     new: Option<String>,
 }
