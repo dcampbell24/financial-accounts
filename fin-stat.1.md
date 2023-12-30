@@ -12,10 +12,10 @@ fin-stat \[options\]
 fin-stat is an application for tracking your finances.
 
 # OPTIONS
-**\-\-load** _FILE_  
+**\-\-load** _FILE_
 : Load _FILE_.
 
-**\-\-new** _FILE_  
+**\-\-new** _FILE_
 : Create the new _FILE_.
 
 **-h**, **\-\-help**
