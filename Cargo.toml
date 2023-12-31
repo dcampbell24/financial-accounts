@@ -28,8 +28,7 @@ maintainer = "David Campbell <dcampbell24@gmail.com>"
 assets = [
     ["target/release/fin-stat", "usr/bin/", "755"],
     ["README.md", "usr/share/doc/fin-stat/", "644"],
-    # pandoc --standalone --to=man fin-stat.1.md --output=fin-stat.1
-    # gzip --no-name --best fin-stat.1
+    # ./fin-stat.1.sh
     ["fin-stat.1.gz", "usr/share/man/man1/", "644"],
     ["fin-stat.desktop", "usr/share/applications/", "644"],
     ["icons/fin-stat_16x16.png", "usr/share/icons/hicolor/16x16/apps/fin-stat.png", "644"],
