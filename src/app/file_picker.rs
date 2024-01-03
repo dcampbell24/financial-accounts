@@ -103,7 +103,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn change_file_name(&mut self, file: String) {
+    pub fn change_file_name(&mut self, file: &str) {
         self.filename = file.trim().to_string();
         self.error = String::new();
     }

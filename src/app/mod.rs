@@ -194,7 +194,7 @@ impl Application for App {
                 }
             }
             Message::ChangeDir(path) => self.file_picker.change_dir(path),
-            Message::ChangeFileName(file) => self.file_picker.change_file_name(file),
+            Message::ChangeFileName(file) => self.file_picker.change_file_name(&file),
             Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
