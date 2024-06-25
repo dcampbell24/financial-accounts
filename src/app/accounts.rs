@@ -8,7 +8,6 @@ use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
-use std::{u64, usize};
 
 use crate::app::account::{transaction::Transaction, Account};
 
