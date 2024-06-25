@@ -208,7 +208,12 @@ impl Application for App {
             }
             Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
-                self.accounts[selected_account.unwrap()].tx.comment = comment.trim().to_string();
+                let account = &mut self.accounts[selected_account.unwrap()];
+                if list_monthly {
+                    account.tx_monthly.comment = comment.trim().to_string();
+                } else {
+                    account.tx.comment = comment.trim().to_string();
+                }
             }
             Message::ChangeFilterDateYear(date) => {
                 if date.is_empty() {

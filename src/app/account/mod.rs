@@ -175,7 +175,7 @@ impl Account {
         let row = row![
             amount,
             text(" "),
-            text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
+            text_input("Comment", &self.tx_monthly.comment).on_input(Message::ChangeComment),
             text(" "),
             add,
             text(" ".repeat(EDGE_PADDING)),
