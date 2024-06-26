@@ -16,6 +16,8 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
+use super::{button_cell, text_cell};
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
@@ -61,12 +63,10 @@ impl Account {
     }
 
     pub fn list_transactions(&self) -> Scrollable<Message> {
-        let mut col_1 = column![text(" Amount ").size(TEXT_SIZE)]
-            .padding(PADDING)
-            .align_items(iced::Alignment::End);
-        let mut col_2 = column![text(" Date ").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_3 = column![text(" Comment ").size(TEXT_SIZE)].padding(PADDING);
-        let mut col_4 = column![text("").size(TEXT_SIZE)].padding(PADDING);
+        let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
+        let mut col_2 = column![text_cell(" Date ")];
+        let mut col_3 = column![text_cell(" Comment ")];
+        let mut col_4 = column![text_cell("")];
 
         let mut total = dec!(0);
         let mut txs = &self.data;
@@ -83,14 +83,10 @@ impl Account {
 
         for (i, tx) in txs.iter().enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(
-                row![text(tx.amount.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING),
-            );
-            col_2 = col_2
-                .push(row![text(tx.date.format("%Y-%m-%d %Z ")).size(TEXT_SIZE)].padding(PADDING));
-            col_3 = col_3.push(row![text(&tx.comment).size(TEXT_SIZE)].padding(PADDING));
-            col_4 =
-                col_4.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
+            col_1 = col_1.push(text_cell(tx.amount.separate_with_commas()));
+            col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
+            col_3 = col_3.push(text_cell(&tx.comment));
+            col_4 = col_4.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
         let rows = row![col_1, col_2, col_3, col_4];
@@ -102,7 +98,8 @@ impl Account {
         let row = row![
             self.amount_view(),
             text(" "),
-            text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date).on_input(Message::ChangeDate),
+            text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date)
+                .on_input(Message::ChangeDate),
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
@@ -133,7 +130,7 @@ impl Account {
         let col = column![
             row![text(&self.name).size(TEXT_SIZE)],
             rows,
-            text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
+            text(format!(" total: {}", total.separate_with_commas())).size(TEXT_SIZE),
             row.padding(PADDING),
             filter_date.padding(PADDING),
             button("Back").on_press(Message::Back),
