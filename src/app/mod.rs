@@ -25,6 +25,7 @@ use crate::app::{
 
 const PADDING: u16 = 1;
 const EDGE_PADDING: usize = 4;
+const TEXT_SIZE: u16 = 24;
 
 /// The fin-stat application.
 #[derive(Clone, Debug)]
@@ -136,17 +137,17 @@ impl App {
             totals,
             text_cell(""),
             row![
-                text("Account "),
+                text("Account ").size(TEXT_SIZE),
                 name,
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             row![
-                text("Project "),
+                text("Project ").size(TEXT_SIZE),
                 months,
-                text((self.accounts.project_months(self.project_months)).separate_with_commas()),
+                text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())),
+            // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
         Scrollable::new(cols)
@@ -368,9 +369,9 @@ fn number_cell<'a>(num: Decimal) -> Row<'a, Message> {
         Ordering::Equal => text(num.separate_with_commas()),
     };
 
-    row![text].padding(PADDING)
+    row![text.size(TEXT_SIZE)].padding(PADDING)
 }
 
 fn text_cell<'a>(s: impl ToString) -> Row<'a, Message> {
-    row![text(s)].padding(PADDING)
+    row![text(s).size(TEXT_SIZE)].padding(PADDING)
 }
