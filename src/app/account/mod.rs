@@ -102,7 +102,7 @@ impl Account {
         let row = row![
             self.amount_view(),
             text(" "),
-            text_input("Date", &self.tx.date).on_input(Message::ChangeDate),
+            text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date).on_input(Message::ChangeDate),
             text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
             text(" "),
