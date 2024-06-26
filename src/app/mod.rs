@@ -9,7 +9,7 @@ use std::{mem, path::PathBuf};
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
-    widget::{button, column, row, text, text_input, Scrollable},
+    widget::{button, column, row, text, text_input, Scrollable, Text},
     Alignment, Application, Command, Element, Event, Theme,
 };
 use rust_decimal::Decimal;
@@ -55,16 +55,16 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let mut col_0 = column![text(" Account ").size(TEXT_SIZE)];
-        let mut col_1 = column![text(" Current Month ").size(TEXT_SIZE)].align_items(Alignment::End);
-        let mut col_2 = column![text(" Last Month ").size(TEXT_SIZE)].align_items(Alignment::End);
-        let mut col_3 = column![text(" Current Year ").size(TEXT_SIZE)].align_items(Alignment::End);
-        let mut col_4 = column![text(" Last Year ").size(TEXT_SIZE)].align_items(Alignment::End);
-        let mut col_5 = column![text(" Balance ").size(TEXT_SIZE)].align_items(Alignment::End);
-        let mut col_6 = column![text("").size(TEXT_SIZE)];
-        let mut col_7 = column![text("").size(TEXT_SIZE)];
-        let mut col_8 = column![text("").size(TEXT_SIZE)];
-        let mut col_9 = column![text("").size(TEXT_SIZE)];
+        let mut col_0 = column![text_(" Account ")];
+        let mut col_1 = column![text_(" Current Month ")].align_items(Alignment::End);
+        let mut col_2 = column![text_(" Last Month ")].align_items(Alignment::End);
+        let mut col_3 = column![text_(" Current Year ")].align_items(Alignment::End);
+        let mut col_4 = column![text_(" Last Year ")].align_items(Alignment::End);
+        let mut col_5 = column![text_(" Balance ")].align_items(Alignment::End);
+        let mut col_6 = column![text_("")];
+        let mut col_7 = column![text_("")];
+        let mut col_8 = column![text_("")];
+        let mut col_9 = column![text_("")];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let total = account.sum();
@@ -72,12 +72,12 @@ impl App {
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            col_0 = col_0.push(row![text(&account.name).size(TEXT_SIZE)].padding(PADDING));
-            col_1 = col_1.push(row![text(current_month.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
-            col_2 = col_2.push(row![text(last_month.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
-            col_3 = col_3.push(row![text(current_year.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
-            col_4 = col_4.push(row![text(last_year.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
-            col_5 = col_5.push(row![text(total.separate_with_commas()).size(TEXT_SIZE)].padding(PADDING));
+            col_0 = col_0.push(row![text_(&account.name)].padding(PADDING));
+            col_1 = col_1.push(row![text_(current_month.separate_with_commas())].padding(PADDING));
+            col_2 = col_2.push(row![text_(last_month.separate_with_commas())].padding(PADDING));
+            col_3 = col_3.push(row![text_(current_year.separate_with_commas())].padding(PADDING));
+            col_4 = col_4.push(row![text_(last_year.separate_with_commas())].padding(PADDING));
+            col_5 = col_5.push(row![text_(total.separate_with_commas())].padding(PADDING));
             col_6 = col_6.push(row![button("Tx").on_press(Message::SelectAccount(i))].padding(PADDING));
             col_7 = col_7.push(row![button("Monthly Tx").on_press(Message::SelectMonthly(i))].padding(PADDING));
             let mut update_name = button("Update Name");
@@ -90,18 +90,18 @@ impl App {
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
         let col_1 = column![
-            text("total current month: ").size(TEXT_SIZE),
-            text("total last month: ").size(TEXT_SIZE),
-            text("total current year: ").size(TEXT_SIZE),
-            text("total last year: ").size(TEXT_SIZE),
-            text("total: ").size(TEXT_SIZE),
+            text_("total current month: "),
+            text_("total last month: "),
+            text_("total current year: "),
+            text_("total last year: "),
+            text_("total: "),
         ];
         let col_2 = column![
-            text(self.accounts.total_for_current_month().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_last_month().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_current_year().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total_for_last_year().separate_with_commas()).size(TEXT_SIZE),
-            text(self.accounts.total().separate_with_commas()).size(TEXT_SIZE),
+            text_(self.accounts.total_for_current_month().separate_with_commas()),
+            text_(self.accounts.total_for_last_month().separate_with_commas()),
+            text_(self.accounts.total_for_current_year().separate_with_commas()),
+            text_(self.accounts.total_for_last_year().separate_with_commas()),
+            text_(self.accounts.total().separate_with_commas()),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
@@ -123,14 +123,14 @@ impl App {
             totals,
             row![text("")],
             row![
-                text("Account ").size(TEXT_SIZE),
+                text_("Account "),
                 name,
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             row![
-                text("Project ").size(TEXT_SIZE),
+                text_("Project "),
                 months,
-                text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
+                text_((self.accounts.project_months(self.project_months)).separate_with_commas()),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
@@ -334,4 +334,8 @@ fn set_amount(amount: &mut Option<Decimal>, string: &str) {
     } else if let Ok(amount_) = string.parse() {
         *amount = Some(amount_);
     }
+}
+
+fn text_<'a>(str: impl ToString) -> Text<'a> {
+    text(str).size(12)
 }
