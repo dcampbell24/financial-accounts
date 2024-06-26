@@ -9,7 +9,7 @@ use std::{mem, path::PathBuf};
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
-    widget::{button, column, row, text, text_input, Scrollable, Text},
+    widget::{button, column, row, text, text_input, Button, Row, Scrollable},
     Alignment, Application, Command, Element, Event, Theme,
 };
 use rust_decimal::Decimal;
@@ -55,27 +55,27 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let mut col_0 = column![text_(" Account ")];
-        let mut col_1 = column![text_(" Current Month ")].align_items(Alignment::End);
-        let mut col_2 = column![text_(" Last Month ")].align_items(Alignment::End);
-        let mut col_3 = column![text_(" Current Year ")].align_items(Alignment::End);
-        let mut col_4 = column![text_(" Last Year ")].align_items(Alignment::End);
-        let mut col_5 = column![text_(" Balance ")].align_items(Alignment::End);
-        let mut col_6 = column![text_("")];
-        let mut col_7 = column![text_("")];
-        let mut col_8 = column![text_("")];
-        let mut col_9 = column![text_("")];
+        let mut col_0 = column![text_cell(" Account ")];
+        let mut col_1 = column![text_cell(" Current Month ")].align_items(Alignment::End);
+        let mut col_2 = column![text_cell(" Last Month ")].align_items(Alignment::End);
+        let mut col_3 = column![text_cell(" Current Year ")].align_items(Alignment::End);
+        let mut col_4 = column![text_cell(" Last Year ")].align_items(Alignment::End);
+        let mut col_5 = column![text_cell(" Balance ")].align_items(Alignment::End);
+        let mut col_6 = column![text_cell("")];
+        let mut col_7 = column![text_cell("")];
+        let mut col_8 = column![text_cell("")];
+        let mut col_9 = column![text_cell("")];
 
-        col_0 = col_0.push(row![text_("")].padding(PADDING));
-        col_1 = col_1.push(row![text_("")].padding(PADDING));
-        col_2 = col_2.push(row![text_("")].padding(PADDING));
-        col_3 = col_3.push(row![text_("")].padding(PADDING));
-        col_4 = col_4.push(row![text_("")].padding(PADDING));
-        col_5 = col_5.push(row![text_("")].padding(PADDING));
-        col_6 = col_6.push(row![text_("")].padding(PADDING));
-        col_7 = col_7.push(row![text_("")].padding(PADDING));
-        col_8 = col_8.push(row![text_("")].padding(PADDING));
-        col_9 = col_9.push(row![text_("")].padding(PADDING));
+        col_0 = col_0.push(text_cell(""));
+        col_1 = col_1.push(text_cell(""));
+        col_2 = col_2.push(text_cell(""));
+        col_3 = col_3.push(text_cell(""));
+        col_4 = col_4.push(text_cell(""));
+        col_5 = col_5.push(text_cell(""));
+        col_6 = col_6.push(text_cell(""));
+        col_7 = col_7.push(text_cell(""));
+        col_8 = col_8.push(text_cell(""));
+        col_9 = col_9.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let total = account.sum();
@@ -83,14 +83,14 @@ impl App {
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            col_0 = col_0.push(row![text_(&account.name)].padding(PADDING));
-            col_1 = col_1.push(row![text_(current_month.separate_with_commas())].padding(PADDING));
-            col_2 = col_2.push(row![text_(last_month.separate_with_commas())].padding(PADDING));
-            col_3 = col_3.push(row![text_(current_year.separate_with_commas())].padding(PADDING));
-            col_4 = col_4.push(row![text_(last_year.separate_with_commas())].padding(PADDING));
-            col_5 = col_5.push(row![text_(total.separate_with_commas())].padding(PADDING));
-            col_6 = col_6.push(row![button("Tx").on_press(Message::SelectAccount(i))].padding(PADDING));
-            col_7 = col_7.push(row![button("Monthly Tx").on_press(Message::SelectMonthly(i))].padding(PADDING));
+            col_0 = col_0.push(text_cell(&account.name));
+            col_1 = col_1.push(text_cell(current_month.separate_with_commas()));
+            col_2 = col_2.push(text_cell(last_month.separate_with_commas()));
+            col_3 = col_3.push(text_cell(current_year.separate_with_commas()));
+            col_4 = col_4.push(text_cell(last_year.separate_with_commas()));
+            col_5 = col_5.push(text_cell(total.separate_with_commas()).padding(PADDING));
+            col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
+            col_7 = col_7.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
@@ -101,18 +101,18 @@ impl App {
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
         let col_1 = column![
-            text_("total current month: "),
-            text_("total last month: "),
-            text_("total current year: "),
-            text_("total last year: "),
-            text_("total: "),
+            text_cell("total current month: "),
+            text_cell("total last month: "),
+            text_cell("total current year: "),
+            text_cell("total last year: "),
+            text_cell("total: "),
         ];
         let col_2 = column![
-            text_(self.accounts.total_for_current_month().separate_with_commas()),
-            text_(self.accounts.total_for_last_month().separate_with_commas()),
-            text_(self.accounts.total_for_current_year().separate_with_commas()),
-            text_(self.accounts.total_for_last_year().separate_with_commas()),
-            text_(self.accounts.total().separate_with_commas()),
+            text_cell(self.accounts.total_for_current_month().separate_with_commas()),
+            text_cell(self.accounts.total_for_last_month().separate_with_commas()),
+            text_cell(self.accounts.total_for_current_year().separate_with_commas()),
+            text_cell(self.accounts.total_for_last_year().separate_with_commas()),
+            text_cell(self.accounts.total().separate_with_commas()),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
@@ -130,18 +130,18 @@ impl App {
 
         let cols = column![
             rows,
-            row![text_("")],
+            text_cell(""),
             totals,
-            row![text_("")],
+            text_cell(""),
             row![
-                text_("Account "),
+                text("Account ").size(TEXT_SIZE),
                 name,
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             row![
-                text_("Project "),
+                text("Project ").size(TEXT_SIZE),
                 months,
-                text_((self.accounts.project_months(self.project_months)).separate_with_commas()),
+                text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
@@ -347,6 +347,10 @@ fn set_amount(amount: &mut Option<Decimal>, string: &str) {
     }
 }
 
-fn text_<'a>(str: impl ToString) -> Text<'a> {
-    text(str).size(TEXT_SIZE)
+fn button_cell(button: Button<Message>) -> Row<Message> {
+    row![button].padding(PADDING)
+}
+
+fn text_cell<'a>(s: impl ToString) -> Row<'a, Message> {
+    row![text(s).size(TEXT_SIZE)].padding(PADDING)
 }
