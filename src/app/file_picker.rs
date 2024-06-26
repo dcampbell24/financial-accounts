@@ -14,7 +14,7 @@ use super::accounts::Accounts;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-    /// load FILE
+    /// Load FILE
     #[arg(long, value_name = "FILE", exclusive = true)]
     load: Option<String>,
 
