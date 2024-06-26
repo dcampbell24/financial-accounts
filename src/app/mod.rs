@@ -66,6 +66,17 @@ impl App {
         let mut col_8 = column![text_("")];
         let mut col_9 = column![text_("")];
 
+        col_0 = col_0.push(row![text_("")].padding(PADDING));
+        col_1 = col_1.push(row![text_("")].padding(PADDING));
+        col_2 = col_2.push(row![text_("")].padding(PADDING));
+        col_3 = col_3.push(row![text_("")].padding(PADDING));
+        col_4 = col_4.push(row![text_("")].padding(PADDING));
+        col_5 = col_5.push(row![text_("")].padding(PADDING));
+        col_6 = col_6.push(row![text_("")].padding(PADDING));
+        col_7 = col_7.push(row![text_("")].padding(PADDING));
+        col_8 = col_8.push(row![text_("")].padding(PADDING));
+        col_9 = col_9.push(row![text_("")].padding(PADDING));
+
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let total = account.sum();
             let current_month = account.sum_current_month();
@@ -119,9 +130,9 @@ impl App {
 
         let cols = column![
             rows,
-            row![text("")],
+            row![text_("")],
             totals,
-            row![text("")],
+            row![text_("")],
             row![
                 text_("Account "),
                 name,
@@ -133,7 +144,7 @@ impl App {
                 text_((self.accounts.project_months(self.project_months)).separate_with_commas()),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            // text(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
+            // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
         Scrollable::new(cols)
@@ -337,5 +348,5 @@ fn set_amount(amount: &mut Option<Decimal>, string: &str) {
 }
 
 fn text_<'a>(str: impl ToString) -> Text<'a> {
-    text(str).size(12)
+    text(str).size(TEXT_SIZE)
 }
