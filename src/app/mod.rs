@@ -3,16 +3,19 @@ mod accounts;
 mod file_picker;
 mod message;
 mod screen;
+pub mod solarized;
 
-use std::{mem, path::PathBuf};
+use std::{cmp::Ordering, mem, path::PathBuf};
 
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
+    theme,
     widget::{button, column, row, text, text_input, Button, Row, Scrollable},
     Alignment, Application, Command, Element, Event, Theme,
 };
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use thousands::Separable;
 
 use crate::app::{
@@ -84,11 +87,11 @@ impl App {
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
             col_0 = col_0.push(text_cell(&account.name));
-            col_1 = col_1.push(text_cell(current_month.separate_with_commas()));
-            col_2 = col_2.push(text_cell(last_month.separate_with_commas()));
-            col_3 = col_3.push(text_cell(current_year.separate_with_commas()));
-            col_4 = col_4.push(text_cell(last_year.separate_with_commas()));
-            col_5 = col_5.push(text_cell(total.separate_with_commas()).padding(PADDING));
+            col_1 = col_1.push(number_cell(current_month));
+            col_2 = col_2.push(number_cell(last_month));
+            col_3 = col_3.push(number_cell(current_year));
+            col_4 = col_4.push(number_cell(last_year));
+            col_5 = col_5.push(number_cell(total));
             col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             col_7 = col_7.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
@@ -108,11 +111,11 @@ impl App {
             text_cell("total: "),
         ];
         let col_2 = column![
-            text_cell(self.accounts.total_for_current_month().separate_with_commas()),
-            text_cell(self.accounts.total_for_last_month().separate_with_commas()),
-            text_cell(self.accounts.total_for_current_year().separate_with_commas()),
-            text_cell(self.accounts.total_for_last_year().separate_with_commas()),
-            text_cell(self.accounts.total().separate_with_commas()),
+            number_cell(self.accounts.total_for_current_month()),
+            number_cell(self.accounts.total_for_last_month()),
+            number_cell(self.accounts.total_for_current_year()),
+            number_cell(self.accounts.total_for_last_year()),
+            number_cell(self.accounts.total()),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
@@ -182,6 +185,10 @@ impl Application for App {
                 Command::none(),
             ),
         }
+    }
+
+    fn theme(&self) -> Self::Theme {
+        Theme::SolarizedLight
     }
 
     fn title(&self) -> String {
@@ -349,6 +356,20 @@ fn set_amount(amount: &mut Option<Decimal>, string: &str) {
 
 fn button_cell(button: Button<Message>) -> Row<Message> {
     row![button].padding(PADDING)
+}
+
+fn number_cell<'a>(num: Decimal) -> Row<'a, Message> {
+    let text = match num.cmp(&dec!(0)) {
+        Ordering::Greater => {
+            text(num.separate_with_commas()).style(theme::Text::Color(solarized::green()))
+        }
+        Ordering::Less => {
+            text(num.separate_with_commas()).style(theme::Text::Color(solarized::red()))
+        }
+        Ordering::Equal => text(num.separate_with_commas()),
+    };
+
+    row![text.size(TEXT_SIZE)].padding(PADDING)
 }
 
 fn text_cell<'a>(s: impl ToString) -> Row<'a, Message> {

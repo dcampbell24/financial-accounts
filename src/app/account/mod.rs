@@ -7,7 +7,6 @@ use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput}
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use thousands::Separable;
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
@@ -16,7 +15,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, text_cell};
+use super::{button_cell, number_cell, text_cell};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -83,7 +82,7 @@ impl Account {
 
         for (i, tx) in txs.iter().enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text_cell(tx.amount.separate_with_commas()));
+            col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(text_cell(&tx.comment));
             col_4 = col_4.push(button_cell(button("Delete").on_press(Message::Delete(i))));
@@ -130,7 +129,8 @@ impl Account {
         let col = column![
             row![text(&self.name).size(TEXT_SIZE)],
             rows,
-            text(format!(" total: {}", total.separate_with_commas())).size(TEXT_SIZE),
+            text_cell("total: "),
+            number_cell(total),
             input.padding(PADDING),
             filter_date.padding(PADDING),
             button_cell(button("Back").on_press(Message::Back)),
@@ -148,7 +148,7 @@ impl Account {
         let mut total = dec!(0);
         for (i, tx) in self.monthly.iter().enumerate() {
             total += tx.amount;
-            col_1 = col_1.push(text_cell(tx.amount.separate_with_commas()));
+            col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(&tx.comment));
             col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
@@ -176,7 +176,8 @@ impl Account {
         let col = column![
             row![text(&self.name).size(TEXT_SIZE)],
             rows,
-            text(format!("total: {}", total.separate_with_commas())).size(TEXT_SIZE),
+            text_cell("total: "),
+            number_cell(total),
             input.padding(PADDING),
             button_cell(button("Back").on_press(Message::Back)),
         ];
