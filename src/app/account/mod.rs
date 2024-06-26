@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    Message, EDGE_PADDING, PADDING, TEXT_SIZE,
+    Message, EDGE_PADDING, PADDING,
 };
 
 use self::transaction::TransactionMonthlyToSubmit;
@@ -127,14 +127,14 @@ impl Account {
         ];
 
         let col = column![
-            row![text(&self.name).size(TEXT_SIZE)],
+            row![text(&self.name)],
             rows,
             text_cell("total: "),
             number_cell(total),
             input.padding(PADDING),
             filter_date.padding(PADDING),
             button_cell(button("Back").on_press(Message::Back)),
-            text(&self.error_str).size(TEXT_SIZE),
+            text(&self.error_str),
         ];
 
         Scrollable::new(col)
@@ -174,7 +174,7 @@ impl Account {
         ];
 
         let col = column![
-            row![text(&self.name).size(TEXT_SIZE)],
+            row![text(&self.name)],
             rows,
             text_cell("total: "),
             number_cell(total),
