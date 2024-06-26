@@ -7,9 +7,8 @@ mod screen;
 use std::{mem, path::PathBuf};
 
 use iced::{
-    executor,
-    keyboard::{self, KeyCode, Modifiers},
-    subscription,
+    event, executor,
+    keyboard::{self, Key, Modifiers},
     widget::{button, column, row, text, text_input, Scrollable},
     Alignment, Application, Command, Element, Event, Theme,
 };
@@ -311,14 +310,16 @@ impl Application for App {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        subscription::events_with(|event, _status| {
+        event::listen_with(|event, _status| {
             let mut subscription = None;
             if let Event::Keyboard(keyboard::Event::KeyPressed {
-                key_code,
+                key,
+                location: _location,
                 modifiers,
+                text: _text,
             }) = event
             {
-                if key_code == KeyCode::H && modifiers == Modifiers::CTRL {
+                if key == Key::Character("h".into()) && modifiers == Modifiers::CTRL {
                     subscription = Some(Message::HiddenFilesToggle);
                 }
             }

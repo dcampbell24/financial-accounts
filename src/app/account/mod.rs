@@ -264,12 +264,10 @@ impl Account {
         let mut year = now.year();
         let mut month = now.month() - 1;
         if month == 0 {
-            year = year - 1;
+            year -= 1;
             month = 12;
         }
-        let month_start = Utc
-            .with_ymd_and_hms(year, month, 1, 0, 0, 0)
-            .unwrap();
+        let month_start = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
         let month_end = Utc
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
