@@ -15,7 +15,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, number_cell, text_cell};
+use super::{button_cell, money::Unit, number_cell, text_cell};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -36,10 +36,11 @@ pub struct Account {
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
     pub error_str: String,
+    pub unit: Unit,
 }
 
 impl Account {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, unit: Unit) -> Self {
         Account {
             name,
             tx: TransactionToSubmit::new(),
@@ -50,6 +51,7 @@ impl Account {
             filter_date_year: None,
             filter_date_month: None,
             error_str: String::new(),
+            unit,
         }
     }
 
@@ -127,7 +129,7 @@ impl Account {
         ];
 
         let col = column![
-            row![text(&self.name).size(TEXT_SIZE)],
+            text_cell(format!("{} {}", &self.name, &self.unit)),
             rows,
             text_cell("total: "),
             number_cell(total),
@@ -174,7 +176,7 @@ impl Account {
         ];
 
         let col = column![
-            row![text(&self.name).size(TEXT_SIZE)],
+            text_cell(format!("{} {}", &self.name, &self.unit)),
             rows,
             text_cell("total: "),
             number_cell(total),

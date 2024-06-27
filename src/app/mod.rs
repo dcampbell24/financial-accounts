@@ -2,6 +2,7 @@ mod account;
 mod accounts;
 mod file_picker;
 mod message;
+mod money;
 mod screen;
 pub mod solarized;
 
@@ -11,9 +12,14 @@ use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
     theme,
-    widget::{button, column, row, text, text_input, Button, Row, Scrollable},
+    widget::{
+        button, column,
+        combo_box::{ComboBox, State},
+        row, text, text_input, Button, Row, Scrollable,
+    },
     Alignment, Application, Command, Element, Event, Theme,
 };
+use money::Unit;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
@@ -34,6 +40,8 @@ pub struct App {
     file_path: PathBuf,
     file_picker: FilePicker,
     account_name: String,
+    currency: Unit,
+    currency_selector: State<Unit>,
     project_months: Option<u16>,
     screen: Screen,
 }
@@ -45,6 +53,8 @@ impl App {
             file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
+            currency: Unit::Usd,
+            currency_selector: State::new(vec![Unit::Eth, Unit::Gno, Unit::GoldOz, Unit::Usd]),
             project_months: None,
             screen,
         }
@@ -86,7 +96,7 @@ impl App {
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            col_0 = col_0.push(text_cell(&account.name));
+            col_0 = col_0.push(text_cell(format!("{} {}", &account.name, &account.unit)));
             col_1 = col_1.push(number_cell(current_month));
             col_2 = col_2.push(number_cell(last_month));
             col_3 = col_3.push(number_cell(current_year));
@@ -119,11 +129,8 @@ impl App {
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
-        let mut name = text_input("Name", &self.account_name)
+        let name = text_input("Name", &self.account_name)
             .on_input(Message::ChangeAccountName);
-        if !self.account_name.is_empty() {
-            name = name.on_submit(Message::NewAccount);
-        }
 
         let mut months = match self.project_months {
             Some(months) => text_input("Months", &months.to_string()),
@@ -131,6 +138,10 @@ impl App {
         };
         months = months.on_input(Message::ChangeProjectMonths);
 
+        let mut add = button("Add");
+        if !self.account_name.is_empty() {
+            add = add.on_press(Message::SubmitAccount);
+        }
         let cols = column![
             rows,
             text_cell(""),
@@ -139,7 +150,10 @@ impl App {
             row![
                 text("Account ").size(TEXT_SIZE),
                 name,
+                ComboBox::new(&self.currency_selector, "currency", Some(&self.currency), |currency|  { Message::UpdateCurrency(currency) }),
+                add,
                 text(" ".repeat(EDGE_PADDING)),
+
             ].padding(PADDING),
             row![
                 text("Project ").size(TEXT_SIZE),
@@ -277,18 +291,22 @@ impl Application for App {
                     self.accounts.save(&self.file_path);
                 }
             },
-            Message::NewAccount => {
-                self.accounts
-                    .inner
-                    .push(Account::new(mem::take(&mut self.account_name)));
-                self.accounts.save(&self.file_path);
-            }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
                 self.accounts.save(&self.file_path);
             }
+            Message::UpdateCurrency(currency) => {
+                self.currency = currency;
+            }
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
+            Message::SubmitAccount => {
+                self.accounts.inner.push(Account::new(
+                    mem::take(&mut self.account_name),
+                    self.currency.clone(),
+                ));
+                self.accounts.save(&self.file_path);
+            }
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account.unwrap()];
 

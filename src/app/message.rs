@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use super::money::Unit;
+
 #[derive(Clone, Debug)]
 pub enum Message {
     NewFile(PathBuf),
@@ -16,10 +18,11 @@ pub enum Message {
     ChangeFilterDateMonth(String),
     ChangeProjectMonths(String),
     Delete(usize),
-    NewAccount,
     UpdateAccount(usize),
+    UpdateCurrency(Unit),
     SelectAccount(usize),
     SelectMonthly(usize),
+    SubmitAccount,
     SubmitTx,
     SubmitFilterDate,
 }
