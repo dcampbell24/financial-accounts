@@ -19,7 +19,7 @@ use iced::{
     },
     Alignment, Application, Command, Element, Event, Theme,
 };
-use money::Unit;
+use money::Currency;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
@@ -40,8 +40,8 @@ pub struct App {
     file_path: PathBuf,
     file_picker: FilePicker,
     account_name: String,
-    currency: Unit,
-    currency_selector: State<Unit>,
+    currency: Currency,
+    currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
 }
@@ -53,8 +53,8 @@ impl App {
             file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
-            currency: Unit::Usd,
-            currency_selector: State::new(vec![Unit::Eth, Unit::Gno, Unit::GoldOz, Unit::Usd]),
+            currency: Currency::Usd,
+            currency_selector: State::new(vec![Currency::Eth, Currency::Gno, Currency::GoldOz, Currency::Usd]),
             project_months: None,
             screen,
         }
@@ -96,7 +96,7 @@ impl App {
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
             let last_year = account.sum_last_year();
-            col_0 = col_0.push(text_cell(format!("{} {}", &account.name, &account.unit)));
+            col_0 = col_0.push(text_cell(format!("{} {}", &account.name, &account.currency)));
             col_1 = col_1.push(number_cell(current_month));
             col_2 = col_2.push(number_cell(last_month));
             col_3 = col_3.push(number_cell(current_year));

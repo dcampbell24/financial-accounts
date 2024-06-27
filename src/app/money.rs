@@ -1,63 +1,48 @@
-use std::{fmt, ops::Add};
+use std::fmt;
 
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use thousands::Separable;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
-pub struct Money {
-    amount: Decimal,
-    unit: Unit,
-}
-
-impl fmt::Display for Money {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {}", self.amount.separate_with_commas(), self.unit)
-    }
-}
-
-impl Add for Money {
-    type Output = Option<Self>;
-
-    fn add(mut self, other: Self) -> Option<Self> {
-        if self.unit == other.unit {
-            self.amount += other.amount;
-            Some(self)
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
-pub enum Unit {
+pub enum Currency {
     Eth,
     Gno,
     GoldOz,
     Usd,
 }
 
-impl fmt::Display for Unit {
+impl fmt::Display for Currency {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Unit::Eth => write!(f, "ETH"),
-            Unit::Gno => write!(f, "GNO"),
-            Unit::GoldOz => write!(f, "gold Oz"),
-            Unit::Usd => write!(f, "USD"),
+            Currency::Eth => write!(f, "ETH"),
+            Currency::Gno => write!(f, "GNO"),
+            Currency::GoldOz => write!(f, "gold Oz"),
+            Currency::Usd => write!(f, "USD"),
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
-pub struct UnitsSummed {
-    eth: Money,
-    gno: Money,
-    gold_oz: Money,
-    usd: Money,
+pub struct CurrencySummed {
+    eth: Decimal,
+    gno: Decimal,
+    gold_oz: Decimal,
+    usd: Decimal,
 }
 
-impl fmt::Display for UnitsSummed {
+impl CurrencySummed {
+    pub fn add(&mut self, amount: Decimal, currency: Currency) {
+        match currency {
+            Currency::Eth => self.eth += amount,
+            Currency::Gno => self.gno += amount,
+            Currency::GoldOz => self.gold_oz += amount,
+            Currency::Usd => self.usd += amount,
+        }
+    }
+}
+
+impl fmt::Display for CurrencySummed {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} {} {}", self.eth, self.gno, self.gold_oz, self.usd)
+        write!(f, "{} ETH {} GNO {} gold Oz {} USD", self.eth, self.gno, self.gold_oz, self.usd)
     }
 }

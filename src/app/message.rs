@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use super::money::Unit;
+use super::money::Currency;
 
 #[derive(Clone, Debug)]
 pub enum Message {
@@ -19,7 +19,7 @@ pub enum Message {
     ChangeProjectMonths(String),
     Delete(usize),
     UpdateAccount(usize),
-    UpdateCurrency(Unit),
+    UpdateCurrency(Currency),
     SelectAccount(usize),
     SelectMonthly(usize),
     SubmitAccount,
