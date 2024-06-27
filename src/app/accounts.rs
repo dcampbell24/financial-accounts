@@ -10,8 +10,7 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
-
-use super::money::Currency;
+use crate::app::money::Currency;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -50,15 +49,15 @@ impl Accounts {
 
     pub fn project_months(&self, months: Option<u16>) -> Decimal {
         match months {
-            Some(months) => self.total_usd() + self.total_for_months_usd(months),
-            None => self.total_usd(),
+            Some(months) => self.total(Currency::Usd) + self.total_for_months_usd(months),
+            None => self.total(Currency::Usd),
         }
     }
 
-    pub fn total_usd(&self) -> Decimal {
+    pub fn total(&self, currency: Currency) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.currency == Currency::Usd {
+            if account.currency == currency {
                 let sum = account.sum();
                 total += sum;
             }

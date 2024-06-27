@@ -119,13 +119,21 @@ impl App {
             text_cell("total current year USD: "),
             text_cell("total last year USD: "),
             text_cell("total USD: "),
+            text_cell(""),
+            text_cell("total ETH"),
+            text_cell("total GNO"),
+            text_cell("total Gold Oz"),
         ];
         let col_2 = column![
             number_cell(self.accounts.total_for_current_month_usd()),
             number_cell(self.accounts.total_for_last_month_usd()),
             number_cell(self.accounts.total_for_current_year_usd()),
             number_cell(self.accounts.total_for_last_year_usd()),
-            number_cell(self.accounts.total_usd()),
+            number_cell(self.accounts.total(Currency::Usd)),
+            text_cell(""),
+            number_cell(self.accounts.total(Currency::Eth)),
+            number_cell(self.accounts.total(Currency::Gno)),
+            number_cell(self.accounts.total(Currency::GoldOz)),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
