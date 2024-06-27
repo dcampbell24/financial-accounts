@@ -137,8 +137,6 @@ impl App {
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
-        // fixme: add currencies
-
         let name = text_input("Name", &self.account_name)
             .on_input(Message::ChangeAccountName);
 
