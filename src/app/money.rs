@@ -1,6 +1,7 @@
 use std::fmt;
 
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
@@ -31,7 +32,13 @@ pub struct CurrencySummed {
 }
 
 impl CurrencySummed {
-    pub fn add(&mut self, amount: Decimal, currency: Currency) {
+    fn new() -> Self {
+        CurrencySummed {
+            eth: dec!(0), gno: dec!(0), gold_oz: dec!(0), usd: dec!(0)
+        }
+    }
+
+    fn add(&mut self, amount: Decimal, currency: Currency) {
         match currency {
             Currency::Eth => self.eth += amount,
             Currency::Gno => self.gno += amount,

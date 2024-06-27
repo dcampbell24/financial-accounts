@@ -11,6 +11,8 @@ use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
 
+use super::money::Currency;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
@@ -48,62 +50,74 @@ impl Accounts {
 
     pub fn project_months(&self, months: Option<u16>) -> Decimal {
         match months {
-            Some(months) => self.total() + self.total_for_months(months),
-            None => self.total(),
+            Some(months) => self.total_usd() + self.total_for_months_usd(months),
+            None => self.total_usd(),
         }
     }
 
-    pub fn total(&self) -> Decimal {
+    pub fn total_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            let sum = account.sum();
-            total += sum;
-        }
-        total
-    }
-
-    pub fn total_for_months(&self, project_months: u16) -> Decimal {
-        let mut total = dec!(0);
-        for account in self.inner.iter() {
-            let sum = account.sum_monthly();
-            let times: Decimal = project_months.into();
-            total += sum * times
+            if account.currency == Currency::Usd {
+                let sum = account.sum();
+                total += sum;
+            }
         }
         total
     }
 
-    pub fn total_for_current_month(&self) -> Decimal {
+    pub fn total_for_months_usd(&self, project_months: u16) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            let sum = account.sum_current_month();
-            total += sum
+            if account.currency == Currency::Usd {
+                let sum = account.sum_monthly();
+                let times: Decimal = project_months.into();
+                total += sum * times
+            }
         }
         total
     }
 
-    pub fn total_for_last_month(&self) -> Decimal {
+    pub fn total_for_current_month_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            let sum = account.sum_last_month();
-            total += sum
+            if account.currency == Currency::Usd {
+                let sum = account.sum_current_month();
+                total += sum
+            }
         }
         total
     }
 
-    pub fn total_for_current_year(&self) -> Decimal {
+    pub fn total_for_last_month_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            let sum = account.sum_current_year();
-            total += sum
+            if account.currency == Currency::Usd {
+                let sum = account.sum_last_month();
+                total += sum
+            }
         }
         total
     }
 
-    pub fn total_for_last_year(&self) -> Decimal {
+    pub fn total_for_current_year_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            let sum = account.sum_last_year();
-            total += sum
+            if account.currency == Currency::Usd {
+                let sum = account.sum_current_year();
+                total += sum
+            }
+        }
+        total
+    }
+
+    pub fn total_for_last_year_usd(&self) -> Decimal {
+        let mut total = dec!(0);
+        for account in self.inner.iter() {
+            if account.currency == Currency::Usd {
+                let sum = account.sum_last_year();
+                total += sum
+            }
         }
         total
     }

@@ -114,20 +114,22 @@ impl App {
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
 
         let col_1 = column![
-            text_cell("total current month: "),
-            text_cell("total last month: "),
-            text_cell("total current year: "),
-            text_cell("total last year: "),
-            text_cell("total: "),
+            text_cell("total current month USD: "),
+            text_cell("total last month USD: "),
+            text_cell("total current year USD: "),
+            text_cell("total last year USD: "),
+            text_cell("total USD: "),
         ];
         let col_2 = column![
-            number_cell(self.accounts.total_for_current_month()),
-            number_cell(self.accounts.total_for_last_month()),
-            number_cell(self.accounts.total_for_current_year()),
-            number_cell(self.accounts.total_for_last_year()),
-            number_cell(self.accounts.total()),
+            number_cell(self.accounts.total_for_current_month_usd()),
+            number_cell(self.accounts.total_for_last_month_usd()),
+            number_cell(self.accounts.total_for_current_year_usd()),
+            number_cell(self.accounts.total_for_last_year_usd()),
+            number_cell(self.accounts.total_usd()),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
+
+        // fixme: add currencies
 
         let name = text_input("Name", &self.account_name)
             .on_input(Message::ChangeAccountName);
