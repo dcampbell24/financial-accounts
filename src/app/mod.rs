@@ -84,6 +84,7 @@ impl App {
         let mut col_7 = column![text_cell("")];
         let mut col_8 = column![text_cell("")];
         let mut col_9 = column![text_cell("")];
+        let mut col_10 = column![text_cell("")];
 
         col_0 = col_0.push(text_cell(""));
         col_1 = col_1.push(text_cell(""));
@@ -95,6 +96,7 @@ impl App {
         col_7 = col_7.push(text_cell(""));
         col_8 = col_8.push(text_cell(""));
         col_9 = col_9.push(text_cell(""));
+        col_10 = col_10.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let total = account.sum();
@@ -114,10 +116,11 @@ impl App {
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_8 = col_8.push(row![update_name].padding(PADDING));
-            col_9 = col_9.push(row![button("Delete").on_press(Message::Delete(i))].padding(PADDING));
+            col_8 = col_8.push(button_cell(update_name));
+            col_9 = col_9.push(button_cell(button("import BoA").on_press(Message::ImportBoa(i))));
+            col_10 = col_10.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9];
+        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10];
 
         let col_1 = column![
             text_cell("total current month USD: "),
@@ -175,7 +178,6 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            row![button_cell(button("Import Bank of America").on_press(Message::ImportBoa))],
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -306,8 +308,10 @@ impl Application for App {
                     self.accounts.save(&self.file_path);
                 }
             },
-            Message::ImportBoa => {
-                println!("{:#?}", import_boa().unwrap());
+            Message::ImportBoa(i) => {
+                let boa = import_boa().unwrap();
+                //  Add the data: self.accounts[i].data
+                println!("{boa:#?}");
             }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);

@@ -18,7 +18,7 @@ pub enum Message {
     ChangeFilterDateMonth(String),
     ChangeProjectMonths(String),
     Delete(usize),
-    ImportBoa,
+    ImportBoa(usize),
     UpdateAccount(usize),
     UpdateCurrency(Currency),
     SelectAccount(usize),
