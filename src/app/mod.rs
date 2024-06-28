@@ -55,7 +55,12 @@ impl App {
             file_picker: FilePicker::new(),
             account_name: String::new(),
             currency: Currency::Usd,
-            currency_selector: State::new(vec![Currency::Eth, Currency::Gno, Currency::GoldOz, Currency::Usd]),
+            currency_selector: State::new(vec![
+                Currency::Eth,
+                Currency::Gno,
+                Currency::GoldOz,
+                Currency::Usd,
+            ]),
             project_months: None,
             screen,
         }
@@ -302,7 +307,7 @@ impl Application for App {
                 }
             },
             Message::ImportBoa => {
-                import_boa().unwrap();
+                println!("{:#?}", import_boa().unwrap());
             }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
