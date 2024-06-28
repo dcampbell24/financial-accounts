@@ -41,8 +41,8 @@ pub fn import_boa() -> Result<Vec<Transaction>, Box<dyn Error>> {
 
         // Fixme: not really UTC.
         let record = Transaction {
-            date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S").expect("date failure").and_utc(),
-            amount: record.amount.replace(',', "").parse::<Decimal>().expect("failed to parse amount"),
+            date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S")?.and_utc(),
+            amount: record.amount.replace(',', "").parse::<Decimal>()?,
             comment: record.description,
         };
         records.push(record);
