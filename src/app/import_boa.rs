@@ -1,18 +1,13 @@
 use std::{error::Error, fs};
 
+use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
-pub struct BoaRecord {
-    date: String,
-    description: String,
-    amount: Decimal,
-    running_balance: Decimal,
-}
+use super::account::transaction::Transaction;
 
 #[derive(Debug, Deserialize)]
-struct BoaRecordImport {
+struct BoaRecord {
     #[serde(rename = "Date")]
     date: String,
     #[serde(rename = "Description")]
@@ -20,10 +15,10 @@ struct BoaRecordImport {
     #[serde(rename = "Amount")]
     amount: String,
     #[serde(rename = "Running Bal.")]
-    running_balance: String,
+    _running_balance: String,
 }
 
-pub fn import_boa() -> Result<Vec<BoaRecord>, Box<dyn Error>> {
+pub fn import_boa() -> Result<Vec<Transaction>, Box<dyn Error>> {
     let contents: String = fs::read_to_string("/home/david/Documents/boa/2024-06-17.csv")?
         .lines()
         .skip(6)
@@ -37,17 +32,18 @@ pub fn import_boa() -> Result<Vec<BoaRecord>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(contents.as_bytes());
     let mut records = Vec::new();
     for result in rdr.deserialize() {
-        let record: BoaRecordImport = result?;
+        let mut record: BoaRecord = result?;
 
         if record.amount.is_empty() {
             continue;
         }
+        record.date.push_str(" 00:00:00");
 
-        let record = BoaRecord {
-            date: record.date,
-            description: record.description,
-            amount: record.amount.replace(',', "").parse::<Decimal>()?,
-            running_balance: record.running_balance.replace(',', "").parse::<Decimal>()?,
+        // Fixme: not really UTC.
+        let record = Transaction {
+            date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S").expect("date failure").and_utc(),
+            amount: record.amount.replace(',', "").parse::<Decimal>().expect("failed to parse amount"),
+            comment: record.description,
         };
         records.push(record);
     }

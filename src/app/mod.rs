@@ -310,8 +310,14 @@ impl Application for App {
             },
             Message::ImportBoa(i) => {
                 let boa = import_boa().unwrap();
-                //  Add the data: self.accounts[i].data
-                println!("{boa:#?}");
+                let account = &mut self.accounts[i];
+                for tx in boa {
+                    account.data.push(tx);
+                }
+                account.data.sort_by_key(|tx| tx.date);
+                account.error_str = String::new();
+                account.tx = TransactionToSubmit::new();
+                self.accounts.save(&self.file_path);
             }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
