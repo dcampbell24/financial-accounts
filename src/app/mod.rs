@@ -1,6 +1,7 @@
 mod account;
 mod accounts;
 mod file_picker;
+mod import_boa;
 mod message;
 mod money;
 mod screen;
@@ -26,7 +27,7 @@ use thousands::Separable;
 
 use crate::app::{
     account::transaction::TransactionToSubmit, account::Account, accounts::Accounts,
-    file_picker::FilePicker, message::Message, screen::Screen,
+    file_picker::FilePicker, import_boa::import_boa, message::Message, screen::Screen,
 };
 
 const PADDING: u16 = 1;
@@ -169,6 +170,7 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
+            row![button_cell(button("Import Bank of America").on_press(Message::ImportBoa))],
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -299,6 +301,9 @@ impl Application for App {
                     self.accounts.save(&self.file_path);
                 }
             },
+            Message::ImportBoa => {
+                import_boa().unwrap();
+            }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
                 self.accounts.save(&self.file_path);
