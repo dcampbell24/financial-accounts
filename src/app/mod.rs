@@ -117,7 +117,7 @@ impl App {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
             col_8 = col_8.push(button_cell(update_name));
-            col_9 = col_9.push(button_cell(button("import BoA").on_press(Message::ImportBoaScreen(i))));
+            col_9 = col_9.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
             col_10 = col_10.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10];
