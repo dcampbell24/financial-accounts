@@ -18,7 +18,7 @@ use iced::{
         combo_box::{ComboBox, State},
         row, text, text_input, Button, Row, Scrollable,
     },
-    Alignment, Application, Command, Element, Event, Theme,
+    window, Alignment, Application, Command, Element, Event, Theme,
 };
 use money::Currency;
 use rust_decimal::Decimal;
@@ -178,6 +178,7 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
+            button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -214,11 +215,11 @@ impl Application for App {
         match FilePicker::load_or_new_file() {
             Some((accounts, path_buf)) => (
                 App::new(accounts, path_buf, Screen::Accounts),
-                Command::none(),
+                window::change_mode(window::Id::MAIN, window::Mode::Fullscreen),
             ),
             None => (
                 App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
-                Command::none(),
+                window::change_mode(window::Id::MAIN, window::Mode::Fullscreen),
             ),
         }
     }
@@ -327,11 +328,8 @@ impl Application for App {
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path);
                 self.screen = Screen::Accounts;
-
             }
-            Message::ImportBoaScreen(i) => {
-                self.screen = Screen::ImportBoa(i)
-            }
+            Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
                 self.accounts.save(&self.file_path);
@@ -372,6 +370,9 @@ impl Application for App {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 account.filter_date = account.submit_filter_date();
                 account.error_str = String::new();
+            }
+            Message::Exit => {
+                return window::close(window::Id::MAIN);
             }
         }
         Command::none()

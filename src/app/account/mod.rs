@@ -135,7 +135,10 @@ impl Account {
             number_cell(total),
             input.padding(PADDING),
             filter_date.padding(PADDING),
-            button_cell(button("Back").on_press(Message::Back)),
+            row![
+                button("Back").on_press(Message::Back),
+                button("Exit").on_press(Message::Exit),
+            ],
             text(&self.error_str).size(TEXT_SIZE),
         ];
 
@@ -181,7 +184,10 @@ impl Account {
             text_cell("total: "),
             number_cell(total),
             input.padding(PADDING),
-            button_cell(button("Back").on_press(Message::Back)),
+            row![
+                button("Back").on_press(Message::Back),
+                button("Exit").on_press(Message::Exit),
+            ],
         ];
 
         Scrollable::new(col)

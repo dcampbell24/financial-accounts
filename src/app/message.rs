@@ -27,4 +27,5 @@ pub enum Message {
     SubmitAccount,
     SubmitTx,
     SubmitFilterDate,
+    Exit,
 }

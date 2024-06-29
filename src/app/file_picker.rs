@@ -9,7 +9,7 @@ use std::{fs, path::PathBuf};
 
 use crate::app::{Message, PADDING};
 
-use super::accounts::Accounts;
+use super::{accounts::Accounts, button_cell};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -136,6 +136,7 @@ impl FilePicker {
             let is_csv = Regex::new(r".csv$").unwrap();
             col = col.push(Scrollable::new(self.files(is_csv, account).unwrap()));
         }
+        let col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
         col
     }
 
