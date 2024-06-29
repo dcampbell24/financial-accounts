@@ -1,4 +1,4 @@
-use std::{error::Error, fs};
+use std::{error::Error, fs, path::PathBuf};
 
 use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
@@ -18,8 +18,8 @@ struct BoaRecord {
     _running_balance: String,
 }
 
-pub fn import_boa() -> Result<Vec<Transaction>, Box<dyn Error>> {
-    let contents: String = fs::read_to_string("/home/david/Documents/boa/2024-06-17.csv")?
+pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>> {
+    let contents: String = fs::read_to_string(file_path)?
         .lines()
         .skip(6)
         .map(|s| {

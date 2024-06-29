@@ -108,7 +108,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self) -> Column<Message> {
+    pub fn view(&self, account: Option<usize>) -> Column<Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(row![text(&self.error)].padding(PADDING))
@@ -120,21 +120,30 @@ impl FilePicker {
             );
         }
         col = col.push(row![text(self.current.to_str().unwrap())].padding(PADDING));
-        col = col.push(Scrollable::new(self.files().unwrap()));
-        col = col.push(
-            row![
-                text_input("filename", &self.filename)
-                    .on_input(Message::ChangeFileName)
-                    .on_submit(Message::NewFile(PathBuf::from(&self.filename))),
-                text(".json")
-            ]
-            .padding(PADDING),
-        );
+        if account.is_none() {
+            let is_json = Regex::new(r".json$").unwrap();
+            col = col.push(Scrollable::new(self.files(is_json, account).unwrap()));
+            col = col.push(
+                row![
+                    text_input("filename", &self.filename)
+                        .on_input(Message::ChangeFileName)
+                        .on_submit(Message::NewFile(PathBuf::from(&self.filename))),
+                    text(".json")
+                ]
+                .padding(PADDING),
+            );
+        } else {
+            let is_csv = Regex::new(r".csv$").unwrap();
+            col = col.push(Scrollable::new(self.files(is_csv, account).unwrap()));
+        }
         col
     }
 
-    fn files(&self) -> Result<Column<Message>, std::io::Error> {
-        let is_json = Regex::new(r".json$").unwrap();
+    fn files(
+        &self,
+        file_regex: Regex,
+        account: Option<usize>,
+    ) -> Result<Column<Message>, std::io::Error> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
         for entry in fs::read_dir(&self.current)? {
@@ -157,13 +166,15 @@ impl FilePicker {
                 Err(_) => continue,
             };
 
-            if file_type.is_file() && is_json.is_match(&file_name) {
-                col = col.push(
-                    row![button(text(&file_name))
-                        .style(iced::theme::Button::Custom(Box::new(GreenButton)))
-                        .on_press(Message::LoadFile(file_path))]
-                    .padding(PADDING),
-                );
+            if file_type.is_file() && file_regex.is_match(&file_name) {
+                let mut button = button(text(&file_name))
+                    .style(iced::theme::Button::Custom(Box::new(GreenButton)));
+                if account.is_some() {
+                    button = button.on_press(Message::ImportBoa(account.unwrap(), file_path))
+                } else {
+                    button = button.on_press(Message::LoadFile(file_path))
+                }
+                col = col.push(row![button].padding(PADDING));
             } else if file_type.is_dir() {
                 col = col.push(
                     row![button(text(&file_name)).on_press(Message::ChangeDir(file_path))]
@@ -172,14 +183,18 @@ impl FilePicker {
             } else if file_type.is_symlink() {
                 let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
                 if let Ok(metadata) = fs::metadata(&file_path) {
-                    if metadata.is_file() && is_json.is_match(file_path_real.to_str().unwrap()) {
+                    if metadata.is_file() && file_regex.is_match(file_path_real.to_str().unwrap()) {
                         let s = format!("{} -> {:?}", &file_name, &file_path_real);
-                        col = col.push(
-                            row![button(text(&s))
-                                .style(iced::theme::Button::Custom(Box::new(GreenButton)))
-                                .on_press(Message::LoadFile(file_path))]
-                            .padding(PADDING),
-                        );
+
+                        let mut button = button(text(&s))
+                            .style(iced::theme::Button::Custom(Box::new(GreenButton)));
+                        if account.is_some() {
+                            button =
+                                button.on_press(Message::ImportBoa(account.unwrap(), file_path))
+                        } else {
+                            button = button.on_press(Message::LoadFile(file_path))
+                        }
+                        col = col.push(row![button].padding(PADDING));
                     } else if metadata.is_dir() {
                         let s = format!("{} -> {:?}", &file_name, &file_path_real);
                         col = col.push(

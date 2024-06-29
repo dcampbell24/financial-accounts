@@ -117,7 +117,7 @@ impl App {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
             col_8 = col_8.push(button_cell(update_name));
-            col_9 = col_9.push(button_cell(button("import BoA").on_press(Message::ImportBoa(i))));
+            col_9 = col_9.push(button_cell(button("import BoA").on_press(Message::ImportBoaScreen(i))));
             col_10 = col_10.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10];
@@ -187,13 +187,18 @@ impl App {
     fn selected_account(&self) -> Option<usize> {
         match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
-            Screen::Account(account) | Screen::Monthly(account) => Some(account),
+            Screen::Account(account) | Screen::Monthly(account) | Screen::ImportBoa(account) => {
+                Some(account)
+            }
         }
     }
 
     fn list_monthly(&self) -> bool {
         match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts | Screen::Account(_) => false,
+            Screen::NewOrLoadFile
+            | Screen::Accounts
+            | Screen::Account(_)
+            | Screen::ImportBoa(_) => false,
             Screen::Monthly(_) => true,
         }
     }
@@ -303,13 +308,16 @@ impl Application for App {
                     self.accounts[j].data.remove(i);
                     self.accounts.save(&self.file_path);
                 }
+                Screen::ImportBoa(_i) => {
+                    panic!("Screen::ImportBoa can't be reached here");
+                }
                 Screen::Monthly(j) => {
                     self.accounts[j].monthly.remove(i);
                     self.accounts.save(&self.file_path);
                 }
             },
-            Message::ImportBoa(i) => {
-                let boa = import_boa().unwrap();
+            Message::ImportBoa(i, file_path) => {
+                let boa = import_boa(file_path).unwrap();
                 let account = &mut self.accounts[i];
                 for tx in boa {
                     account.data.push(tx);
@@ -318,6 +326,11 @@ impl Application for App {
                 account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path);
+                self.screen = Screen::Accounts;
+
+            }
+            Message::ImportBoaScreen(i) => {
+                self.screen = Screen::ImportBoa(i)
             }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
@@ -366,10 +379,11 @@ impl Application for App {
 
     fn view(&self) -> Element<Message> {
         match self.screen {
-            Screen::NewOrLoadFile => self.file_picker.view().into(),
+            Screen::NewOrLoadFile => self.file_picker.view(None).into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
+            Screen::ImportBoa(i) => self.file_picker.view(Some(i)).into(),
         }
     }
 
