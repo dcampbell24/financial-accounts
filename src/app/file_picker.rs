@@ -113,30 +113,28 @@ impl FilePicker {
         if !self.error.is_empty() {
             col = col.push(row![text(&self.error)].padding(PADDING))
         }
+
         if let Some(dir) = self.current.parent() {
-            col = col.push(
-                row![button(text(dir.display())).on_press(Message::ChangeDir(dir.into()))]
-                    .padding(PADDING),
-            );
+            let button = button(text(dir.display())).on_press(Message::ChangeDir(dir.into()));
+            col = col.push(row![button].padding(PADDING));
         }
+
         col = col.push(row![text(self.current.to_str().unwrap())].padding(PADDING));
+
         if account.is_none() {
             let is_json = Regex::new(r".json$").unwrap();
             col = col.push(Scrollable::new(self.files(is_json, account).unwrap()));
-            col = col.push(
-                row![
-                    text_input("filename", &self.filename)
-                        .on_input(Message::ChangeFileName)
-                        .on_submit(Message::NewFile(PathBuf::from(&self.filename))),
-                    text(".json")
-                ]
-                .padding(PADDING),
-            );
+
+            let input = text_input("filename", &self.filename)
+                .on_input(Message::ChangeFileName)
+                .on_submit(Message::NewFile(PathBuf::from(&self.filename)));
+            col = col.push(row![input, text(".json")].padding(PADDING));
         } else {
             let is_csv = Regex::new(r".csv$").unwrap();
             col = col.push(Scrollable::new(self.files(is_csv, account).unwrap()));
         }
-        let col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+
+        col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
         col
     }
 
