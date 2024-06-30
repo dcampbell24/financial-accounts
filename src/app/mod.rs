@@ -215,11 +215,11 @@ impl Application for App {
         match FilePicker::load_or_new_file() {
             Some((accounts, path_buf)) => (
                 App::new(accounts, path_buf, Screen::Accounts),
-                window::change_mode(window::Id::MAIN, window::Mode::Fullscreen),
+                window::maximize(window::Id::MAIN, true),
             ),
             None => (
                 App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
-                window::change_mode(window::Id::MAIN, window::Mode::Fullscreen),
+                window::maximize(window::Id::MAIN, true),
             ),
         }
     }
