@@ -1,11 +1,12 @@
 use clap::Parser;
+use clap_lex::OsStrExt;
 use iced::{
     widget::{button, row, text, text_input, Column, Scrollable},
     Color,
 };
-use regex::Regex;
+use regex::bytes::Regex;
 
-use std::{fs, path::PathBuf};
+use std::{ffi::OsString, fs, path::PathBuf};
 
 use crate::app::{Message, PADDING};
 
@@ -131,7 +132,7 @@ impl FilePicker {
             let is_json = Regex::new(r".json$").unwrap();
             col = col.push(Scrollable::new(self.files(is_json, account).unwrap()));
         } else {
-            let is_csv = Regex::new(r".csv$").unwrap();
+            let is_csv = Regex::new(".csv$").unwrap();
             col = col.push(self.files(is_csv, account).unwrap());
         }
 
@@ -156,18 +157,14 @@ impl FilePicker {
             let file_path = dir.path();
             let file_type = dir.file_type()?;
             let file_name = dir.file_name();
-            let file_name = match file_name.into_string() {
-                Ok(s) => {
-                    if !self.show_hidden_files && s.starts_with('.') {
-                        continue;
-                    }
-                    s
-                }
-                Err(_) => continue,
-            };
+            let file_name_string = os_string_to_string(&file_name);
 
-            if file_type.is_file() && file_regex.is_match(&file_name) {
-                let mut button = button(text(&file_name))
+            if !self.show_hidden_files && file_name.starts_with(".") {
+                continue;
+            }
+
+            if file_type.is_file() && file_regex.is_match(&file_name.as_encoded_bytes()) {
+                let mut button = button(text(&file_name_string))
                     .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                 if account.is_some() {
                     button = button.on_press(Message::ImportBoa(account.unwrap(), file_path))
@@ -177,14 +174,16 @@ impl FilePicker {
                 col = col.push(row![button].padding(PADDING));
             } else if file_type.is_dir() {
                 col = col.push(
-                    row![button(text(&file_name)).on_press(Message::ChangeDir(file_path))]
+                    row![button(text(&file_name_string)).on_press(Message::ChangeDir(file_path))]
                         .padding(PADDING),
                 );
             } else if file_type.is_symlink() {
                 let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
                 if let Ok(metadata) = fs::metadata(&file_path) {
-                    if metadata.is_file() && file_regex.is_match(file_path_real.to_str().unwrap()) {
-                        let s = format!("{} -> {:?}", &file_name, &file_path_real);
+                    if metadata.is_file()
+                        && file_regex.is_match(file_path_real.as_os_str().as_encoded_bytes())
+                    {
+                        let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
 
                         let mut button = button(text(&s))
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
@@ -196,14 +195,14 @@ impl FilePicker {
                         }
                         col = col.push(row![button].padding(PADDING));
                     } else if metadata.is_dir() {
-                        let s = format!("{} -> {:?}", &file_name, &file_path_real);
+                        let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
                         col = col.push(
                             row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
                                 .padding(PADDING),
                         );
                     }
                 } else {
-                    col = col.push(row![text(&file_name)].padding(PADDING));
+                    col = col.push(row![text(&file_name_string)].padding(PADDING));
                 }
             }
         }
@@ -226,4 +225,8 @@ impl button::StyleSheet for GreenButton {
             ..Default::default()
         }
     }
+}
+
+pub fn os_string_to_string(os_string: &OsString) -> String {
+    format!("{os_string:?}")
 }
