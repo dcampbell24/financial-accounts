@@ -122,19 +122,21 @@ impl FilePicker {
         col = col.push(row![text(self.current.to_str().unwrap())].padding(PADDING));
 
         if account.is_none() {
-            let is_json = Regex::new(r".json$").unwrap();
-            col = col.push(Scrollable::new(self.files(is_json, account).unwrap()));
-
             let input = text_input("filename", &self.filename)
                 .on_input(Message::ChangeFileName)
                 .on_submit(Message::NewFile(PathBuf::from(&self.filename)));
             col = col.push(row![input, text(".json")].padding(PADDING));
-        } else {
-            let is_csv = Regex::new(r".csv$").unwrap();
-            col = col.push(Scrollable::new(self.files(is_csv, account).unwrap()));
-        }
 
-        col.push(button_cell(button("Exit").on_press(Message::Exit)))
+            col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+
+            let is_json = Regex::new(r".json$").unwrap();
+            col.push(Scrollable::new(self.files(is_json, account).unwrap()))
+        } else {
+            col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+
+            let is_csv = Regex::new(r".csv$").unwrap();
+            col.push(Scrollable::new(self.files(is_csv, account).unwrap()))
+        }
     }
 
     fn files(
