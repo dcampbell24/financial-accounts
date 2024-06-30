@@ -9,7 +9,7 @@ use std::{fs, path::PathBuf};
 
 use crate::app::{Message, PADDING};
 
-use super::{accounts::Accounts, button_cell};
+use super::{accounts::Accounts, button_cell, EDGE_PADDING};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -108,7 +108,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self, account: Option<usize>) -> Column<Message> {
+    pub fn view(&self, account: Option<usize>) -> Scrollable<Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(row![text(&self.error)].padding(PADDING))
@@ -125,18 +125,18 @@ impl FilePicker {
             let input = text_input("filename", &self.filename)
                 .on_input(Message::ChangeFileName)
                 .on_submit(Message::NewFile(PathBuf::from(&self.filename)));
-            col = col.push(row![input, text(".json")].padding(PADDING));
-
-            col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+            col = col
+                .push(row![input, text(".json"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
             let is_json = Regex::new(r".json$").unwrap();
-            col.push(Scrollable::new(self.files(is_json, account).unwrap()))
+            col = col.push(Scrollable::new(self.files(is_json, account).unwrap()));
         } else {
-            col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
-
             let is_csv = Regex::new(r".csv$").unwrap();
-            col.push(Scrollable::new(self.files(is_csv, account).unwrap()))
+            col = col.push(self.files(is_csv, account).unwrap());
         }
+
+        col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+        Scrollable::new(col)
     }
 
     fn files(
