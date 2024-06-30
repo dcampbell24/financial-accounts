@@ -134,8 +134,7 @@ impl FilePicker {
             col = col.push(Scrollable::new(self.files(is_csv, account).unwrap()));
         }
 
-        col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
-        col
+        col.push(button_cell(button("Exit").on_press(Message::Exit)))
     }
 
     fn files(
