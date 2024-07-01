@@ -7,6 +7,7 @@ use iced::{
 use regex::bytes::Regex;
 
 use std::{
+    error::Error,
     ffi::OsString,
     fs::{self, FileType},
     path::PathBuf,
@@ -144,7 +145,11 @@ impl FilePicker {
         Scrollable::new(col)
     }
 
-    fn files(&self, file_regex: Regex, account: Option<usize>) -> anyhow::Result<Column<Message>> {
+    fn files(
+        &self,
+        file_regex: Regex,
+        account: Option<usize>,
+    ) -> Result<Column<Message>, Box<dyn Error>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
         for entry in fs::read_dir(&self.current)? {

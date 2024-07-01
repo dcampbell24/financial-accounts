@@ -13,7 +13,6 @@ repository = "https://github.com/dcampbell24/fin-stat"
 readme = "README.md"
 
 [dependencies]
-anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
