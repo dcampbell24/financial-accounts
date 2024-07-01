@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::Parser;
 use clap_lex::OsStrExt;
 use iced::{
@@ -7,7 +8,6 @@ use iced::{
 use regex::bytes::Regex;
 
 use std::{
-    ffi::OsString,
     fs::{self, FileType},
     path::PathBuf,
 };
@@ -15,6 +15,8 @@ use std::{
 use crate::app::{Message, PADDING};
 
 use super::{accounts::Accounts, button_cell, EDGE_PADDING};
+
+const INVALID_OS_STRING: &str = "Invalid OsString conversion.";
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -148,7 +150,7 @@ impl FilePicker {
         &self,
         file_regex: Regex,
         account: Option<usize>,
-    ) -> Result<Column<Message>, std::io::Error> {
+    ) -> anyhow::Result<Column<Message>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
         for entry in fs::read_dir(&self.current)? {
@@ -161,7 +163,7 @@ impl FilePicker {
             let file_path = dir.path();
             let file_type = dir.file_type()?;
             let file_name = dir.file_name();
-            let file_name_str = file_name.to_str_errorless();
+            let file_name_str = file_name.to_str().context(INVALID_OS_STRING)?;
 
             if !self.show_hidden_files && file_name.starts_with(".") {
                 continue;
@@ -195,8 +197,8 @@ impl FilePicker {
                         {
                             let s = format!(
                                 "{} -> {}",
-                                file_name.to_str_errorless(),
-                                file_path_real.to_str_errorless()
+                                file_name.to_str().context(INVALID_OS_STRING)?,
+                                file_path_real.to_str().context(INVALID_OS_STRING)?,
                             );
 
                             let mut button = button(text(&s))
@@ -211,8 +213,8 @@ impl FilePicker {
                         } else if metadata.is_dir() {
                             let s = format!(
                                 "{} -> {}",
-                                file_name.to_str_errorless(),
-                                file_path_real.to_str_errorless()
+                                file_name.to_str().context(INVALID_OS_STRING)?,
+                                file_path_real.to_str().context(INVALID_OS_STRING)?,
                             );
                             col = col.push(
                                 row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
@@ -241,28 +243,6 @@ impl button::StyleSheet for GreenButton {
         button::Appearance {
             background: Some(Color::from_rgb8(0, 255, 0).into()),
             ..Default::default()
-        }
-    }
-}
-
-trait ToStrErrorless {
-    fn to_str_errorless(&self) -> &str;
-}
-
-impl ToStrErrorless for OsString {
-    fn to_str_errorless(&self) -> &str {
-        match self.to_str() {
-            Some(str) => str,
-            None => "Failed to convert OsString to &str.",
-        }
-    }
-}
-
-impl ToStrErrorless for PathBuf {
-    fn to_str_errorless(&self) -> &str {
-        match self.to_str() {
-            Some(str) => str,
-            None => "Failed to convert OsString to &str.",
         }
     }
 }
