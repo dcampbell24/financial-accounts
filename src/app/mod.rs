@@ -380,11 +380,11 @@ impl Application for App {
 
     fn view(&self) -> Element<Message> {
         match self.screen {
-            Screen::NewOrLoadFile => self.file_picker.view(None).into(),
+            Screen::NewOrLoadFile => self.file_picker.view(None).unwrap().into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
-            Screen::ImportBoa(i) => self.file_picker.view(Some(i)).into(),
+            Screen::ImportBoa(i) => self.file_picker.view(Some(i)).unwrap().into(),
         }
     }
 
