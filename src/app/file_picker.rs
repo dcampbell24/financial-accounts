@@ -14,7 +14,7 @@ use std::{
 
 use crate::app::{Message, PADDING};
 
-use super::{accounts::Accounts, button_cell, EDGE_PADDING};
+use super::{accounts::Accounts, button_cell, text_cell, EDGE_PADDING};
 
 const IMPOSSIBLE_ERROR: &str = "This can't happen.";
 const INVALID_OS_STRING: &str = "Invalid OsString conversion to &str.";
@@ -120,16 +120,15 @@ impl FilePicker {
     pub fn view(&self, account: Option<usize>) -> anyhow::Result<Scrollable<Message>> {
         let mut col = Column::new();
         if !self.error.is_empty() {
-            col = col.push(row![text(&self.error)].padding(PADDING))
+            col = col.push(text_cell(&self.error))
         }
 
         if let Some(dir) = self.current.parent() {
             let button = button(text(dir.display())).on_press(Message::ChangeDir(dir.into()));
-            col = col.push(row![button].padding(PADDING));
+            col = col.push(button_cell(button));
         }
 
-        col =
-            col.push(row![text(self.current.to_str().context(INVALID_PATH_BUF)?)].padding(PADDING));
+        col = col.push(text_cell(self.current.to_str().context(INVALID_PATH_BUF)?));
 
         if account.is_none() {
             let input = text_input("filename", &self.filename)
@@ -179,14 +178,13 @@ impl FilePicker {
                             }
                             None => button = button.on_press(Message::LoadFile(file_path)),
                         }
-                        col = col.push(row![button].padding(PADDING));
+                        col = col.push(button_cell(button));
                     }
                 }
                 FileTypeEnum::Dir => {
-                    col = col.push(
-                        row![button(text(file_name_str)).on_press(Message::ChangeDir(file_path))]
-                            .padding(PADDING),
-                    );
+                    col = col.push(button_cell(
+                        button(text(file_name_str)).on_press(Message::ChangeDir(file_path)),
+                    ));
                 }
                 FileTypeEnum::Symlink => {
                     let file_path_real = fs::read_link(&file_path)?.to_path_buf();
@@ -208,21 +206,20 @@ impl FilePicker {
                                 }
                                 None => button = button.on_press(Message::LoadFile(file_path)),
                             }
-                            col = col.push(row![button].padding(PADDING));
+                            col = col.push(button_cell(button));
                         } else if metadata.is_dir() {
                             let s = format!(
                                 "{} -> {}",
                                 file_name.to_str().context(INVALID_OS_STRING)?,
                                 file_path_real.to_str().context(INVALID_PATH_BUF)?,
                             );
-                            col = col.push(
-                                row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
-                                    .padding(PADDING),
-                            );
+                            col = col.push(button_cell(
+                                button(text(&s)).on_press(Message::ChangeDir(file_path)),
+                            ));
                         }
                     }
                 }
-                FileTypeEnum::Unknown => col = col.push(row![text(file_name_str)].padding(PADDING)),
+                FileTypeEnum::Unknown => col = col.push(text_cell(file_name_str)),
             }
         }
         Ok(col)
