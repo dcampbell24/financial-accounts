@@ -6,7 +6,11 @@ use iced::{
 };
 use regex::bytes::Regex;
 
-use std::{ffi::OsString, fs, path::PathBuf};
+use std::{
+    ffi::OsString,
+    fs::{self, FileType},
+    path::PathBuf,
+};
 
 use crate::app::{Message, PADDING};
 
@@ -163,29 +167,10 @@ impl FilePicker {
                 continue;
             }
 
-            if file_type.is_file() && file_regex.is_match(&file_name.as_encoded_bytes()) {
-                let mut button = button(text(&file_name_string))
-                    .style(iced::theme::Button::Custom(Box::new(GreenButton)));
-                if account.is_some() {
-                    button = button.on_press(Message::ImportBoa(account.unwrap(), file_path))
-                } else {
-                    button = button.on_press(Message::LoadFile(file_path))
-                }
-                col = col.push(row![button].padding(PADDING));
-            } else if file_type.is_dir() {
-                col = col.push(
-                    row![button(text(&file_name_string)).on_press(Message::ChangeDir(file_path))]
-                        .padding(PADDING),
-                );
-            } else if file_type.is_symlink() {
-                let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
-                if let Ok(metadata) = fs::metadata(&file_path) {
-                    if metadata.is_file()
-                        && file_regex.is_match(file_path_real.as_os_str().as_encoded_bytes())
-                    {
-                        let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
-
-                        let mut button = button(text(&s))
+            match file_type_enum(file_type) {
+                FileTypeEnum::File => {
+                    if file_regex.is_match(&file_name.as_encoded_bytes()) {
+                        let mut button = button(text(&file_name_string))
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                         if account.is_some() {
                             button =
@@ -194,15 +179,44 @@ impl FilePicker {
                             button = button.on_press(Message::LoadFile(file_path))
                         }
                         col = col.push(row![button].padding(PADDING));
-                    } else if metadata.is_dir() {
-                        let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
-                        col = col.push(
-                            row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
-                                .padding(PADDING),
-                        );
                     }
-                } else {
-                    col = col.push(row![text(&file_name_string)].padding(PADDING));
+                }
+                FileTypeEnum::Dir => {
+                    col = col.push(
+                        row![
+                            button(text(&file_name_string)).on_press(Message::ChangeDir(file_path))
+                        ]
+                        .padding(PADDING),
+                    );
+                }
+                FileTypeEnum::Symlink => {
+                    let file_path_real = fs::read_link(&file_path).unwrap().to_path_buf();
+                    if let Ok(metadata) = fs::metadata(&file_path) {
+                        if metadata.is_file()
+                            && file_regex.is_match(file_path_real.as_os_str().as_encoded_bytes())
+                        {
+                            let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
+
+                            let mut button = button(text(&s))
+                                .style(iced::theme::Button::Custom(Box::new(GreenButton)));
+                            if account.is_some() {
+                                button =
+                                    button.on_press(Message::ImportBoa(account.unwrap(), file_path))
+                            } else {
+                                button = button.on_press(Message::LoadFile(file_path))
+                            }
+                            col = col.push(row![button].padding(PADDING));
+                        } else if metadata.is_dir() {
+                            let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
+                            col = col.push(
+                                row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
+                                    .padding(PADDING),
+                            );
+                        }
+                    }
+                }
+                FileTypeEnum::Unknown => {
+                    col = col.push(row![text(&file_name_string)].padding(PADDING))
                 }
             }
         }
@@ -229,4 +243,23 @@ impl button::StyleSheet for GreenButton {
 
 pub fn os_string_to_string(os_string: &OsString) -> String {
     format!("{os_string:?}")
+}
+
+enum FileTypeEnum {
+    Dir,
+    File,
+    Symlink,
+    Unknown,
+}
+
+fn file_type_enum(file_type: FileType) -> FileTypeEnum {
+    if file_type.is_dir() {
+        FileTypeEnum::Dir
+    } else if file_type.is_file() {
+        FileTypeEnum::File
+    } else if file_type.is_symlink() {
+        FileTypeEnum::Symlink
+    } else {
+        FileTypeEnum::Unknown
+    }
 }
