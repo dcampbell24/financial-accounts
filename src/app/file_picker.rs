@@ -146,11 +146,7 @@ impl FilePicker {
         Scrollable::new(col)
     }
 
-    fn files(
-        &self,
-        file_regex: Regex,
-        account: Option<usize>,
-    ) -> anyhow::Result<Column<Message>> {
+    fn files(&self, file_regex: Regex, account: Option<usize>) -> anyhow::Result<Column<Message>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
         for entry in fs::read_dir(&self.current)? {
