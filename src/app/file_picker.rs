@@ -1,4 +1,3 @@
-use anyhow::Context;
 use clap::Parser;
 use clap_lex::OsStrExt;
 use iced::{
@@ -8,6 +7,7 @@ use iced::{
 use regex::bytes::Regex;
 
 use std::{
+    ffi::OsString,
     fs::{self, FileType},
     path::PathBuf,
 };
@@ -15,10 +15,6 @@ use std::{
 use crate::app::{Message, PADDING};
 
 use super::{accounts::Accounts, button_cell, text_cell, EDGE_PADDING};
-
-const IMPOSSIBLE_ERROR: &str = "This can't happen.";
-const INVALID_OS_STRING: &str = "Invalid OsString conversion to &str.";
-const INVALID_PATH_BUF: &str = "Invalid PathBuf conversion to &str.";
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -117,7 +113,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self, account: Option<usize>) -> anyhow::Result<Scrollable<Message>> {
+    pub fn view(&self, account: Option<usize>) -> Scrollable<Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(text_cell(&self.error))
@@ -128,7 +124,7 @@ impl FilePicker {
             col = col.push(button_cell(button));
         }
 
-        col = col.push(text_cell(self.current.to_str().context(INVALID_PATH_BUF)?));
+        col = col.push(text_cell(self.current.to_str_errorless()));
 
         if account.is_none() {
             let input = text_input("filename", &self.filename)
@@ -137,15 +133,15 @@ impl FilePicker {
             col = col
                 .push(row![input, text(".json"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
-            let is_json = Regex::new(".json$").context(IMPOSSIBLE_ERROR)?;
-            col = col.push(self.files(is_json, account)?);
+            let is_json = Regex::new(".json$").unwrap();
+            col = col.push(self.files(is_json, account).unwrap());
         } else {
-            let is_csv = Regex::new(".csv$").context(IMPOSSIBLE_ERROR)?;
-            col = col.push(self.files(is_csv, account)?);
+            let is_csv = Regex::new(".csv$").unwrap();
+            col = col.push(self.files(is_csv, account).unwrap());
         }
 
         col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
-        Ok(Scrollable::new(col))
+        Scrollable::new(col)
     }
 
     fn files(&self, file_regex: Regex, account: Option<usize>) -> anyhow::Result<Column<Message>> {
@@ -161,7 +157,7 @@ impl FilePicker {
             let file_path = dir.path();
             let file_type = dir.file_type()?;
             let file_name = dir.file_name();
-            let file_name_str = file_name.to_str().context(INVALID_OS_STRING)?;
+            let file_name_str = file_name.to_str_errorless();
 
             if !self.show_hidden_files && file_name.starts_with(".") {
                 continue;
@@ -194,8 +190,8 @@ impl FilePicker {
                         {
                             let s = format!(
                                 "{} -> {}",
-                                file_name.to_str().context(INVALID_OS_STRING)?,
-                                file_path_real.to_str().context(INVALID_PATH_BUF)?,
+                                file_name.to_str_errorless(),
+                                file_path_real.to_str_errorless(),
                             );
 
                             let mut button = button(text(&s))
@@ -210,8 +206,8 @@ impl FilePicker {
                         } else if metadata.is_dir() {
                             let s = format!(
                                 "{} -> {}",
-                                file_name.to_str().context(INVALID_OS_STRING)?,
-                                file_path_real.to_str().context(INVALID_PATH_BUF)?,
+                                file_name.to_str_errorless(),
+                                file_path_real.to_str_errorless(),
                             );
                             col = col.push(button_cell(
                                 button(text(&s)).on_press(Message::ChangeDir(file_path)),
@@ -259,5 +255,27 @@ fn file_type_enum(file_type: FileType) -> FileTypeEnum {
         FileTypeEnum::Symlink
     } else {
         FileTypeEnum::Unknown
+    }
+}
+
+trait ToStrErrorless {
+    fn to_str_errorless(&self) -> &str;
+}
+
+impl ToStrErrorless for OsString {
+    fn to_str_errorless(&self) -> &str {
+        match self.to_str() {
+            Some(s) => s,
+            None => "Invalid OsString conversion to &str.",
+        }
+    }
+}
+
+impl ToStrErrorless for PathBuf {
+    fn to_str_errorless(&self) -> &str {
+        match self.to_str() {
+            Some(s) => s,
+            None => "Invalid PathBuf conversion to &str.",
+        }
     }
 }
