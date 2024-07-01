@@ -134,7 +134,7 @@ impl FilePicker {
                 .push(row![input, text(".json"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
             let is_json = Regex::new(r".json$").unwrap();
-            col = col.push(row![self.files(is_json, account).unwrap()]);
+            col = col.push(self.files(is_json, account).unwrap());
         } else {
             let is_csv = Regex::new(".csv$").unwrap();
             col = col.push(self.files(is_csv, account).unwrap());
