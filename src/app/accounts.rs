@@ -131,10 +131,11 @@ impl Accounts {
         Ok(())
     }
 
-    pub fn save(&self, file_path: &PathBuf) {
-        let j = serde_json::to_string_pretty(self).unwrap();
-        let mut file = File::create(file_path).unwrap();
-        file.write_all(j.as_bytes()).unwrap()
+    pub fn save(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
+        let j = serde_json::to_string_pretty(self)?;
+        let mut file = File::create(file_path)?;
+        file.write_all(j.as_bytes())?;
+        Ok(())
     }
 
     pub fn load(file_path: &PathBuf) -> Result<Self, Box<dyn Error>> {

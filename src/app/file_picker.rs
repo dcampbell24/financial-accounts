@@ -46,7 +46,7 @@ impl FilePicker {
             let mut accounts = Accounts::load(&path_buf)
                 .unwrap_or_else(|err| panic!("error loading {:?}: {}", &path_buf, err));
             accounts.check_monthly();
-            accounts.save(&path_buf);
+            accounts.save(&path_buf).unwrap();
             return Some((accounts, path_buf));
         }
         if let Some(arg) = args.new {
@@ -94,7 +94,7 @@ impl FilePicker {
         match Accounts::load(file_path) {
             Ok(mut accounts) => {
                 accounts.check_monthly();
-                accounts.save(file_path);
+                accounts.save(file_path).unwrap();
                 Some(accounts)
             }
             Err(err) => {

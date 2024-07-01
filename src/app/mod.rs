@@ -298,26 +298,26 @@ impl Application for App {
                     self.project_months = Some(months);
                 }
             }
-            Message::Delete(i) => match self.screen {
-                Screen::NewOrLoadFile => {
-                    panic!("Screen::NewOrLoadFile can't be reached here");
-                }
-                Screen::Accounts => {
-                    self.accounts.inner.remove(i);
-                    self.accounts.save(&self.file_path);
-                }
-                Screen::Account(j) => {
-                    self.accounts[j].data.remove(i);
-                    self.accounts.save(&self.file_path);
-                }
-                Screen::ImportBoa(_i) => {
-                    panic!("Screen::ImportBoa can't be reached here");
-                }
-                Screen::Monthly(j) => {
-                    self.accounts[j].monthly.remove(i);
-                    self.accounts.save(&self.file_path);
-                }
-            },
+            Message::Delete(i) => {
+                match self.screen {
+                    Screen::NewOrLoadFile => {
+                        panic!("Screen::NewOrLoadFile can't be reached here");
+                    }
+                    Screen::Accounts => {
+                        self.accounts.inner.remove(i);
+                    }
+                    Screen::Account(j) => {
+                        self.accounts[j].data.remove(i);
+                    }
+                    Screen::ImportBoa(_j) => {
+                        panic!("Screen::ImportBoa can't be reached here");
+                    }
+                    Screen::Monthly(j) => {
+                        self.accounts[j].monthly.remove(i);
+                    }
+                };
+                self.accounts.save(&self.file_path).unwrap();
+            }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
                 let account = &mut self.accounts[i];
@@ -327,13 +327,13 @@ impl Application for App {
                 account.data.sort_by_key(|tx| tx.date);
                 account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
-                self.accounts.save(&self.file_path);
+                self.accounts.save(&self.file_path).unwrap();
                 self.screen = Screen::Accounts;
             }
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
-                self.accounts.save(&self.file_path);
+                self.accounts.save(&self.file_path).unwrap();
             }
             Message::UpdateCurrency(currency) => {
                 self.currency = currency;
@@ -345,7 +345,7 @@ impl Application for App {
                     mem::take(&mut self.account_name),
                     self.currency.clone(),
                 ));
-                self.accounts.save(&self.file_path);
+                self.accounts.save(&self.file_path).unwrap();
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account];
@@ -359,7 +359,7 @@ impl Application for App {
                             account.data.sort_by_key(|tx| tx.date);
                             account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
-                            self.accounts.save(&self.file_path);
+                            self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
                             account.error_str = err;
