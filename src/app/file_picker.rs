@@ -161,7 +161,7 @@ impl FilePicker {
             let file_path = dir.path();
             let file_type = dir.file_type()?;
             let file_name = dir.file_name();
-            let file_name_string = os_string_to_string(&file_name);
+            let file_name_str = file_name.to_str_errorless();
 
             if !self.show_hidden_files && file_name.starts_with(".") {
                 continue;
@@ -169,8 +169,8 @@ impl FilePicker {
 
             match file_type_enum(file_type) {
                 FileTypeEnum::File => {
-                    if file_regex.is_match(&file_name.as_encoded_bytes()) {
-                        let mut button = button(text(&file_name_string))
+                    if file_regex.is_match(file_name.as_encoded_bytes()) {
+                        let mut button = button(text(file_name_str))
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                         if account.is_some() {
                             button =
@@ -183,10 +183,8 @@ impl FilePicker {
                 }
                 FileTypeEnum::Dir => {
                     col = col.push(
-                        row![
-                            button(text(&file_name_string)).on_press(Message::ChangeDir(file_path))
-                        ]
-                        .padding(PADDING),
+                        row![button(text(file_name_str)).on_press(Message::ChangeDir(file_path))]
+                            .padding(PADDING),
                     );
                 }
                 FileTypeEnum::Symlink => {
@@ -195,7 +193,11 @@ impl FilePicker {
                         if metadata.is_file()
                             && file_regex.is_match(file_path_real.as_os_str().as_encoded_bytes())
                         {
-                            let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
+                            let s = format!(
+                                "{} -> {}",
+                                file_name.to_str_errorless(),
+                                file_path_real.to_str_errorless()
+                            );
 
                             let mut button = button(text(&s))
                                 .style(iced::theme::Button::Custom(Box::new(GreenButton)));
@@ -207,7 +209,11 @@ impl FilePicker {
                             }
                             col = col.push(row![button].padding(PADDING));
                         } else if metadata.is_dir() {
-                            let s = format!("{:?} -> {:?}", &file_name, &file_path_real);
+                            let s = format!(
+                                "{} -> {}",
+                                file_name.to_str_errorless(),
+                                file_path_real.to_str_errorless()
+                            );
                             col = col.push(
                                 row![button(text(&s)).on_press(Message::ChangeDir(file_path))]
                                     .padding(PADDING),
@@ -215,9 +221,7 @@ impl FilePicker {
                         }
                     }
                 }
-                FileTypeEnum::Unknown => {
-                    col = col.push(row![text(&file_name_string)].padding(PADDING))
-                }
+                FileTypeEnum::Unknown => col = col.push(row![text(file_name_str)].padding(PADDING)),
             }
         }
         Ok(col)
@@ -241,8 +245,26 @@ impl button::StyleSheet for GreenButton {
     }
 }
 
-pub fn os_string_to_string(os_string: &OsString) -> String {
-    format!("{os_string:?}")
+trait ToStrErrorless {
+    fn to_str_errorless(&self) -> &str;
+}
+
+impl ToStrErrorless for OsString {
+    fn to_str_errorless(&self) -> &str {
+        match self.to_str() {
+            Some(str) => str,
+            None => "Failed to convert OsString to &str.",
+        }
+    }
+}
+
+impl ToStrErrorless for PathBuf {
+    fn to_str_errorless(&self) -> &str {
+        match self.to_str() {
+            Some(str) => str,
+            None => "Failed to convert OsString to &str.",
+        }
+    }
 }
 
 enum FileTypeEnum {
