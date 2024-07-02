@@ -188,15 +188,15 @@ impl App {
         Scrollable::new(cols)
     }
 
-    // fixme
-    fn selected_account(&self) -> usize {
+    fn selected_account(&self) -> Option<usize> {
         let account = match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
             Screen::Account(account) | Screen::Monthly(account) | Screen::ImportBoa(account) => {
                 Some(account)
             }
         };
-        account.expect("You should only call this on screens that have accounts.")
+
+        account
     }
 
     fn list_monthly(&self) -> bool {
@@ -258,16 +258,16 @@ impl Application for App {
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
             Message::ChangeTx(tx) => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
                     set_amount(&mut account.tx_monthly.amount, &tx);
                 } else {
                     set_amount(&mut account.tx.amount, &tx);
                 }
             }
-            Message::ChangeDate(date) => self.accounts[selected_account].tx.date = date,
+            Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
             Message::ChangeComment(comment) => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
                     account.tx_monthly.comment = comment.trim().to_string();
                 } else {
@@ -276,21 +276,21 @@ impl Application for App {
             }
             Message::ChangeFilterDateYear(date) => {
                 if date.is_empty() {
-                    self.accounts[selected_account].filter_date_year = None;
+                    self.accounts[selected_account.unwrap()].filter_date_year = None;
                 }
                 if let Ok(date) = date.parse() {
                     if (0..3_000).contains(&date) {
-                        self.accounts[selected_account].filter_date_year = Some(date)
+                        self.accounts[selected_account.unwrap()].filter_date_year = Some(date)
                     }
                 }
             }
             Message::ChangeFilterDateMonth(date) => {
                 if date.is_empty() {
-                    self.accounts[selected_account].filter_date_month = None;
+                    self.accounts[selected_account.unwrap()].filter_date_month = None;
                 }
                 if let Ok(date) = date.parse() {
                     if (1..13).contains(&date) {
-                        self.accounts[selected_account].filter_date_month = Some(date)
+                        self.accounts[selected_account.unwrap()].filter_date_month = Some(date)
                     }
                 }
             }
@@ -356,7 +356,7 @@ impl Application for App {
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
 
                 if list_monthly {
                     account.submit_tx_monthly();
@@ -376,7 +376,7 @@ impl Application for App {
                 }
             }
             Message::SubmitFilterDate => {
-                let account = &mut self.accounts[selected_account];
+                let account = &mut self.accounts[selected_account.unwrap()];
                 account.filter_date = account.submit_filter_date();
                 account.error_str = String::new();
             }

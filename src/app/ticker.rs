@@ -1,6 +1,6 @@
 use chrono::Utc;
-use reqwest::Url;
 use reqwest::blocking::Client;
+use reqwest::Url;
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
 
