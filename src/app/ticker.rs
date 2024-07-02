@@ -1,4 +1,4 @@
-use std::{error::Error, str::FromStr};
+use std::{error::Error, fmt::Display, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use reqwest::blocking::Client;
@@ -53,7 +53,7 @@ impl Ticker {
             println!("{ohlc:#?}");
             Ok(())
         } else {
-            Ok(())
+            Err(Box::new(OhlcError { error: body.error }))
         }
     }
 }
@@ -63,6 +63,19 @@ struct BitCoinResponse {
     error: Vec<String>,
     result: BitCoinOhlcVec,
 }
+
+#[derive(Debug)]
+struct OhlcError {
+    error: Vec<String>,
+}
+
+impl Display for OhlcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "{:#?}", self)
+    }
+}
+
+impl Error for OhlcError {}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BitCoinOhlcVec {
@@ -113,5 +126,6 @@ struct Ohlc {
     volume: Decimal,
     count: i64,
 }
+
 // {"error":[],"result":{"GNOUSD":[[1719878400,"286.27","286.88","284.97","284.97","285.78","4.74983692",10]],"last":1719792000}}
 // {"error":[],"result":{"XETHZUSD":[[1719878400,"3438.32","3450.99","3432.20","3444.99","3442.24","357.97391572",651]],"last":1719792000}}
