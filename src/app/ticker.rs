@@ -53,7 +53,7 @@ impl Ticker {
             println!("{ohlc:#?}");
             Ok(())
         } else {
-            Err(Box::new(OhlcError { error: body.error }))
+            Err(Box::new(OhlcError { errors: body.error }))
         }
     }
 }
@@ -66,7 +66,7 @@ struct BitCoinResponse {
 
 #[derive(Debug)]
 struct OhlcError {
-    error: Vec<String>,
+    errors: Vec<String>,
 }
 
 impl Display for OhlcError {
