@@ -20,6 +20,7 @@ use super::{button_cell, money::Currency, number_cell, text_cell};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
+    pub currency: Currency,
     #[serde(skip)]
     pub tx: TransactionToSubmit,
     #[serde(skip)]
@@ -36,7 +37,6 @@ pub struct Account {
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
     pub error_str: String,
-    pub currency: Currency,
 }
 
 impl Account {
