@@ -19,6 +19,7 @@ clap_lex = "0.7"
 csv = "1"
 iced = "0.12"
 regex = "1"
+reqwest = { version = "0.12", features = ["blocking"] }
 rust_decimal = "1"
 rust_decimal_macros = "1"
 serde = { version = "1", features = ["derive"] }

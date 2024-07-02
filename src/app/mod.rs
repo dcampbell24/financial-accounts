@@ -6,6 +6,7 @@ mod message;
 mod money;
 mod screen;
 pub mod solarized;
+mod ticker;
 
 use std::{cmp::Ordering, mem, path::PathBuf};
 
@@ -24,6 +25,7 @@ use money::Currency;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
+use ticker::Ticker;
 
 use crate::app::{
     account::transaction::TransactionToSubmit, account::Account, accounts::Accounts,
@@ -178,6 +180,7 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
+            button_cell(button("Get OHLC").on_press(Message::GetOHLC)),
             button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -185,6 +188,7 @@ impl App {
         Scrollable::new(cols)
     }
 
+    // fixme
     fn selected_account(&self) -> usize {
         let account = match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
@@ -317,6 +321,10 @@ impl Application for App {
                     }
                 };
                 self.accounts.save(&self.file_path).unwrap();
+            }
+            Message::GetOHLC => {
+                let ticker = Ticker::init();
+                ticker.get_ohlc("XBTUSD");
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
