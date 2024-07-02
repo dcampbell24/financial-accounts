@@ -37,21 +37,21 @@ impl Ticker {
         Ok(string)
     }
 
-    pub fn get_bitcoin_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
+    pub fn get_ohlc_bitcoin(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "XBTUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
         let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
         response.to_ohlc(name)
     }
 
-    pub fn get_eth_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
+    pub fn get_ohlc_eth(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "ETHUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
         let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
         response.to_ohlc(name)
     }
 
-    pub fn get_gno_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
+    pub fn get_ohlc_gno(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "GNOUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
         let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;

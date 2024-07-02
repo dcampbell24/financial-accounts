@@ -180,7 +180,7 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            button_cell(button("Get OHLC").on_press(Message::GetOHLC)),
+            button_cell(button("Get OHLC").on_press(Message::GetOhlc)),
             button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -320,11 +320,11 @@ impl Application for App {
                 };
                 self.accounts.save(&self.file_path).unwrap();
             }
-            Message::GetOHLC => {
+            Message::GetOhlc => {
                 let ticker = Ticker::init();
-                ticker.get_bitcoin_ohlc().unwrap();
-                ticker.get_eth_ohlc().unwrap();
-                ticker.get_gno_ohlc().unwrap();
+                ticker.get_ohlc_bitcoin().unwrap();
+                ticker.get_ohlc_eth().unwrap();
+                ticker.get_ohlc_gno().unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
