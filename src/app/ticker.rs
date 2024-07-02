@@ -40,41 +40,41 @@ impl Ticker {
     pub fn get_bitcoin_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "XBTUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
-        let response: BitCoinResponse = serde_json::from_str(&string)?;
-        to_ohlc(name, Box::new(response))
-    }
-}
-
-fn to_ohlc(name: String, response: Box<dyn OhlcResponse>) -> Result<Ohlc, Box<dyn Error>> {
-    let errors = response.errors();
-    let result = response.result();
-
-    if errors.errors.is_empty() {
-        let ohlc = Ohlc {
-            name: name.to_string(),
-            currency: Currency::Usd,
-            date_time: DateTime::from_timestamp(result.ohlc[0][0].take_i64(), 0).unwrap(),
-            open: Decimal::from_str(&result.ohlc[0][1].clone().take_string())?,
-            high: Decimal::from_str(&result.ohlc[0][2].clone().take_string())?,
-            low: Decimal::from_str(&result.ohlc[0][3].clone().take_string())?,
-            close: Decimal::from_str(&result.ohlc[0][4].clone().take_string())?,
-            vwap: Decimal::from_str(&result.ohlc[0][5].clone().take_string())?,
-            volume: Decimal::from_str(&result.ohlc[0][6].clone().take_string())?,
-            count: result.ohlc[0][7].take_i64(),
-        };
-        println!("{ohlc}");
-        Ok(ohlc)
-    } else {
-        Err(Box::new(errors))
+        let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
+        response.to_ohlc(name)
     }
 }
 
 trait OhlcResponse {
     fn errors(&self) -> OhlcErrors;
     fn result(&self) -> OhlcVec;
+
+    fn to_ohlc(&self, name: String) -> Result<Ohlc, Box<dyn Error>> {
+        let errors = self.errors();
+        let result = self.result();
+    
+        if errors.errors.is_empty() {
+            let ohlc = Ohlc {
+                name: name.to_string(),
+                currency: Currency::Usd,
+                date_time: DateTime::from_timestamp(result.ohlc[0][0].take_i64(), 0).unwrap(),
+                open: Decimal::from_str(&result.ohlc[0][1].clone().take_string())?,
+                high: Decimal::from_str(&result.ohlc[0][2].clone().take_string())?,
+                low: Decimal::from_str(&result.ohlc[0][3].clone().take_string())?,
+                close: Decimal::from_str(&result.ohlc[0][4].clone().take_string())?,
+                vwap: Decimal::from_str(&result.ohlc[0][5].clone().take_string())?,
+                volume: Decimal::from_str(&result.ohlc[0][6].clone().take_string())?,
+                count: result.ohlc[0][7].take_i64(),
+            };
+            println!("{ohlc}");
+            Ok(ohlc)
+        } else {
+            Err(Box::new(errors))
+        }
+    }
 }
 
-impl OhlcResponse for BitCoinResponse {
+impl OhlcResponse for Response<BitCoinOhlcVec> {
     fn errors(&self) -> OhlcErrors {
         OhlcErrors {
             errors: self.error.clone(),
@@ -89,11 +89,10 @@ impl OhlcResponse for BitCoinResponse {
     }
 }
 
-// fixme: make generic
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct BitCoinResponse {
+struct Response<T> {
     error: Vec<String>,
-    result: BitCoinOhlcVec,
+    result: T,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
