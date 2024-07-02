@@ -323,8 +323,8 @@ impl Application for App {
             Message::GetOHLC => {
                 let ticker = Ticker::init();
                 ticker.get_bitcoin_ohlc().unwrap();
-                // ticker.get_ohlc("GNOUSD");
-                // ticker.get_ohlc("ETHUSD");
+                ticker.get_eth_ohlc().unwrap();
+                ticker.get_gno_ohlc().unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();

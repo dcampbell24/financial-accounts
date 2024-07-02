@@ -43,6 +43,20 @@ impl Ticker {
         let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
         response.to_ohlc(name)
     }
+
+    pub fn get_eth_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
+        let name = "ETHUSD".to_string();
+        let string = self.get_ohlc_untyped(&name)?;
+        let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
+        response.to_ohlc(name)
+    }
+
+    pub fn get_gno_ohlc(&self) -> Result<Ohlc, Box<dyn Error>> {
+        let name = "GNOUSD".to_string();
+        let string = self.get_ohlc_untyped(&name)?;
+        let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
+        response.to_ohlc(name)
+    }
 }
 
 trait OhlcResponse {
@@ -66,7 +80,7 @@ trait OhlcResponse {
                 volume: Decimal::from_str(&result.ohlc[0][6].clone().take_string())?,
                 count: result.ohlc[0][7].take_i64(),
             };
-            println!("{ohlc}");
+            println!("{ohlc}"); // Fixme: Remove
             Ok(ohlc)
         } else {
             Err(Box::new(errors))
@@ -75,6 +89,36 @@ trait OhlcResponse {
 }
 
 impl OhlcResponse for Response<BitCoinOhlcVec> {
+    fn errors(&self) -> OhlcErrors {
+        OhlcErrors {
+            errors: self.error.clone(),
+        }
+    }
+
+    fn result(&self) -> OhlcVec {
+        OhlcVec {
+            ohlc: self.result.ohlc.clone(),
+            last: self.result.last,
+        }
+    }
+}
+
+impl OhlcResponse for Response<EthOhlcVec> {
+    fn errors(&self) -> OhlcErrors {
+        OhlcErrors {
+            errors: self.error.clone(),
+        }
+    }
+
+    fn result(&self) -> OhlcVec {
+        OhlcVec {
+            ohlc: self.result.ohlc.clone(),
+            last: self.result.last,
+        }
+    }
+}
+
+impl OhlcResponse for Response<GnoOhlcVec> {
     fn errors(&self) -> OhlcErrors {
         OhlcErrors {
             errors: self.error.clone(),
@@ -104,6 +148,20 @@ struct OhlcVec {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BitCoinOhlcVec {
     #[serde(rename = "XXBTZUSD")]
+    ohlc: Vec<Vec<IntOrString>>,
+    last: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct EthOhlcVec {
+    #[serde(rename = "XETHZUSD")]
+    ohlc: Vec<Vec<IntOrString>>,
+    last: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct GnoOhlcVec {
+    #[serde(rename = "GNOUSD")]
     ohlc: Vec<Vec<IntOrString>>,
     last: u64,
 }
@@ -179,5 +237,3 @@ impl Display for OhlcErrors {
 
 impl Error for OhlcErrors {}
 
-// {"error":[],"result":{"GNOUSD":[[1719878400,"286.27","286.88","284.97","284.97","285.78","4.74983692",10]],"last":1719792000}}
-// {"error":[],"result":{"XETHZUSD":[[1719878400,"3438.32","3450.99","3432.20","3444.99","3442.24","357.97391572",651]],"last":1719792000}}
