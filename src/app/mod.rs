@@ -189,14 +189,12 @@ impl App {
     }
 
     fn selected_account(&self) -> Option<usize> {
-        let account = match self.screen {
+        match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
             Screen::Account(account) | Screen::Monthly(account) | Screen::ImportBoa(account) => {
                 Some(account)
             }
-        };
-
-        account
+        }
     }
 
     fn list_monthly(&self) -> bool {
@@ -324,7 +322,9 @@ impl Application for App {
             }
             Message::GetOHLC => {
                 let ticker = Ticker::init();
-                ticker.get_ohlc("XBTUSD");
+                ticker.get_bitcoin_ohlc();
+                // ticker.get_ohlc("GNOUSD");
+                // ticker.get_ohlc("ETHUSD");
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
