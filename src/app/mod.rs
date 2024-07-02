@@ -322,7 +322,7 @@ impl Application for App {
             }
             Message::GetOHLC => {
                 let ticker = Ticker::init();
-                ticker.get_bitcoin_ohlc();
+                ticker.get_bitcoin_ohlc().unwrap();
                 // ticker.get_ohlc("GNOUSD");
                 // ticker.get_ohlc("ETHUSD");
             }
