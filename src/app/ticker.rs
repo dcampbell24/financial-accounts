@@ -50,7 +50,7 @@ impl Ticker {
                 volume: Decimal::from_str(&body.result.bitcoin_usd[0][6].clone().take_string())?,
                 count: body.result.bitcoin_usd[0][7].take_i64(),
             };
-            println!("{ohlc:#?}");
+            println!("{ohlc}");
             Ok(())
         } else {
             Err(Box::new(OhlcError { errors: body.error }))
@@ -71,7 +71,7 @@ struct OhlcError {
 
 impl Display for OhlcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "{:#?}", self)
+        writeln!(f, "{:#?}", self.errors)
     }
 }
 
@@ -127,5 +127,19 @@ struct Ohlc {
     count: i64,
 }
 
+impl Display for Ohlc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        writeln!(f, "name: {}", self.name)?;
+        writeln!(f, "currency: {}", self.currency)?;
+        writeln!(f, "date_time: {}", self.date_time)?;
+        writeln!(f, "open: {}", self.open)?;
+        writeln!(f, "high: {}", self.high)?;
+        writeln!(f, "low: {}", self.low)?;
+        writeln!(f, "close: {}", self.close)?;
+        writeln!(f, "vwap: {}", self.vwap)?;
+        writeln!(f, "volume: {}", self.volume)?;
+        writeln!(f, "count: {}", self.count)
+    }
+}
 // {"error":[],"result":{"GNOUSD":[[1719878400,"286.27","286.88","284.97","284.97","285.78","4.74983692",10]],"last":1719792000}}
 // {"error":[],"result":{"XETHZUSD":[[1719878400,"3438.32","3450.99","3432.20","3444.99","3442.24","357.97391572",651]],"last":1719792000}}
