@@ -183,7 +183,7 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            button_cell(button("Get OHLC").on_press(Message::GetOhlc)),
+            button_cell(button("Get crypto OHLC").on_press(Message::GetOhlc)),
             button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
