@@ -16,6 +16,7 @@ use crate::app::ticker::Ticker;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
+    pub total_crypto: Decimal,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
 }
@@ -44,6 +45,7 @@ impl Accounts {
     pub fn new() -> Self {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
+            total_crypto: dec!(0),
             inner: Vec::new(),
         }
     }

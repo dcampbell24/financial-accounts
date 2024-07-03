@@ -129,6 +129,8 @@ impl App {
             text_cell("total current year USD: "),
             text_cell("total last year USD: "),
             text_cell("total USD: "),
+            text_cell("total cryto USD: "),
+            text_cell("grand total USD: "),
             text_cell(""),
             text_cell("total ETH"),
             text_cell("total GNO"),
@@ -140,6 +142,8 @@ impl App {
             number_cell(self.accounts.total_for_current_year_usd()),
             number_cell(self.accounts.total_for_last_year_usd()),
             number_cell(self.accounts.total(Currency::Usd)),
+            number_cell(self.accounts.total_crypto),
+            number_cell(self.accounts.total(Currency::Usd) + self.accounts.total_crypto),
             text_cell(""),
             number_cell(self.accounts.total(Currency::Eth)),
             number_cell(self.accounts.total(Currency::Gno)),
@@ -321,7 +325,8 @@ impl Application for App {
             }
             Message::GetOhlc => {
                 let total = self.accounts.total_cypto().unwrap();
-                println!("{total}");
+                self.accounts.total_crypto = total;
+                self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
