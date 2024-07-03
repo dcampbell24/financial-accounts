@@ -134,7 +134,7 @@ impl App {
             text_cell(""),
             text_cell("total ETH"),
             text_cell("total GNO"),
-            text_cell("total Gold Oz"),
+            text_cell("total Gold Troy Oz"),
         ];
         let col_2 = column![
             number_cell(self.accounts.total_for_current_month_usd()),
