@@ -66,7 +66,7 @@ trait OhlcResponse {
     fn to_ohlc(&self, name: String) -> Result<Ohlc, Box<dyn Error>> {
         let errors = self.errors();
         let result = self.result();
-    
+
         if errors.errors.is_empty() {
             let ohlc = Ohlc {
                 name: name.to_string(),
@@ -80,7 +80,6 @@ trait OhlcResponse {
                 volume: Decimal::from_str(&result.ohlc[0][6].clone().take_string())?,
                 count: result.ohlc[0][7].take_i64(),
             };
-            println!("{ohlc}"); // Fixme: Remove
             Ok(ohlc)
         } else {
             Err(Box::new(errors))
@@ -197,16 +196,16 @@ impl Default for IntOrString {
 
 #[derive(Clone, Debug)]
 pub struct Ohlc {
-    name: String,
-    currency: Currency,
-    date_time: DateTime<Utc>,
-    open: Decimal,
-    high: Decimal,
-    low: Decimal,
-    close: Decimal,
-    vwap: Decimal,
-    volume: Decimal,
-    count: i64,
+    pub name: String,
+    pub currency: Currency,
+    pub date_time: DateTime<Utc>,
+    pub open: Decimal,
+    pub high: Decimal,
+    pub low: Decimal,
+    pub close: Decimal,
+    pub vwap: Decimal,
+    pub volume: Decimal,
+    pub count: i64,
 }
 
 impl Display for Ohlc {
@@ -236,4 +235,3 @@ impl Display for OhlcErrors {
 }
 
 impl Error for OhlcErrors {}
-

@@ -322,9 +322,21 @@ impl Application for App {
             }
             Message::GetOhlc => {
                 let ticker = Ticker::init();
-                ticker.get_ohlc_bitcoin().unwrap();
-                ticker.get_ohlc_eth().unwrap();
-                ticker.get_ohlc_gno().unwrap();
+                let _bitcoin = ticker.get_ohlc_bitcoin().unwrap();
+                let eth = ticker.get_ohlc_eth().unwrap();
+                let gno = ticker.get_ohlc_gno().unwrap();
+
+                let mut total = dec!(0);
+                for account in &self.accounts.inner {
+                    if account.currency == Currency::Eth {
+                        let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
+                        total += sum * eth.close;
+                    } else if account.currency == Currency::Gno {
+                        let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
+                        total += sum * gno.close;
+                    }
+                }
+                println!("{total}");
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
