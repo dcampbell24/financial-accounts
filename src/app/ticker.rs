@@ -37,7 +37,7 @@ impl Ticker {
         Ok(string)
     }
 
-    pub fn get_ohlc_bitcoin(&self) -> Result<Ohlc, Box<dyn Error>> {
+    pub fn _get_ohlc_bitcoin(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "XBTUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
         let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;

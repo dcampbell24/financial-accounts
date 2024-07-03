@@ -11,6 +11,7 @@ use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
 use crate::app::money::Currency;
+use crate::app::ticker::Ticker;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -63,6 +64,25 @@ impl Accounts {
             }
         }
         total
+    }
+
+    pub fn total_cypto(&self) -> Result<Decimal, Box<dyn Error>> {
+        let ticker = Ticker::init();
+        // let bitcoin = ticker._get_ohlc_bitcoin()?;
+        let eth = ticker.get_ohlc_eth()?;
+        let gno = ticker.get_ohlc_gno()?;
+
+        let mut total = dec!(0);
+        for account in &self.inner {
+            if account.currency == Currency::Eth {
+                let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
+                total += sum * eth.close;
+            } else if account.currency == Currency::Gno {
+                let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
+                total += sum * gno.close;
+            }
+        }
+        Ok(total)
     }
 
     pub fn total_for_months_usd(&self, project_months: u16) -> Decimal {
