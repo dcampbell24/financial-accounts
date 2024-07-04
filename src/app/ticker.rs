@@ -54,6 +54,7 @@ impl Ticker {
     pub fn get_ohlc_gno(&self) -> Result<Ohlc, Box<dyn Error>> {
         let name = "GNOUSD".to_string();
         let string = self.get_ohlc_untyped(&name)?;
+        println!("{string}");
         let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
         response.to_ohlc(name)
     }

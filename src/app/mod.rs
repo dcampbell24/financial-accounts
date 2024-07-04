@@ -3,6 +3,7 @@ mod accounts;
 mod file_picker;
 mod import_boa;
 mod message;
+mod metals;
 mod money;
 mod screen;
 pub mod solarized;
@@ -130,6 +131,7 @@ impl App {
             text_cell("total last year USD: "),
             text_cell("total USD: "),
             text_cell("total cryto USD: "),
+            text_cell("total gold USD: "),
             text_cell("grand total USD: "),
             text_cell(""),
             text_cell("total ETH"),
@@ -143,7 +145,8 @@ impl App {
             number_cell(self.accounts.total_for_last_year_usd()),
             number_cell(self.accounts.total(Currency::Usd)),
             number_cell(self.accounts.total_crypto),
-            number_cell(self.accounts.total(Currency::Usd) + self.accounts.total_crypto),
+            number_cell(self.accounts.total_metals),
+            number_cell(self.accounts.total(Currency::Usd) + self.accounts.total_crypto + self.accounts.total_metals),
             text_cell(""),
             number_cell(self.accounts.total(Currency::Eth)),
             number_cell(self.accounts.total(Currency::Gno)),
@@ -183,7 +186,10 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
-            button_cell(button("Get crypto OHLC").on_press(Message::GetOhlc)),
+            row![
+                button_cell(button("Get crypto OHLC").on_press(Message::GetOhlcCryto)),
+                button_cell(button("Get gold OHLC").on_press(Message::GetOhlcGold)),
+            ],
             button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -323,9 +329,12 @@ impl Application for App {
                 };
                 self.accounts.save(&self.file_path).unwrap();
             }
-            Message::GetOhlc => {
-                let total = self.accounts.total_cypto().unwrap();
-                self.accounts.total_crypto = total;
+            Message::GetOhlcCryto => {
+                self.accounts.total_crypto = self.accounts.total_cypto().unwrap();
+                self.accounts.save(&self.file_path).unwrap();
+            }
+            Message::GetOhlcGold => {
+                self.accounts.total_metals = self.accounts.total_gold().unwrap();
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {

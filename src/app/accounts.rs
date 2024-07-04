@@ -1,4 +1,5 @@
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
+use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,7 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
+use crate::app::metals;
 use crate::app::money::Currency;
 use crate::app::ticker::Ticker;
 
@@ -17,6 +19,7 @@ use crate::app::ticker::Ticker;
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     pub total_crypto: Decimal,
+    pub total_metals: Decimal,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
 }
@@ -46,6 +49,7 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             total_crypto: dec!(0),
+            total_metals: dec!(0),
             inner: Vec::new(),
         }
     }
@@ -82,6 +86,20 @@ impl Accounts {
             } else if account.currency == Currency::Gno {
                 let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
                 total += sum * gno.close;
+            }
+        }
+        Ok(total)
+    }
+
+    pub fn total_gold(&self) -> Result<Decimal, Box<dyn Error>> {
+        let http_client = Client::new();
+        let gold = metals::get_price_gold(&http_client).unwrap();
+
+        let mut total = dec!(0);
+        for account in &self.inner {
+            if account.currency == Currency::GoldOz {
+                let sum: Decimal = account.data.iter().map(|record| record.amount).sum();
+                total += sum * gold.price
             }
         }
         Ok(total)
