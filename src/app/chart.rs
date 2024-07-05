@@ -23,8 +23,8 @@ impl Chart<Message> for MyChart {
         mut chart: plotters::prelude::ChartBuilder<DB>,
     ) {
         if let (Some(Some(min_balance)), Some(Some(max_balance)), Some(min_date), Some(max_date)) = (
-            self.account.min_balance().map(|min| min.round().to_i32()),
-            self.account.max_balance().map(|max| max.round().to_i32()),
+            self.account.min_balance().map(|min| min.round().to_i128()),
+            self.account.max_balance().map(|max| max.round().to_i128()),
             self.account.min_date(),
             self.account.max_date(),
         ) {
@@ -66,7 +66,7 @@ impl Chart<Message> for MyChart {
                         self.account
                             .data
                             .iter()
-                            .map(|tx| (tx.date, tx.balance.round().to_i32().unwrap())),
+                            .map(|tx| (tx.date, tx.balance.round().to_i128().unwrap())),
                         0,
                         solarized::plot::blue(),
                     )
