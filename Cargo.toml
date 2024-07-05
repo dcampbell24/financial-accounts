@@ -17,7 +17,9 @@ chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
 csv = "1"
-iced = "0.12"
+iced = { version = "0.12", features = ["canvas", "tokio"] }
+plotters = "0.3"
+plotters-iced = "0.10"
 regex = "1"
 reqwest = { version = "0.12", features = ["blocking"] }
 rust_decimal = "1"

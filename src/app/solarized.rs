@@ -86,3 +86,71 @@ pub fn cyan() -> Color {
 pub fn green() -> Color {
     Color::from_rgb8(133, 153, 0)
 }
+
+pub mod plot {
+    use plotters::style::RGBAColor;
+
+    pub fn base03() -> RGBAColor {
+        RGBAColor(0, 43, 54, 1.0)
+    }
+
+    pub fn base02() -> RGBAColor {
+        RGBAColor(7, 54, 66, 1.0)
+    }
+
+    pub fn base01() -> RGBAColor {
+        RGBAColor(88, 110, 117, 1.0)
+    }
+
+    pub fn base00() -> RGBAColor {
+        RGBAColor(101, 123, 131, 1.0)
+    }
+
+    pub fn base0() -> RGBAColor {
+        RGBAColor(131, 148, 150, 1.0)
+    }
+
+    pub fn base1() -> RGBAColor {
+        RGBAColor(147, 161, 161, 1.0)
+    }
+
+    pub fn base2() -> RGBAColor {
+        RGBAColor(238, 232, 213, 1.0)
+    }
+
+    pub fn base3() -> RGBAColor {
+        RGBAColor(253, 246, 227, 1.0)
+    }
+
+    pub fn yellow() -> RGBAColor {
+        RGBAColor(181, 137, 0, 1.0)
+    }
+
+    pub fn orange() -> RGBAColor {
+        RGBAColor(203, 75, 22, 1.0)
+    }
+
+    pub fn red() -> RGBAColor {
+        RGBAColor(220, 50, 47, 1.0)
+    }
+
+    pub fn magenta() -> RGBAColor {
+        RGBAColor(211, 54, 130, 1.0)
+    }
+
+    pub fn violet() -> RGBAColor {
+        RGBAColor(108, 113, 196, 1.0)
+    }
+
+    pub fn blue() -> RGBAColor {
+        RGBAColor(38, 139, 210, 1.0)
+    }
+
+    pub fn cyan() -> RGBAColor {
+        RGBAColor(42, 161, 152, 1.0)
+    }
+
+    pub fn green() -> RGBAColor {
+        RGBAColor(133, 153, 0, 1.0)
+    }
+}

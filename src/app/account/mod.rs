@@ -3,7 +3,11 @@ pub mod transaction;
 use std::mem::take;
 
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
-use iced::widget::{button, column, row, text, text_input, Scrollable, TextInput};
+use iced::{
+    widget::{button, column, row, text, text_input, Scrollable, TextInput},
+    Length,
+};
+use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -15,7 +19,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, money::Currency, number_cell, text_cell};
+use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -71,6 +75,11 @@ impl Account {
     }
 
     pub fn list_transactions(&self) -> Scrollable<Message> {
+        let my_chart = MyChart {
+            account: self.clone(),
+        };
+        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
         let mut col_3 = column![text_cell(" Balance ")].align_items(iced::Alignment::End);
@@ -139,6 +148,7 @@ impl Account {
 
         let col = column![
             text_cell(format!("{} {}", &self.name, &self.currency)),
+            chart,
             rows,
             text_cell("total: "),
             number_cell(total),
@@ -200,6 +210,22 @@ impl Account {
         ];
 
         Scrollable::new(col)
+    }
+
+    pub fn max_balance(&self) -> Option<Decimal> {
+        self.data.iter().map(|tx| tx.balance).max()
+    }
+
+    pub fn min_balance(&self) -> Option<Decimal> {
+        self.data.iter().map(|tx| tx.balance).min()
+    }
+
+    pub fn max_date(&self) -> Option<DateTime<Utc>> {
+        self.data.iter().map(|tx| tx.date).max()
+    }
+
+    pub fn min_date(&self) -> Option<DateTime<Utc>> {
+        self.data.iter().map(|tx| tx.date).min()
     }
 
     pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {

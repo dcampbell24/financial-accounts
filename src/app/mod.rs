@@ -1,5 +1,6 @@
 mod account;
 mod accounts;
+mod chart;
 mod file_picker;
 mod import_boa;
 mod message;
