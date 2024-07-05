@@ -32,9 +32,12 @@ impl Accounts {
 
         if day_1 >= past && day_1 < now {
             for account in self.inner.iter_mut() {
+                let mut balance = account.balance();
                 for tx in account.monthly.iter() {
+                    balance += tx.amount;
                     account.data.push(Transaction {
                         amount: tx.amount,
+                        balance,
                         comment: tx.comment.clone(),
                         date: day_1,
                     });
@@ -65,8 +68,7 @@ impl Accounts {
         let mut total = dec!(0);
         for account in self.inner.iter() {
             if account.currency == currency {
-                let sum = account.sum();
-                total += sum;
+                total += account.balance();
             }
         }
         total

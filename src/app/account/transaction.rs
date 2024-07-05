@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transaction {
     pub amount: Decimal,
+    pub balance: Decimal,
     pub comment: String,
     #[serde(with = "ts_seconds")]
     pub date: DateTime<Utc>,

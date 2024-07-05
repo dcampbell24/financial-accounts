@@ -15,7 +15,7 @@ struct BoaRecord {
     #[serde(rename = "Amount")]
     amount: String,
     #[serde(rename = "Running Bal.")]
-    _running_balance: String,
+    running_balance: String,
 }
 
 pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>> {
@@ -41,9 +41,10 @@ pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>
 
         // Fixme: not really UTC.
         let record = Transaction {
-            date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S")?.and_utc(),
             amount: record.amount.replace(',', "").parse::<Decimal>()?,
+            balance: record.running_balance.replace(',', "").parse::<Decimal>()?,
             comment: record.description,
+            date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S")?.and_utc(),
         };
         records.push(record);
     }

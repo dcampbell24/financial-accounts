@@ -63,11 +63,19 @@ impl Account {
         amount.on_input(Message::ChangeTx)
     }
 
+    pub fn balance(&self) -> Decimal {
+        match self.data.last() {
+            Some(tx) => tx.balance,
+            None => dec!(0),
+        }
+    }
+
     pub fn list_transactions(&self) -> Scrollable<Message> {
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
-        let mut col_3 = column![text_cell(" Comment ")];
-        let mut col_4 = column![text_cell("")];
+        let mut col_3 = column![text_cell(" Balance ")].align_items(iced::Alignment::End);
+        let mut col_4 = column![text_cell(" Comment ")];
+        let mut col_5 = column![text_cell("")];
 
         let mut total = dec!(0);
         let mut txs = &self.data;
@@ -86,8 +94,9 @@ impl Account {
             total += tx.amount;
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
-            col_3 = col_3.push(text_cell(&tx.comment));
-            col_4 = col_4.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_3 = col_3.push(number_cell(tx.balance));
+            col_4 = col_4.push(text_cell(&tx.comment));
+            col_5 = col_5.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
         let rows = row![col_1, col_2, col_3, col_4];
@@ -224,6 +233,7 @@ impl Account {
 
         Ok(Transaction {
             amount,
+            balance: self.balance() + amount,
             comment: self.tx.comment.clone(),
             date,
         })
