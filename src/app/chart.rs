@@ -66,7 +66,7 @@ impl Chart<Message> for MyChart {
                         self.account
                             .data
                             .iter()
-                            .map(|tx| (tx.date, tx.balance.round().to_f64().unwrap())),
+                            .map(|tx| (tx.date, tx.balance.to_f64().unwrap())),
                         0.0,
                         solarized::plot::blue(),
                     )
