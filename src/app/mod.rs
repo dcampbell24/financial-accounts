@@ -183,15 +183,20 @@ impl App {
             text_cell(""),
             row![
                 text("Account ").size(TEXT_SIZE),
+                text(" "),
                 name,
+                text(" "),
                 ComboBox::new(&self.currency_selector, "currency", Some(&self.currency), |currency|  { Message::UpdateCurrency(currency) }),
+                text(" "),
                 add,
                 text(" ".repeat(EDGE_PADDING)),
 
             ].padding(PADDING),
             row![
                 text("Project ").size(TEXT_SIZE),
+                text(" "),
                 months,
+                text(" "),
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING),
