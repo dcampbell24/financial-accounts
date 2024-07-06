@@ -169,9 +169,7 @@ impl Account {
         let mut col_2 = column![text_cell(" Comment ")];
         let mut col_3 = column![text_cell("")];
 
-        let mut total = dec!(0);
         for (i, tx) in self.monthly.iter().enumerate() {
-            total += tx.amount;
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(&tx.comment));
             col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
@@ -201,7 +199,7 @@ impl Account {
             text_cell(format!("{} {}", &self.name, &self.currency)),
             rows,
             text_cell("total: "),
-            number_cell(total),
+            number_cell(self.total()),
             input.padding(PADDING),
             row![
                 button("Back").on_press(Message::Back),
