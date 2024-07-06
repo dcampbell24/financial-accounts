@@ -182,7 +182,7 @@ impl App {
             totals,
             text_cell(""),
             row![
-                text("Account ").size(TEXT_SIZE),
+                text("Account").size(TEXT_SIZE),
                 text(" "),
                 name,
                 text(" "),
@@ -193,7 +193,7 @@ impl App {
 
             ].padding(PADDING),
             row![
-                text("Project ").size(TEXT_SIZE),
+                text("Project").size(TEXT_SIZE),
                 text(" "),
                 months,
                 text(" "),
