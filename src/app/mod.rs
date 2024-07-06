@@ -373,7 +373,9 @@ impl Application for App {
                     mem::take(&mut self.account_name),
                     self.currency.clone(),
                 ));
-                self.accounts.inner.sort_by_key(|account| account.name.clone());
+                self.accounts
+                    .inner
+                    .sort_by_key(|account| account.name.clone());
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::SubmitTx => {
