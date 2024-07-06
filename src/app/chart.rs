@@ -39,14 +39,12 @@ impl Chart<Message> for MyChart {
                 .configure_mesh()
                 .bold_line_style(solarized::plot::base0())
                 .light_line_style(solarized::plot::base1().mix(0.25))
-                .axis_style(
-                    ShapeStyle::from(solarized::plot::base0()).stroke_width(1),
-                )
+                .axis_style(ShapeStyle::from(solarized::plot::base0()).stroke_width(1))
                 .x_labels(10)
                 .x_label_style(
                     ("sans-serif", 15)
                         .into_font()
-                        .color(&solarized::plot::base0())
+                        .color(&solarized::plot::base0()),
                 )
                 .x_label_formatter(&|y| y.format("%Y-%m-%d %Z").to_string())
                 .y_labels(10)

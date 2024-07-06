@@ -14,11 +14,15 @@ use std::{cmp::Ordering, mem, path::PathBuf};
 
 use chart::MyChart;
 use iced::{
-    event, executor, keyboard::{self, Key, Modifiers}, theme, widget::{
+    event, executor,
+    keyboard::{self, Key, Modifiers},
+    theme,
+    widget::{
         button, column,
         combo_box::{ComboBox, State},
         row, text, text_input, Button, Row, Scrollable,
-    }, window, Alignment, Application, Command, Element, Event, Length, Theme
+    },
+    window, Alignment, Application, Command, Element, Event, Length, Theme,
 };
 use money::Currency;
 use plotters_iced::ChartWidget;
