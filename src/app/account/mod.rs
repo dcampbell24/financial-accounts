@@ -67,6 +67,14 @@ impl Account {
         amount.on_input(Message::ChangeTx)
     }
 
+    fn balance_view(&self) -> TextInput<Message> {
+        let balance = match &self.tx.balance {
+            Some(balance) => text_input("Balance", &balance.to_string()),
+            None => text_input("Balance", ""),
+        };
+        balance.on_input(Message::ChangeBalance)
+    }
+
     pub fn balance(&self) -> Decimal {
         match self.data.last() {
             Some(tx) => tx.balance,
@@ -111,11 +119,15 @@ impl Account {
         let rows = row![col_1, col_2, col_3, col_4, col_5];
 
         let mut add = button("Add");
-        if self.tx.amount.is_some() {
-            add = add.on_press(Message::SubmitTx);
+        match (self.tx.amount, self.tx.balance) {
+            (Some(_amount), None) => add = add.on_press(Message::SubmitTx),
+            (None, Some(_balance)) => add = add.on_press(Message::SubmitBalance),
+            (None, None) | (Some(_), Some(_)) => {}
         }
         let input = row![
             self.amount_view(),
+            text(" "),
+            self.balance_view(),
             text(" "),
             text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date)
                 .on_input(Message::ChangeDate),
@@ -236,6 +248,31 @@ impl Account {
             None => return None,
         };
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
+    }
+
+    pub fn submit_balance(&self) -> Result<Transaction, String> {
+        let balance = self.tx.balance.unwrap();
+
+        let mut date = Utc::now();
+        if !self.tx.date.is_empty() {
+            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => {
+                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Date error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    return Err(msg);
+                }
+            }
+        }
+
+        Ok(Transaction {
+            amount: balance - self.balance(),
+            balance,
+            comment: self.tx.comment.clone(),
+            date,
+        })
     }
 
     pub fn submit_tx(&self) -> Result<Transaction, String> {

@@ -14,6 +14,7 @@ pub struct Transaction {
 #[derive(Clone, Debug)]
 pub struct TransactionToSubmit {
     pub amount: Option<Decimal>,
+    pub balance: Option<Decimal>,
     pub comment: String,
     pub date: String,
 }
@@ -22,6 +23,7 @@ impl TransactionToSubmit {
     pub fn new() -> Self {
         Self {
             amount: None,
+            balance: None,
             comment: String::new(),
             date: String::new(),
         }

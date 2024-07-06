@@ -273,6 +273,10 @@ impl Application for App {
             Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
+            Message::ChangeBalance(balance) => {
+                let account = &mut self.accounts[selected_account.unwrap()];
+                set_amount(&mut account.tx.balance, &balance);
+            }
             Message::ChangeTx(tx) => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
@@ -377,6 +381,21 @@ impl Application for App {
                     .inner
                     .sort_by_key(|account| account.name.clone());
                 self.accounts.save(&self.file_path).unwrap();
+            }
+            Message::SubmitBalance => {
+                let account = &mut self.accounts[selected_account.unwrap()];
+                match account.submit_balance() {
+                    Ok(tx) => {
+                        account.data.push(tx);
+                        account.data.sort_by_key(|tx| tx.date);
+                        account.error_str = String::new();
+                        account.tx = TransactionToSubmit::new();
+                        self.accounts.save(&self.file_path).unwrap();
+                    }
+                    Err(err) => {
+                        account.error_str = err;
+                    }
+                }
             }
             Message::SubmitTx => {
                 let account = &mut self.accounts[selected_account.unwrap()];
