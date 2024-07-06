@@ -35,8 +35,9 @@ use crate::app::{
     file_picker::FilePicker, import_boa::import_boa, message::Message, screen::Screen,
 };
 
-const PADDING: u16 = 1;
 const EDGE_PADDING: usize = 4;
+const PADDING: u16 = 1;
+const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
 /// The fin-stat application.
@@ -183,23 +184,18 @@ impl App {
             text_cell(""),
             row![
                 text("Account").size(TEXT_SIZE),
-                text(" "),
                 name,
-                text(" "),
                 ComboBox::new(&self.currency_selector, "currency", Some(&self.currency), |currency|  { Message::UpdateCurrency(currency) }),
-                text(" "),
                 add,
                 text(" ".repeat(EDGE_PADDING)),
 
-            ].padding(PADDING),
+            ].padding(PADDING).spacing(ROW_SPACING),
             row![
                 text("Project").size(TEXT_SIZE),
-                text(" "),
                 months,
-                text(" "),
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
-            ].padding(PADDING),
+            ].padding(PADDING).spacing(ROW_SPACING),
             row![
                 button_cell(button("Get crypto OHLC").on_press(Message::GetOhlcCryto)),
                 button_cell(button("Get gold OHLC").on_press(Message::GetOhlcGold)),

@@ -19,7 +19,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell};
+use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell, ROW_SPACING};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -126,14 +126,10 @@ impl Account {
         }
         let input = row![
             self.amount_view(),
-            text(" "),
             self.balance_view(),
-            text(" "),
             text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date)
                 .on_input(Message::ChangeDate),
-            text(" "),
             text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
-            text(" "),
             add,
             text(" ".repeat(EDGE_PADDING)),
         ];
@@ -151,9 +147,7 @@ impl Account {
 
         let filter_date = row![
             year,
-            text(" "),
             month,
-            text(" "),
             button("Filter").on_press(Message::SubmitFilterDate),
             text(" ".repeat(EDGE_PADDING)),
         ];
@@ -164,8 +158,8 @@ impl Account {
             rows,
             row![text_cell("total: "), number_cell(total)],
             row![text_cell("balance: "), number_cell(self.balance())],
-            input.padding(PADDING),
-            filter_date.padding(PADDING),
+            input.padding(PADDING).spacing(ROW_SPACING),
+            filter_date.padding(PADDING).spacing(ROW_SPACING),
             row![
                 button("Back").on_press(Message::Back),
                 button("Exit").on_press(Message::Exit),
