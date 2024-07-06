@@ -37,6 +37,7 @@ const URL_GOLD_API_GOLD: &str = "https://www.goldapi.io/api/XAU/USD";
 
 pub fn get_price_gold(client: &Client) -> Result<Metals, Box<dyn Error>> {
     let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN)?;
+    let access_token = access_token.trim();
 
     let url = Url::parse(URL_GOLD_API_GOLD)?;
     let response = client
