@@ -25,6 +25,28 @@ pub struct Accounts {
 }
 
 impl Accounts {
+    pub fn all_accounts_txs(&self) -> Account {
+        let mut txs = Vec::new();
+        for account in self.inner.iter() {
+            if account.currency == Currency::Usd {
+                for tx in account.data.iter() {
+                    txs.push(tx.clone());
+                }
+            }
+        }
+
+        txs.sort_by_key(|tx| tx.date);
+        let mut balance = dec!(0);
+        for tx in txs.iter_mut() {
+            balance += tx.amount;
+            tx.balance = balance;
+        }
+
+        let mut account = Account::new("graph data".to_string(), Currency::Usd);
+        account.data = txs;
+        account
+    }
+
     pub fn check_monthly(&mut self) {
         let past = self.checked_up_to;
         let now = Utc::now();

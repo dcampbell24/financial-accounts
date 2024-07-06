@@ -12,18 +12,16 @@ mod ticker;
 
 use std::{cmp::Ordering, mem, path::PathBuf};
 
+use chart::MyChart;
 use iced::{
-    event, executor,
-    keyboard::{self, Key, Modifiers},
-    theme,
-    widget::{
+    event, executor, keyboard::{self, Key, Modifiers}, theme, widget::{
         button, column,
         combo_box::{ComboBox, State},
         row, text, text_input, Button, Row, Scrollable,
-    },
-    window, Alignment, Application, Command, Element, Event, Theme,
+    }, window, Alignment, Application, Command, Element, Event, Length, Theme
 };
 use money::Currency;
+use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
@@ -77,6 +75,11 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
+        let my_chart = MyChart {
+            account: self.accounts.all_accounts_txs()
+        };
+        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+
         let mut col_0 = column![text_cell(" Account ")];
         let mut col_1 = column![text_cell(" Current Month ")].align_items(Alignment::End);
         let mut col_2 = column![text_cell(" Last Month ")].align_items(Alignment::End);
@@ -169,6 +172,7 @@ impl App {
             add = add.on_press(Message::SubmitAccount);
         }
         let cols = column![
+            chart,
             rows,
             text_cell(""),
             totals,

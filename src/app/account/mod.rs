@@ -108,7 +108,7 @@ impl Account {
             col_5 = col_5.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
-        let rows = row![col_1, col_2, col_3, col_4];
+        let rows = row![col_1, col_2, col_3, col_4, col_5];
 
         let mut add = button("Add");
         if self.tx.amount.is_some() {
