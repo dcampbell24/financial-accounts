@@ -150,8 +150,8 @@ impl Account {
             text_cell(format!("{} {}", &self.name, &self.currency)),
             chart,
             rows,
-            text_cell("total: "),
-            number_cell(total),
+            row![text_cell("total: "), number_cell(total)],
+            row![text_cell("balance: "), number_cell(self.balance())],
             input.padding(PADDING),
             filter_date.padding(PADDING),
             row![
@@ -274,7 +274,7 @@ impl Account {
         self.monthly.push(tx);
     }
 
-    pub fn sum(&self) -> Decimal {
+    pub fn total(&self) -> Decimal {
         self.data.iter().map(|d| d.amount).sum()
     }
 

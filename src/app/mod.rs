@@ -109,7 +109,7 @@ impl App {
         col_10 = col_10.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            let total = account.sum();
+            let total = account.balance();
             let current_month = account.sum_current_month();
             let last_month = account.sum_last_month();
             let current_year = account.sum_current_year();
