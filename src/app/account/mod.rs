@@ -4,7 +4,7 @@ use std::mem::take;
 
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::{
-    widget::{button, column, row, text, text_input, Scrollable, TextInput},
+    widget::{button, column, row, text, text_input, Row, Scrollable, TextInput},
     Length,
 };
 use plotters_iced::ChartWidget;
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    Message, EDGE_PADDING, PADDING, TEXT_SIZE,
+    Message, EDGE_PADDING, PADDING,
 };
 
 use self::transaction::TransactionMonthlyToSubmit;
@@ -160,11 +160,7 @@ impl Account {
             row![text_cell("balance: "), number_cell(self.balance())],
             input.padding(PADDING).spacing(ROW_SPACING),
             filter_date.padding(PADDING).spacing(ROW_SPACING),
-            row![
-                button("Back").on_press(Message::Back),
-                button("Exit").on_press(Message::Exit),
-            ],
-            text(&self.error_str).size(TEXT_SIZE),
+            back_exit_view(),
         ];
 
         Scrollable::new(col)
@@ -207,10 +203,7 @@ impl Account {
             text_cell("total: "),
             number_cell(self.total()),
             input.padding(PADDING),
-            row![
-                button("Back").on_press(Message::Back),
-                button("Exit").on_press(Message::Exit),
-            ],
+            back_exit_view(),
         ];
 
         Scrollable::new(col)
@@ -370,4 +363,12 @@ impl Account {
         }
         amount
     }
+}
+
+fn back_exit_view<'a>() -> Row<'a, Message> {
+    row![
+        button("Back").on_press(Message::Back),
+        button("Exit").on_press(Message::Exit),
+    ]
+    .spacing(ROW_SPACING)
 }
