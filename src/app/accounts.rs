@@ -81,19 +81,19 @@ impl Accounts {
 
     pub fn project_months(&self, months: Option<u16>) -> Decimal {
         match months {
-            Some(months) => self.total(Currency::Usd) + self.total_for_months_usd(months),
-            None => self.total(Currency::Usd),
+            Some(months) => self.balance(Currency::Usd) + self.total_for_months_usd(months),
+            None => self.balance(Currency::Usd),
         }
     }
 
-    pub fn total(&self, currency: Currency) -> Decimal {
-        let mut total = dec!(0);
+    pub fn balance(&self, currency: Currency) -> Decimal {
+        let mut balance = dec!(0);
         for account in self.inner.iter() {
             if account.currency == currency {
-                total += account.balance();
+                balance += account.balance();
             }
         }
-        total
+        balance
     }
 
     pub fn total_cypto(&self) -> Result<Decimal, Box<dyn Error>> {

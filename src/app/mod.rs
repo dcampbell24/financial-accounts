@@ -110,17 +110,12 @@ impl App {
         col_10 = col_10.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            let total = account.balance();
-            let current_month = account.sum_current_month();
-            let last_month = account.sum_last_month();
-            let current_year = account.sum_current_year();
-            let last_year = account.sum_last_year();
             col_0 = col_0.push(text_cell(format!("{} {}", &account.name, &account.currency)));
-            col_1 = col_1.push(number_cell(current_month));
-            col_2 = col_2.push(number_cell(last_month));
-            col_3 = col_3.push(number_cell(current_year));
-            col_4 = col_4.push(number_cell(last_year));
-            col_5 = col_5.push(number_cell(total));
+            col_1 = col_1.push(number_cell(account.sum_current_month()));
+            col_2 = col_2.push(number_cell(account.sum_last_month()));
+            col_3 = col_3.push(number_cell(account.sum_current_year()));
+            col_4 = col_4.push(number_cell(account.sum_last_year()));
+            col_5 = col_5.push(number_cell(account.balance()));
             col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             col_7 = col_7.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
@@ -138,28 +133,28 @@ impl App {
             text_cell("total last month USD: "),
             text_cell("total current year USD: "),
             text_cell("total last year USD: "),
-            text_cell("total USD: "),
+            text_cell("balance USD: "),
             text_cell("total cryto USD: "),
             text_cell("total gold USD: "),
             text_cell("grand total USD: "),
             text_cell(""),
-            text_cell("total ETH"),
-            text_cell("total GNO"),
-            text_cell("total Gold Troy Oz"),
+            text_cell("balance ETH"),
+            text_cell("balance GNO"),
+            text_cell("balance Gold Troy Oz"),
         ];
         let col_2 = column![
             number_cell(self.accounts.total_for_current_month_usd()),
             number_cell(self.accounts.total_for_last_month_usd()),
             number_cell(self.accounts.total_for_current_year_usd()),
             number_cell(self.accounts.total_for_last_year_usd()),
-            number_cell(self.accounts.total(Currency::Usd)),
+            number_cell(self.accounts.balance(Currency::Usd)),
             number_cell(self.accounts.total_crypto),
             number_cell(self.accounts.total_metals),
-            number_cell(self.accounts.total(Currency::Usd) + self.accounts.total_crypto + self.accounts.total_metals),
+            number_cell(self.accounts.balance(Currency::Usd) + self.accounts.total_crypto + self.accounts.total_metals),
             text_cell(""),
-            number_cell(self.accounts.total(Currency::Eth)),
-            number_cell(self.accounts.total(Currency::Gno)),
-            number_cell(self.accounts.total(Currency::GoldOz)),
+            number_cell(self.accounts.balance(Currency::Eth)),
+            number_cell(self.accounts.balance(Currency::Gno)),
+            number_cell(self.accounts.balance(Currency::GoldOz)),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
