@@ -369,10 +369,9 @@ impl Application for App {
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitAccount => {
-                self.accounts.inner.push(Account::new(
-                    mem::take(&mut self.account_name),
-                    self.currency.clone(),
-                ));
+                self.accounts
+                    .inner
+                    .push(Account::new(mem::take(&mut self.account_name)));
                 self.accounts
                     .inner
                     .sort_by_key(|account| account.name.clone());

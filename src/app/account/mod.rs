@@ -5,7 +5,7 @@ use std::mem::take;
 
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::{
-    widget::{button, column, row, text, text_input, Row, Scrollable, TextInput},
+    widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
 };
 use plotters_iced::ChartWidget;
@@ -21,7 +21,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell, ROW_SPACING};
+use super::{button_cell, chart::MyChart, number_cell, text_cell, ROW_SPACING};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -47,7 +47,7 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(name: String, currency: Currency) -> Self {
+    pub fn new(name: String) -> Self {
         Account {
             name,
             tx: TransactionToSubmit::new(),
@@ -59,24 +59,7 @@ impl Account {
             filter_date_year: None,
             filter_date_month: None,
             error_str: String::new(),
-            // currency,
         }
-    }
-
-    fn amount_view(&self) -> TextInput<Message> {
-        let amount = match &self.tx.amount {
-            Some(amount) => text_input("Amount", &amount.to_string()),
-            None => text_input("Amount", ""),
-        };
-        amount.on_input(Message::ChangeTx)
-    }
-
-    fn balance_view(&self) -> TextInput<Message> {
-        let balance = match &self.tx.balance {
-            Some(balance) => text_input("Balance", &balance.to_string()),
-            None => text_input("Balance", ""),
-        };
-        balance.on_input(Message::ChangeBalance)
     }
 
     pub fn balance(&self) -> Decimal {
@@ -119,22 +102,14 @@ impl Account {
             col_4 = col_4.push(text_cell(&tx.comment));
             col_5 = col_5.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-
         let rows = row![col_1, col_2, col_3, col_4, col_5];
 
-        let mut add = button("Add");
-        match (self.tx.amount, self.tx.balance) {
-            (Some(_amount), None) => add = add.on_press(Message::SubmitTx),
-            (None, Some(_balance)) => add = add.on_press(Message::SubmitBalance),
-            (None, None) | (Some(_), Some(_)) => {}
-        }
         let input = row![
-            self.amount_view(),
-            self.balance_view(),
-            text_input("Date YYYY-MM-DD (empty for today)", &self.tx.date)
-                .on_input(Message::ChangeDate),
-            text_input("Comment", &self.tx.comment).on_input(Message::ChangeComment),
-            add,
+            amount_view(&self.tx.amount),
+            balance_view(&self.tx.balance),
+            date_view(&self.tx.date),
+            comment_view(&self.tx.comment),
+            add_view(&self.tx.amount, &self.tx.balance),
             text(" ".repeat(EDGE_PADDING)),
         ];
 
@@ -148,7 +123,6 @@ impl Account {
             None => text_input("Month", ""),
         };
         month = month.on_input(Message::ChangeFilterDateMonth);
-
         let filter_date = row![
             year,
             month,
@@ -180,24 +154,12 @@ impl Account {
             col_2 = col_2.push(text_cell(&tx.comment));
             col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-
         let rows = row![col_1, col_2, col_3];
 
-        let mut amount = match &self.tx_monthly.amount {
-            Some(amount) => text_input("Amount", &amount.to_string()),
-            None => text_input("Amount", ""),
-        };
-        amount = amount.on_input(Message::ChangeTx);
-        let mut add = button("Add");
-        if self.tx_monthly.amount.is_some() {
-            add = add.on_press(Message::SubmitTx);
-        }
         let input = row![
-            amount,
-            text(" "),
-            text_input("Comment", &self.tx_monthly.comment).on_input(Message::ChangeComment),
-            text(" "),
-            add,
+            amount_view(&self.tx_monthly.amount),
+            comment_view(&self.tx_monthly.comment),
+            add_view(&self.tx_monthly.amount, &None),
             text(" ".repeat(EDGE_PADDING)),
         ];
 
@@ -206,7 +168,7 @@ impl Account {
             rows,
             text_cell("total: "),
             number_cell(self.total()),
-            input.padding(PADDING),
+            input.padding(PADDING).spacing(ROW_SPACING),
             back_exit_view(),
         ];
 
@@ -367,6 +329,40 @@ impl Account {
         }
         amount
     }
+}
+
+fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
+    let amount = match amount {
+        Some(amount) => text_input("Amount", &amount.to_string()),
+        None => text_input("Amount", ""),
+    };
+    amount.on_input(Message::ChangeTx)
+}
+
+fn balance_view(balance: &Option<Decimal>) -> TextInput<Message> {
+    let balance = match balance {
+        Some(balance) => text_input("Balance", &balance.to_string()),
+        None => text_input("Balance", ""),
+    };
+    balance.on_input(Message::ChangeBalance)
+}
+
+fn date_view(date: &str) -> TextInput<Message> {
+    text_input("Date YYYY-MM-DD (empty for today)", date).on_input(Message::ChangeDate)
+}
+
+fn comment_view(comment: &str) -> TextInput<Message> {
+    text_input("Comment", comment).on_input(Message::ChangeComment)
+}
+
+fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, Message> {
+    let mut add = button("Add");
+    match (amount, balance) {
+        (Some(_amount), None) => add = add.on_press(Message::SubmitTx),
+        (None, Some(_balance)) => add = add.on_press(Message::SubmitBalance),
+        (None, None) | (Some(_), Some(_)) => {}
+    }
+    add
 }
 
 fn back_exit_view<'a>() -> Row<'a, Message> {
