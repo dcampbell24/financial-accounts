@@ -96,6 +96,7 @@ impl App {
         let mut col_8 = column![text_cell("")];
         let mut col_9 = column![text_cell("")];
         let mut col_10 = column![text_cell("")];
+        let mut col_11 = column![text_cell("")];
 
         col_0 = col_0.push(text_cell(""));
         col_1 = col_1.push(text_cell(""));
@@ -108,6 +109,7 @@ impl App {
         col_8 = col_8.push(text_cell(""));
         col_9 = col_9.push(text_cell(""));
         col_10 = col_10.push(text_cell(""));
+        col_11 = col_11.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             col_0 = col_0.push(text_cell(format!("{}", &account.name /*&account.currency*/)));
@@ -117,16 +119,21 @@ impl App {
             col_4 = col_4.push(number_cell(account.sum_last_year()));
             col_5 = col_5.push(number_cell(account.balance()));
             col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
-            col_7 = col_7.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
+            let mut txs_2nd = button("Tx 2nd");
+            if account.txs_2nd.is_some() {
+                txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
+            }
+            col_7 = col_7.push(button_cell(txs_2nd));
+            col_8 = col_8.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_8 = col_8.push(button_cell(update_name));
-            col_9 = col_9.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
-            col_10 = col_10.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_9 = col_9.push(button_cell(update_name));
+            col_10 = col_10.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
+            col_11 = col_11.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10];
+        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11];
 
         let col_1 = column![
             text_cell("total current month USD: "),
@@ -205,9 +212,10 @@ impl App {
     fn selected_account(&self) -> Option<usize> {
         match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
-            Screen::Account(account) | Screen::Monthly(account) | Screen::ImportBoa(account) => {
-                Some(account)
-            }
+            Screen::Account(account)
+            | Screen::AccountSecondary(account)
+            | Screen::Monthly(account)
+            | Screen::ImportBoa(account) => Some(account),
         }
     }
 
@@ -216,6 +224,7 @@ impl App {
             Screen::NewOrLoadFile
             | Screen::Accounts
             | Screen::Account(_)
+            | Screen::AccountSecondary(_)
             | Screen::ImportBoa(_) => false,
             Screen::Monthly(_) => true,
         }
@@ -329,6 +338,9 @@ impl Application for App {
                     Screen::Account(j) => {
                         self.accounts[j].txs_1st.remove(i);
                     }
+                    Screen::AccountSecondary(j) => {
+                        self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
+                    }
                     Screen::ImportBoa(_j) => {
                         panic!("Screen::ImportBoa can't be reached here");
                     }
@@ -367,6 +379,7 @@ impl Application for App {
                 self.currency = currency;
             }
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
+            Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitAccount => {
                 self.accounts.inner.push(Account::new(
@@ -429,7 +442,23 @@ impl Application for App {
         match self.screen {
             Screen::NewOrLoadFile => self.file_picker.view(None).into(),
             Screen::Accounts => self.list_accounts().into(),
-            Screen::Account(i) => self.accounts[i].list_transactions().into(),
+            Screen::Account(i) => {
+                let account = &self.accounts[i];
+                self.accounts[i]
+                    .list_transactions(
+                        &account.txs_1st,
+                        Currency::Usd,
+                        account.total(),
+                        account.balance(),
+                    )
+                    .into()
+            }
+            Screen::AccountSecondary(i) => {
+                let account = self.accounts[i].txs_2nd.as_ref().unwrap();
+                self.accounts[i]
+                    .list_transactions(&account.txs, account.currency, dec!(0), dec!(0))
+                    .into()
+            }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
             Screen::ImportBoa(i) => self.file_picker.view(Some(i)).into(),
         }

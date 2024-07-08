@@ -76,7 +76,13 @@ impl Account {
         }
     }
 
-    pub fn list_transactions(&self) -> Scrollable<Message> {
+    pub fn list_transactions(
+        &self,
+        txs: &Vec<Transaction>,
+        currency: Currency,
+        total: Decimal,
+        balance: Decimal,
+    ) -> Scrollable<Message> {
         let my_chart = MyChart {
             account: self.clone(),
         };
@@ -88,12 +94,11 @@ impl Account {
         let mut col_4 = column![text_cell(" Comment ")];
         let mut col_5 = column![text_cell("")];
 
-        let mut total = dec!(0);
-        let mut txs = &self.txs_1st;
+        let mut txs = txs;
 
         let mut filtered_tx = Vec::new();
         if let Some(date) = self.filter_date {
-            for tx in self.txs_1st.iter() {
+            for tx in txs.iter() {
                 if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
                     filtered_tx.push(tx.clone())
                 }
@@ -102,7 +107,6 @@ impl Account {
         }
 
         for (i, tx) in txs.iter().enumerate() {
-            total += tx.amount;
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(number_cell(tx.balance));
@@ -138,11 +142,11 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{}", &self.name /*&self.currency*/,)),
+            text_cell(format!("{} {}", &self.name, currency)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],
-            row![text_cell("balance: "), number_cell(self.balance())],
+            row![text_cell("balance: "), number_cell(balance)],
             input.padding(PADDING).spacing(ROW_SPACING),
             filter_date.padding(PADDING).spacing(ROW_SPACING),
             back_exit_view(),

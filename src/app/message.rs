@@ -26,6 +26,7 @@ pub enum Message {
     UpdateAccount(usize),
     UpdateCurrency(Currency),
     SelectAccount(usize),
+    SelectAccountSecondary(usize),
     SelectMonthly(usize),
     SubmitAccount,
     SubmitBalance,
