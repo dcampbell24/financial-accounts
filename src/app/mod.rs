@@ -110,7 +110,7 @@ impl App {
         col_10 = col_10.push(text_cell(""));
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            col_0 = col_0.push(text_cell(format!("{} {}", &account.name, &account.currency)));
+            col_0 = col_0.push(text_cell(format!("{}", &account.name /*&account.currency*/)));
             col_1 = col_1.push(number_cell(account.sum_current_month()));
             col_2 = col_2.push(number_cell(account.sum_last_month()));
             col_3 = col_3.push(number_cell(account.sum_current_year()));
@@ -147,14 +147,14 @@ impl App {
             number_cell(self.accounts.total_for_last_month_usd()),
             number_cell(self.accounts.total_for_current_year_usd()),
             number_cell(self.accounts.total_for_last_year_usd()),
-            number_cell(self.accounts.balance(Currency::Usd)),
+            number_cell(self.accounts.balance()),
             number_cell(self.accounts.total_crypto),
             number_cell(self.accounts.total_metals),
-            number_cell(self.accounts.balance(Currency::Usd) + self.accounts.total_crypto + self.accounts.total_metals),
+            number_cell(self.accounts.balance() + self.accounts.total_crypto + self.accounts.total_metals),
             text_cell(""),
-            number_cell(self.accounts.balance(Currency::Eth)),
-            number_cell(self.accounts.balance(Currency::Gno)),
-            number_cell(self.accounts.balance(Currency::GoldOz)),
+            //number_cell(self.accounts.balance(Currency::Eth)),
+            //number_cell(self.accounts.balance(Currency::Gno)),
+            //number_cell(self.accounts.balance(Currency::GoldOz)),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
@@ -327,32 +327,32 @@ impl Application for App {
                         self.accounts.inner.remove(i);
                     }
                     Screen::Account(j) => {
-                        self.accounts[j].data.remove(i);
+                        self.accounts[j].txs_1st.remove(i);
                     }
                     Screen::ImportBoa(_j) => {
                         panic!("Screen::ImportBoa can't be reached here");
                     }
                     Screen::Monthly(j) => {
-                        self.accounts[j].monthly.remove(i);
+                        self.accounts[j].txs_monthly.remove(i);
                     }
                 };
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::GetOhlcCryto => {
-                self.accounts.total_crypto = self.accounts.total_cypto().unwrap();
-                self.accounts.save(&self.file_path).unwrap();
+                //self.accounts.total_crypto = self.accounts.total_cypto().unwrap();
+                //self.accounts.save(&self.file_path).unwrap();
             }
             Message::GetOhlcGold => {
-                self.accounts.total_metals = self.accounts.total_gold().unwrap();
-                self.accounts.save(&self.file_path).unwrap();
+                //self.accounts.total_metals = self.accounts.total_gold().unwrap();
+                //self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
                 let account = &mut self.accounts[i];
                 for tx in boa {
-                    account.data.push(tx);
+                    account.txs_1st.push(tx);
                 }
-                account.data.sort_by_key(|tx| tx.date);
+                account.txs_1st.sort_by_key(|tx| tx.date);
                 account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path).unwrap();
@@ -382,8 +382,8 @@ impl Application for App {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 match account.submit_balance() {
                     Ok(tx) => {
-                        account.data.push(tx);
-                        account.data.sort_by_key(|tx| tx.date);
+                        account.txs_1st.push(tx);
+                        account.txs_1st.sort_by_key(|tx| tx.date);
                         account.error_str = String::new();
                         account.tx = TransactionToSubmit::new();
                         self.accounts.save(&self.file_path).unwrap();
@@ -401,8 +401,8 @@ impl Application for App {
                 } else {
                     match account.submit_tx() {
                         Ok(tx) => {
-                            account.data.push(tx);
-                            account.data.sort_by_key(|tx| tx.date);
+                            account.txs_1st.push(tx);
+                            account.txs_1st.sort_by_key(|tx| tx.date);
                             account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();

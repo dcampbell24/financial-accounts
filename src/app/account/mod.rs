@@ -1,4 +1,5 @@
 pub mod transaction;
+pub mod transactions_secondary;
 
 use std::mem::take;
 
@@ -11,6 +12,7 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use transactions_secondary::Transactions2nd;
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
@@ -24,15 +26,17 @@ use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
-    pub currency: Currency,
+    // pub currency: Currency,
     #[serde(skip)]
     pub tx: TransactionToSubmit,
     #[serde(skip)]
     pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
-    pub data: Vec<Transaction>,
-    #[serde(rename = "monthly_transactions")]
-    pub monthly: Vec<TransactionMonthly>,
+    pub txs_1st: Vec<Transaction>,
+    #[serde(rename = "transactions_secondary")]
+    pub txs_2nd: Option<Transactions2nd>,
+    #[serde(rename = "transactions_monthly")]
+    pub txs_monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
     pub filter_date: Option<DateTime<Utc>>,
     #[serde(skip)]
@@ -49,13 +53,14 @@ impl Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            data: Vec::new(),
-            monthly: Vec::new(),
+            txs_1st: Vec::new(),
+            txs_2nd: None,
+            txs_monthly: Vec::new(),
             filter_date: None,
             filter_date_year: None,
             filter_date_month: None,
             error_str: String::new(),
-            currency,
+            // currency,
         }
     }
 
@@ -76,7 +81,7 @@ impl Account {
     }
 
     pub fn balance(&self) -> Decimal {
-        match self.data.last() {
+        match self.txs_1st.last() {
             Some(tx) => tx.balance,
             None => dec!(0),
         }
@@ -95,11 +100,11 @@ impl Account {
         let mut col_5 = column![text_cell("")];
 
         let mut total = dec!(0);
-        let mut txs = &self.data;
+        let mut txs = &self.txs_1st;
 
         let mut filtered_tx = Vec::new();
         if let Some(date) = self.filter_date {
-            for tx in self.data.iter() {
+            for tx in self.txs_1st.iter() {
                 if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
                     filtered_tx.push(tx.clone())
                 }
@@ -153,7 +158,7 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, &self.currency)),
+            text_cell(format!("{}", &self.name /*&self.currency*/,)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],
@@ -171,7 +176,7 @@ impl Account {
         let mut col_2 = column![text_cell(" Comment ")];
         let mut col_3 = column![text_cell("")];
 
-        for (i, tx) in self.monthly.iter().enumerate() {
+        for (i, tx) in self.txs_monthly.iter().enumerate() {
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(&tx.comment));
             col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
@@ -198,7 +203,7 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, &self.currency)),
+            text_cell(format!("{}", &self.name /*&self.currency*/,)),
             rows,
             text_cell("total: "),
             number_cell(self.total()),
@@ -210,19 +215,19 @@ impl Account {
     }
 
     pub fn max_balance(&self) -> Option<Decimal> {
-        self.data.iter().map(|tx| tx.balance).max()
+        self.txs_1st.iter().map(|tx| tx.balance).max()
     }
 
     pub fn min_balance(&self) -> Option<Decimal> {
-        self.data.iter().map(|tx| tx.balance).min()
+        self.txs_1st.iter().map(|tx| tx.balance).min()
     }
 
     pub fn max_date(&self) -> Option<DateTime<Utc>> {
-        self.data.iter().map(|tx| tx.date).max()
+        self.txs_1st.iter().map(|tx| tx.date).max()
     }
 
     pub fn min_date(&self) -> Option<DateTime<Utc>> {
-        self.data.iter().map(|tx| tx.date).min()
+        self.txs_1st.iter().map(|tx| tx.date).min()
     }
 
     pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
@@ -293,15 +298,15 @@ impl Account {
             amount: tx.amount.unwrap(),
             comment: tx.comment,
         };
-        self.monthly.push(tx);
+        self.txs_monthly.push(tx);
     }
 
     pub fn total(&self) -> Decimal {
-        self.data.iter().map(|d| d.amount).sum()
+        self.txs_1st.iter().map(|d| d.amount).sum()
     }
 
     pub fn sum_monthly(&self) -> Decimal {
-        self.monthly.iter().map(|d| d.amount).sum()
+        self.txs_monthly.iter().map(|d| d.amount).sum()
     }
 
     pub fn sum_current_month(&self) -> Decimal {
@@ -310,7 +315,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.data.iter() {
+        for tx in self.txs_1st.iter() {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -331,7 +336,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.data.iter() {
+        for tx in self.txs_1st.iter() {
             if tx.date >= month_start && tx.date < month_end {
                 amount += tx.amount;
             }
@@ -343,7 +348,7 @@ impl Account {
         let now = Utc::now();
         let date = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.data.iter() {
+        for tx in self.txs_1st.iter() {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -356,7 +361,7 @@ impl Account {
         let year_start = Utc.with_ymd_and_hms(now.year() - 1, 1, 1, 0, 0, 0).unwrap();
         let year_end = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.data.iter() {
+        for tx in self.txs_1st.iter() {
             if tx.date >= year_start && tx.date < year_end {
                 amount += tx.amount;
             }

@@ -62,7 +62,7 @@ impl Chart<Message> for MyChart {
                 .draw_series(
                     AreaSeries::new(
                         self.account
-                            .data
+                            .txs_1st
                             .iter()
                             .map(|tx| (tx.date, tx.balance.to_f64().unwrap())),
                         0.0,
