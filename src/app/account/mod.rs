@@ -26,7 +26,6 @@ use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     pub name: String,
-    // pub currency: Currency,
     #[serde(skip)]
     pub tx: TransactionToSubmit,
     #[serde(skip)]
