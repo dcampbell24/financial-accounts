@@ -40,7 +40,7 @@ impl Accounts {
             tx.balance = balance;
         }
 
-        let mut account = Account::new("graph data".to_string());
+        let mut account = Account::new("graph data".to_string(), Currency::Usd);
         account.txs_1st = txs;
         account
     }

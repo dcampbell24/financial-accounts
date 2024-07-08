@@ -21,7 +21,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, chart::MyChart, number_cell, text_cell, ROW_SPACING};
+use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell, ROW_SPACING};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -47,13 +47,20 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, currency: Currency) -> Self {
+        let txs_2nd = match currency {
+            Currency::Eth | Currency::Gno | Currency::GoldOz => {
+                Some(Transactions2nd::new(currency))
+            }
+            Currency::Usd => None,
+        };
+
         Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
             txs_1st: Vec::new(),
-            txs_2nd: None,
+            txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
             filter_date_year: None,

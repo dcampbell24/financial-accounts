@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Serialize)]
 pub enum Currency {
     Eth,
     Gno,
