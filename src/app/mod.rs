@@ -85,31 +85,19 @@ impl App {
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
-        let mut col_0 = column![text_cell(" Account ")];
-        let mut col_1 = column![text_cell(" Current Month ")].align_items(Alignment::End);
-        let mut col_2 = column![text_cell(" Last Month ")].align_items(Alignment::End);
-        let mut col_3 = column![text_cell(" Current Year ")].align_items(Alignment::End);
-        let mut col_4 = column![text_cell(" Last Year ")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell(" Balance ")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell("")];
-        let mut col_7 = column![text_cell("")];
-        let mut col_8 = column![text_cell("")];
-        let mut col_9 = column![text_cell("")];
-        let mut col_10 = column![text_cell("")];
-        let mut col_11 = column![text_cell("")];
-
-        col_0 = col_0.push(text_cell(""));
-        col_1 = col_1.push(text_cell(""));
-        col_2 = col_2.push(text_cell(""));
-        col_3 = col_3.push(text_cell(""));
-        col_4 = col_4.push(text_cell(""));
-        col_5 = col_5.push(text_cell(""));
-        col_6 = col_6.push(text_cell(""));
-        col_7 = col_7.push(text_cell(""));
-        col_8 = col_8.push(text_cell(""));
-        col_9 = col_9.push(text_cell(""));
-        col_10 = col_10.push(text_cell(""));
-        col_11 = col_11.push(text_cell(""));
+        let mut col_0 = column![text_cell(" Account "), text_cell("")];
+        let mut col_1 = column![text_cell(" Current Month "), text_cell("")].align_items(Alignment::End);
+        let mut col_2 = column![text_cell(" Last Month "), text_cell("")].align_items(Alignment::End);
+        let mut col_3 = column![text_cell(" Current Year "), text_cell("")].align_items(Alignment::End);
+        let mut col_4 = column![text_cell(" Last Year "), text_cell("")].align_items(Alignment::End);
+        let mut col_5 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
+        let mut col_6 = column![text_cell(""), text_cell("")];
+        let mut col_7 = column![text_cell(""), text_cell("")];
+        let mut col_8 = column![text_cell(""), text_cell("")];
+        let mut col_9 = column![text_cell(""), text_cell("")];
+        let mut col_10 = column![text_cell(""), text_cell("")];
+        let mut col_11 = column![text_cell(""), text_cell("")];
+        let mut col_12 = column![text_cell(""), text_cell("")];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             col_0 = col_0.push(text_cell(format!("{}", &account.name /*&account.currency*/)));
@@ -117,7 +105,7 @@ impl App {
             col_2 = col_2.push(number_cell(account.sum_last_month()));
             col_3 = col_3.push(number_cell(account.sum_current_year()));
             col_4 = col_4.push(number_cell(account.sum_last_year()));
-            col_5 = col_5.push(number_cell(account.balance()));
+            col_5 = col_5.push(number_cell(account.balance_1st()));
             col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if account.txs_2nd.is_some() {
@@ -131,7 +119,12 @@ impl App {
             }
             col_9 = col_9.push(button_cell(update_name));
             col_10 = col_10.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
-            col_11 = col_11.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            let mut get_ohlc = button("Get OHLC");
+            if account.txs_2nd.is_some() {
+                get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
+            }
+            col_11 = col_11.push(button_cell(get_ohlc));
+            col_12 = col_12.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11];
 
@@ -141,13 +134,6 @@ impl App {
             text_cell("total current year USD: "),
             text_cell("total last year USD: "),
             text_cell("balance USD: "),
-            text_cell("total cryto USD: "),
-            text_cell("total gold USD: "),
-            text_cell("grand total USD: "),
-            text_cell(""),
-            text_cell("balance ETH"),
-            text_cell("balance GNO"),
-            text_cell("balance Gold Troy Oz"),
         ];
         let col_2 = column![
             number_cell(self.accounts.total_for_current_month_usd()),
@@ -155,13 +141,7 @@ impl App {
             number_cell(self.accounts.total_for_current_year_usd()),
             number_cell(self.accounts.total_for_last_year_usd()),
             number_cell(self.accounts.balance()),
-            number_cell(self.accounts.total_crypto),
-            number_cell(self.accounts.total_metals),
-            number_cell(self.accounts.balance() + self.accounts.total_crypto + self.accounts.total_metals),
             text_cell(""),
-            //number_cell(self.accounts.balance(Currency::Eth)),
-            //number_cell(self.accounts.balance(Currency::Gno)),
-            //number_cell(self.accounts.balance(Currency::GoldOz)),
         ].align_items(Alignment::End);
         let totals = row![col_1, col_2];
 
@@ -198,10 +178,6 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING).spacing(ROW_SPACING),
-            row![
-                button_cell(button("Get crypto OHLC").on_press(Message::GetOhlcCryto)),
-                button_cell(button("Get gold OHLC").on_press(Message::GetOhlcGold)),
-            ],
             button_cell(button("Exit").on_press(Message::Exit)),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -350,13 +326,13 @@ impl Application for App {
                 };
                 self.accounts.save(&self.file_path).unwrap();
             }
-            Message::GetOhlcCryto => {
-                //self.accounts.total_crypto = self.accounts.total_cypto().unwrap();
-                //self.accounts.save(&self.file_path).unwrap();
-            }
-            Message::GetOhlcGold => {
-                //self.accounts.total_metals = self.accounts.total_gold().unwrap();
-                //self.accounts.save(&self.file_path).unwrap();
+            Message::GetOhlc(i) => {
+                let account = &mut self.accounts[i];
+                let tx = account.submit_ohlc().unwrap();
+
+                account.txs_1st.push(tx);
+                account.txs_1st.sort_by_key(|tx| tx.date);
+                self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
@@ -393,26 +369,9 @@ impl Application for App {
             }
             Message::SubmitBalance => {
                 let account = &mut self.accounts[selected_account.unwrap()];
-                match account.submit_balance() {
-                    Ok(tx) => {
-                        account.txs_1st.push(tx);
-                        account.txs_1st.sort_by_key(|tx| tx.date);
-                        account.error_str = String::new();
-                        account.tx = TransactionToSubmit::new();
-                        self.accounts.save(&self.file_path).unwrap();
-                    }
-                    Err(err) => {
-                        account.error_str = err;
-                    }
-                }
-            }
-            Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account.unwrap()];
 
-                if list_monthly {
-                    account.submit_tx_monthly();
-                } else {
-                    match account.submit_tx() {
+                match self.screen {
+                    Screen::Account(_) => match account.submit_balance_1st() {
                         Ok(tx) => {
                             account.txs_1st.push(tx);
                             account.txs_1st.sort_by_key(|tx| tx.date);
@@ -423,6 +382,70 @@ impl Application for App {
                         Err(err) => {
                             account.error_str = err;
                         }
+                    },
+                    Screen::AccountSecondary(_) => match account.submit_balance_2nd() {
+                        Ok(tx) => {
+                            account.txs_2nd.as_mut().unwrap().txs.push(tx);
+                            account
+                                .txs_2nd
+                                .as_mut()
+                                .unwrap()
+                                .txs
+                                .sort_by_key(|tx| tx.date);
+                            account.error_str = String::new();
+                            account.tx = TransactionToSubmit::new();
+                            self.accounts.save(&self.file_path).unwrap();
+                        }
+                        Err(err) => {
+                            account.error_str = err;
+                        }
+                    },
+                    Screen::Accounts
+                    | Screen::ImportBoa(_)
+                    | Screen::Monthly(_)
+                    | Screen::NewOrLoadFile => {
+                        panic!("You can't submit a balance here!");
+                    }
+                }
+            }
+            Message::SubmitTx => {
+                let account = &mut self.accounts[selected_account.unwrap()];
+
+                match self.screen {
+                    Screen::Account(_) => match account.submit_tx_1st() {
+                        Ok(tx) => {
+                            account.txs_1st.push(tx);
+                            account.txs_1st.sort_by_key(|tx| tx.date);
+                            account.error_str = String::new();
+                            account.tx = TransactionToSubmit::new();
+                            self.accounts.save(&self.file_path).unwrap();
+                        }
+                        Err(err) => {
+                            account.error_str = err;
+                        }
+                    },
+                    Screen::AccountSecondary(_) => match account.submit_tx_2nd() {
+                        Ok(tx) => {
+                            account.txs_2nd.as_mut().unwrap().txs.push(tx);
+                            account
+                                .txs_2nd
+                                .as_mut()
+                                .unwrap()
+                                .txs
+                                .sort_by_key(|tx| tx.date);
+                            account.error_str = String::new();
+                            account.tx = TransactionToSubmit::new();
+                            self.accounts.save(&self.file_path).unwrap();
+                        }
+                        Err(err) => {
+                            account.error_str = err;
+                        }
+                    },
+                    Screen::Monthly(_) => {
+                        account.submit_tx_monthly();
+                    }
+                    Screen::Accounts | Screen::ImportBoa(_) | Screen::NewOrLoadFile => {
+                        panic!("You can't submit a transaction here!");
                     }
                 }
             }
@@ -448,15 +471,17 @@ impl Application for App {
                     .list_transactions(
                         &account.txs_1st,
                         Currency::Usd,
-                        account.total(),
-                        account.balance(),
+                        account.total_1st(),
+                        account.balance_1st(),
                     )
                     .into()
             }
             Screen::AccountSecondary(i) => {
-                let account = self.accounts[i].txs_2nd.as_ref().unwrap();
+                let account = &self.accounts[i];
+                let txs = &account.txs_2nd.as_ref().unwrap().txs;
+                let currency = account.txs_2nd.as_ref().unwrap().currency;
                 self.accounts[i]
-                    .list_transactions(&account.txs, account.currency, dec!(0), dec!(0))
+                    .list_transactions(txs, currency, account.total_2nd(), account.balance_2nd())
                     .into()
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),

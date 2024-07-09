@@ -1,7 +1,7 @@
 pub mod transaction;
 pub mod transactions_secondary;
 
-use std::mem::take;
+use std::{error::Error, mem::take};
 
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::{
@@ -69,8 +69,15 @@ impl Account {
         }
     }
 
-    pub fn balance(&self) -> Decimal {
+    pub fn balance_1st(&self) -> Decimal {
         match self.txs_1st.last() {
+            Some(tx) => tx.balance,
+            None => dec!(0),
+        }
+    }
+
+    pub fn balance_2nd(&self) -> Decimal {
+        match self.txs_2nd.as_ref().unwrap().txs.last() {
             Some(tx) => tx.balance,
             None => dec!(0),
         }
@@ -175,10 +182,11 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{}", &self.name /*&self.currency*/,)),
+            text_cell(&self.name),
             rows,
-            text_cell("total: "),
-            number_cell(self.total()),
+            // Fixme: display a total for the monthly transactions.
+            // text_cell("total: "),
+            // number_cell(self.total_1st()),
             input.padding(PADDING).spacing(ROW_SPACING),
             back_exit_view(),
         ];
@@ -214,7 +222,7 @@ impl Account {
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
-    pub fn submit_balance(&self) -> Result<Transaction, String> {
+    pub fn submit_balance_1st(&self) -> Result<Transaction, String> {
         let balance = self.tx.balance.unwrap();
 
         let mut date = Utc::now();
@@ -232,14 +240,50 @@ impl Account {
         }
 
         Ok(Transaction {
-            amount: balance - self.balance(),
+            amount: balance - self.balance_1st(),
             balance,
             comment: self.tx.comment.clone(),
             date,
         })
     }
 
-    pub fn submit_tx(&self) -> Result<Transaction, String> {
+    pub fn submit_balance_2nd(&self) -> Result<Transaction, String> {
+        let balance = self.tx.balance.unwrap();
+
+        let mut date = Utc::now();
+        if !self.tx.date.is_empty() {
+            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => {
+                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Date error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    return Err(msg);
+                }
+            }
+        }
+
+        Ok(Transaction {
+            amount: balance - self.balance_2nd(),
+            balance,
+            comment: self.tx.comment.clone(),
+            date,
+        })
+    }
+
+    pub fn submit_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
+        let (balance, comment) = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
+
+        Ok(Transaction {
+            amount: balance - self.balance_1st(),
+            balance,
+            comment,
+            date: Utc::now(),
+        })
+    }
+
+    pub fn submit_tx_1st(&self) -> Result<Transaction, String> {
         let amount = self.tx.amount.unwrap();
 
         let mut date = Utc::now();
@@ -258,7 +302,32 @@ impl Account {
 
         Ok(Transaction {
             amount,
-            balance: self.balance() + amount,
+            balance: self.balance_1st() + amount,
+            comment: self.tx.comment.clone(),
+            date,
+        })
+    }
+
+    pub fn submit_tx_2nd(&self) -> Result<Transaction, String> {
+        let amount = self.tx.amount.unwrap();
+
+        let mut date = Utc::now();
+        if !self.tx.date.is_empty() {
+            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => {
+                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+                }
+                Err(err) => {
+                    let mut msg = "Parse Date error: ".to_string();
+                    msg.push_str(&err.to_string());
+                    return Err(msg);
+                }
+            }
+        }
+
+        Ok(Transaction {
+            amount,
+            balance: self.balance_2nd() + amount,
             comment: self.tx.comment.clone(),
             date,
         })
@@ -273,8 +342,18 @@ impl Account {
         self.txs_monthly.push(tx);
     }
 
-    pub fn total(&self) -> Decimal {
+    pub fn total_1st(&self) -> Decimal {
         self.txs_1st.iter().map(|d| d.amount).sum()
+    }
+
+    pub fn total_2nd(&self) -> Decimal {
+        self.txs_2nd
+            .as_ref()
+            .unwrap()
+            .txs
+            .iter()
+            .map(|d| d.amount)
+            .sum()
     }
 
     pub fn sum_monthly(&self) -> Decimal {

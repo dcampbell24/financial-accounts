@@ -1,5 +1,4 @@
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
-use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -11,15 +10,11 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
-use crate::app::metals;
 use crate::app::money::Currency;
-use crate::app::ticker::Ticker;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
-    pub total_crypto: Decimal,
-    pub total_metals: Decimal,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
 }
@@ -52,7 +47,7 @@ impl Accounts {
 
         if day_1 >= past && day_1 < now {
             for account in self.inner.iter_mut() {
-                let mut balance = account.balance();
+                let mut balance = account.balance_1st();
                 for tx in account.txs_monthly.iter() {
                     balance += tx.amount;
                     account.txs_1st.push(Transaction {
@@ -71,8 +66,6 @@ impl Accounts {
     pub fn new() -> Self {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
-            total_crypto: dec!(0),
-            total_metals: dec!(0),
             inner: Vec::new(),
         }
     }
@@ -87,45 +80,10 @@ impl Accounts {
     pub fn balance(&self) -> Decimal {
         let mut balance = dec!(0);
         for account in self.inner.iter() {
-            balance += account.balance();
+            balance += account.balance_1st();
         }
         balance
     }
-
-    /*
-    pub fn total_cypto(&self) -> Result<Decimal, Box<dyn Error>> {
-        let ticker = Ticker::init();
-        // let bitcoin = ticker._get_ohlc_bitcoin()?;
-        let eth = ticker.get_ohlc_eth()?;
-        let gno = ticker.get_ohlc_gno()?;
-
-        let mut total = dec!(0);
-        for account in &self.inner {
-            if account.currency == Currency::Eth {
-                let sum: Decimal = account.txs_1st.iter().map(|record| record.amount).sum();
-                total += sum * eth.close;
-            } else if account.currency == Currency::Gno {
-                let sum: Decimal = account.txs_1st.iter().map(|record| record.amount).sum();
-                total += sum * gno.close;
-            }
-        }
-        Ok(total)
-    }
-
-    pub fn total_gold(&self) -> Result<Decimal, Box<dyn Error>> {
-        let http_client = Client::new();
-        let gold = metals::get_price_gold(&http_client).unwrap();
-
-        let mut total = dec!(0);
-        for account in &self.inner {
-            if account.currency == Currency::GoldOz {
-                let sum: Decimal = account.txs_1st.iter().map(|record| record.amount).sum();
-                total += sum * gold.price
-            }
-        }
-        Ok(total)
-    }
-    */
 
     pub fn total_for_months_usd(&self, project_months: u16) -> Decimal {
         let mut total = dec!(0);

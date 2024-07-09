@@ -15,7 +15,7 @@ impl fmt::Display for Currency {
         match self {
             Currency::Eth => write!(f, "ETH"),
             Currency::Gno => write!(f, "GNO"),
-            Currency::GoldOz => write!(f, "Gold Oz"),
+            Currency::GoldOz => write!(f, "Gold Troy Oz"),
             Currency::Usd => write!(f, "USD"),
         }
     }
