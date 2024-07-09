@@ -2,6 +2,7 @@ use std::error::Error;
 
 use reqwest::blocking::Client;
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{metals, money::Currency, ticker::Ticker};
@@ -23,34 +24,40 @@ impl Transactions2nd {
         }
     }
 
-    pub fn get_ohlc(&self) -> Result<(Decimal, String), Box<dyn Error>> {
+    pub fn get_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
         let http_client = Client::new();
         let ticker = Ticker::init();
 
         match self.currency {
             Currency::Eth => {
                 let eth = ticker.get_ohlc_eth()?;
-                let sum: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
-                Ok((
-                    sum * eth.close,
-                    format!("OHLC: {sum} {} at {} USD", self.currency, eth.close),
-                ))
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * eth.close,
+                    date: eth.date_time,
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, eth.close),
+                })
             }
             Currency::Gno => {
                 let gno = ticker.get_ohlc_gno()?;
-                let sum: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
-                Ok((
-                    sum * gno.close,
-                    format!("OHLC: {sum} {} at {} USD", self.currency, gno.close),
-                ))
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * gno.close,
+                    date: gno.date_time,
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, gno.close),
+                })
             }
             Currency::GoldOz => {
                 let gold = metals::get_price_gold(&http_client)?;
-                let sum: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
-                Ok((
-                    sum * gold.price,
-                    format!("OHLC: {sum} {} at {} USD", self.currency, gold.price),
-                ))
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * gold.price,
+                    date: gold.timestamp,
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, gold.price),
+                })
             }
             Currency::Usd => panic!("You can't hold USD as a secondary currency!"),
         }

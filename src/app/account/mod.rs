@@ -273,14 +273,9 @@ impl Account {
     }
 
     pub fn submit_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
-        let (balance, comment) = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
-
-        Ok(Transaction {
-            amount: balance - self.balance_1st(),
-            balance,
-            comment,
-            date: Utc::now(),
-        })
+        let mut tx = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
+        tx.amount = tx.balance - self.balance_1st();
+        Ok(tx)
     }
 
     pub fn submit_tx_1st(&self) -> Result<Transaction, String> {
