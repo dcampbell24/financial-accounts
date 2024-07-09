@@ -100,7 +100,7 @@ impl App {
         let mut col_12 = column![text_cell(""), text_cell("")];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            col_0 = col_0.push(text_cell(format!("{}", &account.name /*&account.currency*/)));
+            col_0 = col_0.push(text_cell(&account.name));
             col_1 = col_1.push(number_cell(account.sum_current_month()));
             col_2 = col_2.push(number_cell(account.sum_last_month()));
             col_3 = col_3.push(number_cell(account.sum_current_year()));
