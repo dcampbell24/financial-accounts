@@ -10,7 +10,7 @@ mod screen;
 pub mod solarized;
 mod ticker;
 
-use std::{cmp::Ordering, mem, path::PathBuf};
+use std::{cmp::Ordering, mem, path::PathBuf, rc::Rc};
 
 use chart::MyChart;
 use iced::{
@@ -81,7 +81,7 @@ impl App {
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
         let my_chart = MyChart {
-            txs: Box::new(self.accounts.all_accounts_txs_1st())
+            txs: Rc::new(self.accounts.all_accounts_txs_1st())
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -469,8 +469,7 @@ impl Application for App {
                 let account = &self.accounts[i];
                 self.accounts[i]
                     .list_transactions(
-                        &account.txs_1st.txs,
-                        Currency::Usd,
+                        Rc::new(account.txs_1st.clone()),
                         account.total_1st(),
                         account.balance_1st(),
                     )
@@ -478,10 +477,13 @@ impl Application for App {
             }
             Screen::AccountSecondary(i) => {
                 let account = &self.accounts[i];
-                let txs = &account.txs_2nd.as_ref().unwrap().txs;
-                let currency = account.txs_2nd.as_ref().unwrap().currency;
+                let txs = account.txs_2nd.as_ref().unwrap();
                 self.accounts[i]
-                    .list_transactions(txs, currency, account.total_2nd(), account.balance_2nd())
+                    .list_transactions(
+                        Rc::new(txs.clone()),
+                        account.total_2nd(),
+                        account.balance_2nd(),
+                    )
                     .into()
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),

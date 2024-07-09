@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use plotters::{
     series::AreaSeries,
     style::{Color, FontTransform, IntoFont, ShapeStyle},
@@ -11,7 +13,7 @@ use crate::app::message::Message;
 use super::{account::transactions::Transactions, solarized};
 
 pub struct MyChart {
-    pub txs: Box<dyn Transactions>,
+    pub txs: Rc<dyn Transactions>,
 }
 
 impl Chart<Message> for MyChart {

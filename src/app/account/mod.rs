@@ -2,7 +2,7 @@ pub mod transaction;
 pub mod transactions;
 pub mod transactions_secondary;
 
-use std::{error::Error, mem::take};
+use std::{error::Error, mem::take, rc::Rc};
 
 use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
 use iced::{
@@ -79,13 +79,13 @@ impl Account {
 
     pub fn list_transactions(
         &self,
-        txs: &Vec<Transaction>,
-        currency: Currency,
+        txs_struct: Rc<dyn Transactions>,
         total: Decimal,
         balance: Decimal,
     ) -> Scrollable<Message> {
+        // Fixme: not graphing the filtered txs.
         let my_chart = MyChart {
-            txs: Box::new(self.txs_1st.clone()),
+            txs: txs_struct.clone(),
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -95,8 +95,7 @@ impl Account {
         let mut col_4 = column![text_cell(" Comment ")];
         let mut col_5 = column![text_cell("")];
 
-        let mut txs = txs;
-
+        let mut txs = txs_struct.transactions();
         let mut filtered_tx = Vec::new();
         if let Some(date) = self.filter_date {
             for tx in txs.iter() {
@@ -143,7 +142,7 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, currency)),
+            text_cell(format!("{} {}", &self.name, txs_struct.currency())),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],

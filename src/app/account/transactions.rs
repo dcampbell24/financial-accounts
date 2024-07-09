@@ -3,11 +3,12 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+use crate::app::money::Currency;
+
 use super::{transaction::Transaction, transactions_secondary::Txs2nd};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Txs {
-    #[serde(rename = "transactions")]
     pub txs: Vec<Transaction>,
 }
 
@@ -26,6 +27,10 @@ impl Transactions for Txs2nd {
     fn transactions(&self) -> &Vec<Transaction> {
         &self.txs
     }
+
+    fn currency(&self) -> Currency {
+        self.currency
+    }
 }
 
 pub trait Transactions {
@@ -36,6 +41,10 @@ pub trait Transactions {
             Some(tx) => tx.balance,
             None => dec!(0),
         }
+    }
+
+    fn currency(&self) -> Currency {
+        Currency::Usd
     }
 
     fn max_balance(&self) -> Option<Decimal> {

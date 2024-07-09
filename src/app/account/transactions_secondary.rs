@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use chrono::Utc;
 use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -12,7 +13,6 @@ use super::transaction::Transaction;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Txs2nd {
     pub currency: Currency,
-    #[serde(rename = "transactions")]
     pub txs: Vec<Transaction>,
 }
 
@@ -45,7 +45,7 @@ impl Txs2nd {
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * gno.close,
-                    date: gno.date_time,
+                    date: Utc::now(),
                     comment: format!("OHLC: {count} {} at {} USD", self.currency, gno.close),
                 })
             }
@@ -55,7 +55,7 @@ impl Txs2nd {
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * gold.price,
-                    date: gold.timestamp,
+                    date: Utc::now(),
                     comment: format!("OHLC: {count} {} at {} USD", self.currency, gold.price),
                 })
             }
