@@ -81,7 +81,7 @@ impl App {
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
         let my_chart = MyChart {
-            account: self.accounts.all_accounts_txs()
+            txs: Box::new(self.accounts.all_accounts_txs_1st())
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -312,7 +312,7 @@ impl Application for App {
                         self.accounts.inner.remove(i);
                     }
                     Screen::Account(j) => {
-                        self.accounts[j].txs_1st.remove(i);
+                        self.accounts[j].txs_1st.txs.remove(i);
                     }
                     Screen::AccountSecondary(j) => {
                         self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
@@ -330,17 +330,17 @@ impl Application for App {
                 let account = &mut self.accounts[i];
                 let tx = account.submit_ohlc().unwrap();
 
-                account.txs_1st.push(tx);
-                account.txs_1st.sort_by_key(|tx| tx.date);
+                account.txs_1st.txs.push(tx);
+                account.txs_1st.txs.sort_by_key(|tx| tx.date);
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let boa = import_boa(file_path).unwrap();
                 let account = &mut self.accounts[i];
                 for tx in boa {
-                    account.txs_1st.push(tx);
+                    account.txs_1st.txs.push(tx);
                 }
-                account.txs_1st.sort_by_key(|tx| tx.date);
+                account.txs_1st.txs.sort_by_key(|tx| tx.date);
                 account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path).unwrap();
@@ -373,8 +373,8 @@ impl Application for App {
                 match self.screen {
                     Screen::Account(_) => match account.submit_balance_1st() {
                         Ok(tx) => {
-                            account.txs_1st.push(tx);
-                            account.txs_1st.sort_by_key(|tx| tx.date);
+                            account.txs_1st.txs.push(tx);
+                            account.txs_1st.txs.sort_by_key(|tx| tx.date);
                             account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
@@ -414,8 +414,8 @@ impl Application for App {
                 match self.screen {
                     Screen::Account(_) => match account.submit_tx_1st() {
                         Ok(tx) => {
-                            account.txs_1st.push(tx);
-                            account.txs_1st.sort_by_key(|tx| tx.date);
+                            account.txs_1st.txs.push(tx);
+                            account.txs_1st.txs.sort_by_key(|tx| tx.date);
                             account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
@@ -469,7 +469,7 @@ impl Application for App {
                 let account = &self.accounts[i];
                 self.accounts[i]
                     .list_transactions(
-                        &account.txs_1st,
+                        &account.txs_1st.txs,
                         Currency::Usd,
                         account.total_1st(),
                         account.balance_1st(),

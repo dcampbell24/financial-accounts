@@ -10,15 +10,15 @@ use crate::app::{metals, money::Currency, ticker::Ticker};
 use super::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Transactions2nd {
+pub struct Txs2nd {
     pub currency: Currency,
     #[serde(rename = "transactions")]
     pub txs: Vec<Transaction>,
 }
 
-impl Transactions2nd {
+impl Txs2nd {
     pub fn new(currency: Currency) -> Self {
-        Transactions2nd {
+        Txs2nd {
             currency,
             txs: Vec::new(),
         }

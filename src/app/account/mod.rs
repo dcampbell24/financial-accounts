@@ -1,4 +1,5 @@
 pub mod transaction;
+pub mod transactions;
 pub mod transactions_secondary;
 
 use std::{error::Error, mem::take};
@@ -12,7 +13,8 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use transactions_secondary::Transactions2nd;
+use transactions::{Transactions, Txs};
+use transactions_secondary::Txs2nd;
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
@@ -31,9 +33,9 @@ pub struct Account {
     #[serde(skip)]
     pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
-    pub txs_1st: Vec<Transaction>,
+    pub txs_1st: Txs,
     #[serde(rename = "transactions_secondary")]
-    pub txs_2nd: Option<Transactions2nd>,
+    pub txs_2nd: Option<Txs2nd>,
     #[serde(rename = "transactions_monthly")]
     pub txs_monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
@@ -49,9 +51,7 @@ pub struct Account {
 impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
         let txs_2nd = match currency {
-            Currency::Eth | Currency::Gno | Currency::GoldOz => {
-                Some(Transactions2nd::new(currency))
-            }
+            Currency::Eth | Currency::Gno | Currency::GoldOz => Some(Txs2nd::new(currency)),
             Currency::Usd => None,
         };
 
@@ -59,7 +59,7 @@ impl Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            txs_1st: Vec::new(),
+            txs_1st: Txs::new(),
             txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
@@ -70,17 +70,11 @@ impl Account {
     }
 
     pub fn balance_1st(&self) -> Decimal {
-        match self.txs_1st.last() {
-            Some(tx) => tx.balance,
-            None => dec!(0),
-        }
+        self.txs_1st.balance()
     }
 
     pub fn balance_2nd(&self) -> Decimal {
-        match self.txs_2nd.as_ref().unwrap().txs.last() {
-            Some(tx) => tx.balance,
-            None => dec!(0),
-        }
+        self.txs_2nd.as_ref().unwrap().balance()
     }
 
     pub fn list_transactions(
@@ -91,7 +85,7 @@ impl Account {
         balance: Decimal,
     ) -> Scrollable<Message> {
         let my_chart = MyChart {
-            account: self.clone(),
+            txs: Box::new(self.txs_1st.clone()),
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -192,22 +186,6 @@ impl Account {
         ];
 
         Scrollable::new(col)
-    }
-
-    pub fn max_balance(&self) -> Option<Decimal> {
-        self.txs_1st.iter().map(|tx| tx.balance).max()
-    }
-
-    pub fn min_balance(&self) -> Option<Decimal> {
-        self.txs_1st.iter().map(|tx| tx.balance).min()
-    }
-
-    pub fn max_date(&self) -> Option<DateTime<Utc>> {
-        self.txs_1st.iter().map(|tx| tx.date).max()
-    }
-
-    pub fn min_date(&self) -> Option<DateTime<Utc>> {
-        self.txs_1st.iter().map(|tx| tx.date).min()
     }
 
     pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
@@ -338,17 +316,11 @@ impl Account {
     }
 
     pub fn total_1st(&self) -> Decimal {
-        self.txs_1st.iter().map(|d| d.amount).sum()
+        self.txs_1st.total()
     }
 
     pub fn total_2nd(&self) -> Decimal {
-        self.txs_2nd
-            .as_ref()
-            .unwrap()
-            .txs
-            .iter()
-            .map(|d| d.amount)
-            .sum()
+        self.txs_2nd.as_ref().unwrap().total()
     }
 
     pub fn sum_monthly(&self) -> Decimal {
@@ -361,7 +333,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.iter() {
+        for tx in self.txs_1st.txs.iter() {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -382,7 +354,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.iter() {
+        for tx in self.txs_1st.txs.iter() {
             if tx.date >= month_start && tx.date < month_end {
                 amount += tx.amount;
             }
@@ -394,7 +366,7 @@ impl Account {
         let now = Utc::now();
         let date = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.iter() {
+        for tx in self.txs_1st.txs.iter() {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -407,7 +379,7 @@ impl Account {
         let year_start = Utc.with_ymd_and_hms(now.year() - 1, 1, 1, 0, 0, 0).unwrap();
         let year_end = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.iter() {
+        for tx in self.txs_1st.txs.iter() {
             if tx.date >= year_start && tx.date < year_end {
                 amount += tx.amount;
             }

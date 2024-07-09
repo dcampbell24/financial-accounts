@@ -10,7 +10,8 @@ use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
-use crate::app::money::Currency;
+
+use super::account::transactions::Txs;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -20,10 +21,10 @@ pub struct Accounts {
 }
 
 impl Accounts {
-    pub fn all_accounts_txs(&self) -> Account {
+    pub fn all_accounts_txs_1st(&self) -> Txs {
         let mut txs = Vec::new();
         for account in self.inner.iter() {
-            for tx in account.txs_1st.iter() {
+            for tx in account.txs_1st.txs.iter() {
                 txs.push(tx.clone());
             }
         }
@@ -35,9 +36,9 @@ impl Accounts {
             tx.balance = balance;
         }
 
-        let mut account = Account::new("graph data".to_string(), Currency::Usd);
-        account.txs_1st = txs;
-        account
+        let mut transactions = Txs::new();
+        transactions.txs = txs;
+        transactions
     }
 
     pub fn check_monthly(&mut self) {
@@ -50,14 +51,14 @@ impl Accounts {
                 let mut balance = account.balance_1st();
                 for tx in account.txs_monthly.iter() {
                     balance += tx.amount;
-                    account.txs_1st.push(Transaction {
+                    account.txs_1st.txs.push(Transaction {
                         amount: tx.amount,
                         balance,
                         comment: tx.comment.clone(),
                         date: day_1,
                     });
                 }
-                account.txs_1st.sort_by_key(|tx| tx.date);
+                account.txs_1st.txs.sort_by_key(|tx| tx.date);
             }
         }
         self.checked_up_to = now;
