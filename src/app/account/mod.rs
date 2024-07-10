@@ -134,12 +134,11 @@ impl Account {
             None => text_input("Month", ""),
         };
         month = month.on_input(Message::ChangeFilterDateMonth);
-        let filter_date = row![
-            year,
-            month,
-            button("Filter").on_press(Message::SubmitFilterDate),
-            text(" ".repeat(EDGE_PADDING)),
-        ];
+        let mut filter_button = button("Filter");
+        if self.submit_filter_date().is_some() {
+            filter_button = filter_button.on_press(Message::SubmitFilterDate);
+        }
+        let filter_date = row![year, month, filter_button, text(" ".repeat(EDGE_PADDING)),];
 
         let col = column![
             text_cell(format!("{} {}", &self.name, txs_struct.currency())),
