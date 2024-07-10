@@ -1,4 +1,4 @@
-use std::{error::Error, fs, path::PathBuf};
+use std::{collections::VecDeque, error::Error, fs, path::PathBuf};
 
 use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
@@ -18,7 +18,7 @@ struct BoaRecord {
     running_balance: String,
 }
 
-pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>> {
+pub fn import_boa(file_path: PathBuf) -> Result<VecDeque<Transaction>, Box<dyn Error>> {
     let contents: String = fs::read_to_string(file_path)?
         .lines()
         .skip(6)
@@ -30,12 +30,13 @@ pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>
         .collect();
 
     let mut rdr = csv::Reader::from_reader(contents.as_bytes());
-    let mut records = Vec::new();
-    for result in rdr.deserialize() {
+    let mut records = VecDeque::new();
+    for (i, result) in rdr.deserialize().enumerate() {
         let mut record: BoaRecord = result?;
 
-        if record.amount.is_empty() {
-            continue;
+        if i == 0 {
+            assert!(record.amount.is_empty());
+            record.amount = "0".to_string()
         }
         record.date.push_str(" 00:00:00");
 
@@ -46,7 +47,7 @@ pub fn import_boa(file_path: PathBuf) -> Result<Vec<Transaction>, Box<dyn Error>
             comment: record.description,
             date: NaiveDateTime::parse_from_str(&record.date, "%m/%d/%Y %H:%M:%S")?.and_utc(),
         };
-        records.push(record);
+        records.push_back(record);
     }
     Ok(records)
 }

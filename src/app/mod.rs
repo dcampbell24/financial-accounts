@@ -341,8 +341,13 @@ impl Application for App {
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
-                let boa = import_boa(file_path).unwrap();
                 let account = &mut self.accounts[i];
+                let mut boa = import_boa(file_path).unwrap();
+
+                let mut tx_1st = boa.pop_front().unwrap();
+                tx_1st.amount = tx_1st.balance - account.balance_1st();
+                boa.push_front(tx_1st);
+
                 for tx in boa {
                     account.txs_1st.txs.push(tx);
                 }
