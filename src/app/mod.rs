@@ -91,13 +91,14 @@ impl App {
         let mut col_3 = column![text_cell(" Current Year "), text_cell("")].align_items(Alignment::End);
         let mut col_4 = column![text_cell(" Last Year "), text_cell("")].align_items(Alignment::End);
         let mut col_5 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell(""), text_cell("")];
+        let mut col_6 = column![text_cell(" Balance 2nd"), text_cell("")].align_items(Alignment::End);
         let mut col_7 = column![text_cell(""), text_cell("")];
         let mut col_8 = column![text_cell(""), text_cell("")];
         let mut col_9 = column![text_cell(""), text_cell("")];
         let mut col_10 = column![text_cell(""), text_cell("")];
         let mut col_11 = column![text_cell(""), text_cell("")];
         let mut col_12 = column![text_cell(""), text_cell("")];
+        let mut col_13 = column![text_cell(""), text_cell("")];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut current_month = account.sum_current_month();
@@ -105,6 +106,15 @@ impl App {
             let mut current_year = account.sum_current_year();
             let mut last_year = account.sum_last_year();
             let mut balance_1st = account.balance_1st();
+
+            let balance_2nd = match account.balance_2nd() {
+                Some(mut balance) => {
+                    balance.rescale(7);
+                    number_cell(balance)
+                }
+                None => text_cell("")
+
+            };
 
             current_month.rescale(2);
             last_month.rescale(2);
@@ -118,27 +128,28 @@ impl App {
             col_3 = col_3.push(number_cell(current_year));
             col_4 = col_4.push(number_cell(last_year));
             col_5 = col_5.push(number_cell(balance_1st));
-            col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
+            col_6 = col_6.push(balance_2nd);
+            col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if account.txs_2nd.is_some() {
                 txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
             }
-            col_7 = col_7.push(button_cell(txs_2nd));
-            col_8 = col_8.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
+            col_8 = col_8.push(button_cell(txs_2nd));
+            col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_9 = col_9.push(button_cell(update_name));
-            col_10 = col_10.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
+            col_10 = col_10.push(button_cell(update_name));
+            col_11 = col_11.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
             let mut get_ohlc = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
             }
-            col_11 = col_11.push(button_cell(get_ohlc));
-            col_12 = col_12.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_12 = col_12.push(button_cell(get_ohlc));
+            col_13 = col_13.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12];
+        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13];
 
         let col_1 = column![
             text_cell("total current month USD: "),
@@ -518,7 +529,7 @@ impl Application for App {
                     .list_transactions(
                         Rc::new(txs.clone()),
                         account.total_2nd(),
-                        account.balance_2nd(),
+                        account.balance_2nd().unwrap(),
                     )
                     .into()
             }

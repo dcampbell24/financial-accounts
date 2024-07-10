@@ -73,8 +73,8 @@ impl Account {
         self.txs_1st.balance()
     }
 
-    pub fn balance_2nd(&self) -> Decimal {
-        self.txs_2nd.as_ref().unwrap().balance()
+    pub fn balance_2nd(&self) -> Option<Decimal> {
+        self.txs_2nd.as_ref().map(|txs| txs.balance())
     }
 
     pub fn list_transactions(
@@ -248,7 +248,7 @@ impl Account {
         }
 
         Ok(Transaction {
-            amount: balance - self.balance_2nd(),
+            amount: balance - self.balance_2nd().unwrap(),
             balance,
             comment: self.tx.comment.clone(),
             date,
@@ -305,7 +305,7 @@ impl Account {
 
         Ok(Transaction {
             amount,
-            balance: self.balance_2nd() + amount,
+            balance: self.balance_2nd().unwrap() + amount,
             comment: self.tx.comment.clone(),
             date,
         })
