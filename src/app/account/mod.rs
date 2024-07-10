@@ -138,7 +138,14 @@ impl Account {
         if self.submit_filter_date().is_some() {
             filter_button = filter_button.on_press(Message::SubmitFilterDate);
         }
-        let filter_date = row![year, month, filter_button, text(" ".repeat(EDGE_PADDING)),];
+        let clear_button = button("Clear").on_press(Message::ClearDate);
+        let filter_date = row![
+            year,
+            month,
+            filter_button,
+            clear_button,
+            text(" ".repeat(EDGE_PADDING)),
+        ];
 
         let col = column![
             text_cell(format!("{} {}", &self.name, txs_struct.currency())),

@@ -18,6 +18,7 @@ pub enum Message {
     ChangeFilterDateYear(String),
     ChangeFilterDateMonth(String),
     ChangeProjectMonths(String),
+    ClearDate,
     Delete(usize),
     GetOhlc(usize),
     ImportBoa(usize, PathBuf),

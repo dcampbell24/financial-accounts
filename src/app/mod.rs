@@ -303,6 +303,12 @@ impl Application for App {
                     self.project_months = Some(months);
                 }
             }
+            Message::ClearDate => {
+                let account = &mut self.accounts[selected_account.unwrap()];
+                account.filter_date_year = None;
+                account.filter_date_month = None;
+                account.filter_date = None;
+            }
             Message::Delete(i) => {
                 match self.screen {
                     Screen::NewOrLoadFile => {
