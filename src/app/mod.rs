@@ -166,11 +166,11 @@ impl App {
         let mut total_for_last_year_usd = self.accounts.total_for_last_year_usd();
         let mut balance = self.accounts.balance();
 
-        total_for_current_month_usd.rescale(7);
-        total_for_last_month_usd.rescale(7);
-        total_for_current_year_usd.rescale(7);
-        total_for_last_year_usd.rescale(7);
-        balance.rescale(7);
+        total_for_current_month_usd.rescale(2);
+        total_for_last_month_usd.rescale(2);
+        total_for_current_year_usd.rescale(2);
+        total_for_last_year_usd.rescale(2);
+        balance.rescale(2);
 
         let col_2 = column![
             number_cell(total_for_current_month_usd),
