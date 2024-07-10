@@ -119,7 +119,7 @@ impl App {
             }
             col_9 = col_9.push(button_cell(update_name));
             col_10 = col_10.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
-            let mut get_ohlc = button("Get OHLC");
+            let mut get_ohlc = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
             }
