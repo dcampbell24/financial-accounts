@@ -62,6 +62,7 @@ impl App {
             account_name: String::new(),
             currency: Currency::Usd,
             currency_selector: State::new(vec![
+                Currency::Btc,
                 Currency::Eth,
                 Currency::Gno,
                 Currency::GoldOz,
@@ -109,7 +110,7 @@ impl App {
 
             let balance_2nd = match account.balance_2nd() {
                 Some(mut balance) => {
-                    balance.rescale(5);
+                    balance.rescale(8);
                     number_cell(balance)
                 }
                 None => text_cell("")

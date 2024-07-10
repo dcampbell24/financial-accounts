@@ -29,6 +29,16 @@ impl Txs2nd {
         let ticker = Ticker::init();
 
         match self.currency {
+            Currency::Btc => {
+                let btc = ticker.get_ohlc_bitcoin()?;
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * btc.close,
+                    date: btc.date_time,
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, btc.close),
+                })
+            }
             Currency::Eth => {
                 let eth = ticker.get_ohlc_eth()?;
                 let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
