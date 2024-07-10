@@ -126,7 +126,7 @@ impl App {
             col_11 = col_11.push(button_cell(get_ohlc));
             col_12 = col_12.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11];
+        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12];
 
         let col_1 = column![
             text_cell("total current month USD: "),
