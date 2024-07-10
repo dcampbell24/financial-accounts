@@ -109,7 +109,7 @@ impl App {
 
             let balance_2nd = match account.balance_2nd() {
                 Some(mut balance) => {
-                    balance.rescale(7);
+                    balance.rescale(5);
                     number_cell(balance)
                 }
                 None => text_cell("")
