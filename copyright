@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Copyright: 2023-2024 David Campbell <dcampbell24@gmail.com>
+License: Expat or Apache-2.0
+
+Files:
+ *
+Copyright: 2023-2024 David Campbell <dcampbell24@gmail.com>
+License: Expat or Apache-2.0

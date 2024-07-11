@@ -4,7 +4,7 @@ description = "Application for tracking your finances."
 version = "0.2.0-dev"
 authors = ["David Lawrence Campbell"]
 edition = "2021"
-license-file = "LICENSE.txt"
+license = "MIT OR Apache-2.0"
 keywords = ["finance"]
 categories = ["finance"]
 homepage = "https://github.com/dcampbell24/financial-accounts"
@@ -34,6 +34,7 @@ maintainer = "David Campbell <dcampbell24@gmail.com>"
 assets = [
     ["target/release/financial-accounts", "usr/bin/", "755"],
     ["README.md", "usr/share/doc/financial-accounts/", "644"],
+    ["copyright", "usr/share/doc/financial-accounts/", "644"],
     ["financial-accounts.1.gz", "usr/share/man/man1/", "644"],
     ["financial-accounts.desktop", "usr/share/applications/", "644"],
     ["icons/financial-accounts_16x16.png", "usr/share/icons/hicolor/16x16/apps/financial-accounts.png", "644"],
