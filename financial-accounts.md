@@ -1,18 +1,18 @@
-% fin-stat(1)
+% financial-accounts(1)
 % David Campbell
 % 2023-12-29
 
 # NAME
 
-fin-stat - Application for tracking your finances.
+financial-accounts - Application for tracking your finances.
 
 # SYNOPSIS
 
-fin-stat \[options\]
+financial-accounts \[options\]
 
 # DESCRIPTION
 
-fin-stat is an application for tracking your finances.
+financial-accounts is an application for tracking your finances.
 
 # OPTIONS
 

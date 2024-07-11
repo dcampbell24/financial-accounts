@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Fin Stat
 Comment=Personal Finance
-Exec=fin-stat
-Icon=fin-stat
+Exec=financial-accounts
+Icon=financial-accounts
 Type=Application
 StartupNotify=true
 Categories=Office;Finance

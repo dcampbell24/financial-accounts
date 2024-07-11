@@ -1,2 +1,2 @@
-/// The fin-stat application.
+/// The financial-accounts application.
 pub mod app;

@@ -40,7 +40,7 @@ const PADDING: u16 = 1;
 const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
-/// The fin-stat application.
+/// The financial-accounts application.
 #[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
