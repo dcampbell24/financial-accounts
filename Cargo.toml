@@ -1,5 +1,5 @@
 [package]
-name = "fin-stat"
+name = "financial-accounts"
 description = "Application for tracking your finances."
 version = "0.2.0-dev"
 authors = ["David Lawrence Campbell"]
@@ -7,9 +7,9 @@ edition = "2021"
 license-file = "LICENSE.txt"
 keywords = ["finance"]
 categories = ["finance"]
-homepage = "https://github.com/dcampbell24/fin-stat"
-documentation = "https://docs.rs/fin-stat"
-repository = "https://github.com/dcampbell24/fin-stat"
+homepage = "https://github.com/dcampbell24/financial-accounts"
+documentation = "https://docs.rs/financial-accounts"
+repository = "https://github.com/dcampbell24/financial-accounts"
 readme = "README.md"
 
 [dependencies]
@@ -32,17 +32,17 @@ thousands = "0.2"
 [package.metadata.deb]
 maintainer = "David Campbell <dcampbell24@gmail.com>"
 assets = [
-    ["target/release/fin-stat", "usr/bin/", "755"],
-    ["README.md", "usr/share/doc/fin-stat/", "644"],
-    ["fin-stat.1.gz", "usr/share/man/man1/", "644"],
-    ["fin-stat.desktop", "usr/share/applications/", "644"],
-    ["icons/fin-stat_16x16.png", "usr/share/icons/hicolor/16x16/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_22x22.png", "usr/share/icons/hicolor/22x22/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_24x24.png", "usr/share/icons/hicolor/24x24/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_32x32.png", "usr/share/icons/hicolor/32x32/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_42x42.png", "usr/share/icons/hicolor/42x42/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_64x64.png", "usr/share/icons/hicolor/64x64/apps/fin-stat.png", "644"],
-    ["icons/fin-stat_128x128.png", "usr/share/icons/hicolor/128x128/apps/fin-stat.png", "644"],
+    ["target/release/financial-accounts", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/financial-accounts/", "644"],
+    ["financial-accounts.1.gz", "usr/share/man/man1/", "644"],
+    ["financial-accounts.desktop", "usr/share/applications/", "644"],
+    ["icons/financial-accounts_16x16.png", "usr/share/icons/hicolor/16x16/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_22x22.png", "usr/share/icons/hicolor/22x22/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_24x24.png", "usr/share/icons/hicolor/24x24/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_32x32.png", "usr/share/icons/hicolor/32x32/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_42x42.png", "usr/share/icons/hicolor/42x42/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_64x64.png", "usr/share/icons/hicolor/64x64/apps/financial-accounts.png", "644"],
+    ["icons/financial-accounts_128x128.png", "usr/share/icons/hicolor/128x128/apps/financial-accounts.png", "644"],
 ]
 changelog = "changelog.Debian"
 section = "misc"

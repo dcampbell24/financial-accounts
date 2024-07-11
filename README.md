@@ -1,5 +1,5 @@
-fin-stat
-=========
+financial-accounts
+===================
 
 An application for tracking your personal finances.
 

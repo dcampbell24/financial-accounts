@@ -1,4 +1,4 @@
-use fin_stat::app::App;
+use financial_accounts::app::App;
 use iced::{Application, Size};
 
 fn main() -> Result<(), iced::Error> {
