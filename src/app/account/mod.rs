@@ -168,7 +168,9 @@ impl Account {
         let mut col_2 = column![text_cell(" Comment ")];
         let mut col_3 = column![text_cell("")];
 
+        let mut total = dec!(0);
         for (i, tx) in self.txs_monthly.iter().enumerate() {
+            total += tx.amount;
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(&tx.comment));
             col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
@@ -185,9 +187,7 @@ impl Account {
         let col = column![
             text_cell(&self.name),
             rows,
-            // Fixme: display a total for the monthly transactions.
-            // text_cell("total: "),
-            // number_cell(self.total_1st()),
+            row![text_cell("total: "), number_cell(total)],
             input.padding(PADDING).spacing(ROW_SPACING),
             back_exit_view(),
         ];
