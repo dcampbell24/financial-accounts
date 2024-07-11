@@ -51,6 +51,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
+    err_string: String,
 }
 
 impl App {
@@ -70,6 +71,7 @@ impl App {
             ]),
             project_months: None,
             screen,
+            err_string: String::new(),
         }
     }
 
@@ -198,6 +200,7 @@ impl App {
         let cols = column![
             chart,
             rows,
+            row![text_cell(&self.err_string)],
             text_cell(""),
             totals,
             text_cell(""),
@@ -274,6 +277,7 @@ impl Application for App {
     fn update(&mut self, message: Message) -> Command<Message> {
         let list_monthly = self.list_monthly();
         let selected_account = self.selected_account();
+        self.err_string = String::new();
 
         match message {
             Message::NewFile(file) => {
@@ -371,11 +375,17 @@ impl Application for App {
             }
             Message::GetOhlc(i) => {
                 let account = &mut self.accounts[i];
-                let tx = account.submit_ohlc().unwrap();
 
-                account.txs_1st.txs.push(tx);
-                account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                self.accounts.save(&self.file_path).unwrap();
+                match account.submit_ohlc() {
+                    Ok(tx) => {
+                        account.txs_1st.txs.push(tx);
+                        account.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        self.accounts.save(&self.file_path).unwrap();
+                    }
+                    Err(e) => {
+                        self.err_string = e.to_string();
+                    }
+                }
             }
             Message::ImportBoa(i, file_path) => {
                 let account = &mut self.accounts[i];

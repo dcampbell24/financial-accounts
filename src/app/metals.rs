@@ -1,5 +1,6 @@
-use std::{error::Error, fmt::Display, fs};
+use std::{fmt::Display, fs, path::Path};
 
+use anyhow::Context;
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use reqwest::blocking::Client;
 use reqwest::Url;
@@ -35,8 +36,9 @@ const _TESTING_RESPONSE: &str = r#"{
 const LOCATION_ACCESS_TOKEN: &str = "./www.goldapi.io-access-token.txt";
 const URL_GOLD_API_GOLD: &str = "https://www.goldapi.io/api/XAU/USD";
 
-pub fn get_price_gold(client: &Client) -> Result<Metals, Box<dyn Error>> {
-    let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN)?;
+pub fn get_price_gold(client: &Client) -> anyhow::Result<Metals> {
+    let path = Path::new(LOCATION_ACCESS_TOKEN).canonicalize()?;
+    let access_token = fs::read_to_string(&path).context(format!("{path:?} doesn't exist"))?;
     let access_token = access_token.trim();
 
     let url = Url::parse(URL_GOLD_API_GOLD)?;
