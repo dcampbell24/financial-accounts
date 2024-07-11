@@ -17,6 +17,7 @@ impl Txs {
         Txs { txs: Vec::new() }
     }
 }
+
 impl Transactions for Txs {
     fn transactions(&self) -> &Vec<Transaction> {
         &self.txs
