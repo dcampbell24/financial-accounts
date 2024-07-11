@@ -268,7 +268,7 @@ impl Application for App {
     }
 
     fn title(&self) -> String {
-        String::from("Fin Stat")
+        String::from("Financial Accounts")
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
