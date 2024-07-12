@@ -6,7 +6,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{metals, money::Currency, crypto};
+use crate::app::{crypto, metals, money::Currency};
 
 use super::transaction::Transaction;
 
