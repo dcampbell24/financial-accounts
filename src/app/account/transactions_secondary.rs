@@ -26,6 +26,7 @@ impl Txs2nd {
 
     pub fn get_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
         let http_client = Client::new();
+        // fixme
         let ticker = Ticker::init();
 
         match self.currency {

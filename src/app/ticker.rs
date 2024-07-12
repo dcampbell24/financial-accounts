@@ -235,3 +235,5 @@ impl Display for OhlcErrors {
 }
 
 impl Error for OhlcErrors {}
+
+// impl anyhow::Error for OhlcErrors {}
