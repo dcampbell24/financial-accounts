@@ -1,6 +1,7 @@
 mod account;
 mod accounts;
 mod chart;
+mod crypto;
 mod file_picker;
 mod import_boa;
 mod message;
@@ -8,7 +9,6 @@ mod metals;
 mod money;
 mod screen;
 pub mod solarized;
-mod ticker;
 
 use std::{cmp::Ordering, mem, path::PathBuf, rc::Rc};
 
