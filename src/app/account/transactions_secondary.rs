@@ -34,7 +34,7 @@ impl Txs2nd {
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * btc.close,
-                    date: btc.date_time,
+                    date: Utc::now(),
                     comment: format!("OHLC: {count} {} at {} USD", self.currency, btc.close),
                 })
             }
@@ -44,7 +44,7 @@ impl Txs2nd {
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * eth.close,
-                    date: eth.date_time,
+                    date: Utc::now(),
                     comment: format!("OHLC: {count} {} at {} USD", self.currency, eth.close),
                 })
             }
