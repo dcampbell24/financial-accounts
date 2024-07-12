@@ -10,53 +10,41 @@ use super::money::Currency;
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
 
-pub struct Ticker {
-    http_client: Client,
+pub fn get_ohlc_untyped(client: &Client, name: &str) -> Result<String, Box<dyn Error>> {
+    let url = Url::parse_with_params(
+        URL_KRAKEN_OHLC,
+        &[
+            ("pair", name),
+            // A day.
+            ("interval", "1440"),
+            ("since", &Utc::now().timestamp().to_string()),
+        ],
+    )?;
+
+    let response = client.get(url).send()?;
+    let string = response.text()?;
+    Ok(string)
 }
 
-impl Ticker {
-    pub fn init() -> Self {
-        Ticker {
-            http_client: Client::new(),
-        }
-    }
+pub fn get_ohlc_bitcoin(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+    let name = "XBTUSD".to_string();
+    let string = get_ohlc_untyped(client, &name)?;
+    let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
+    response.to_ohlc(name)
+}
 
-    pub fn get_ohlc_untyped(&self, name: &str) -> Result<String, Box<dyn Error>> {
-        let url = Url::parse_with_params(
-            URL_KRAKEN_OHLC,
-            &[
-                ("pair", name),
-                // A day.
-                ("interval", "1440"),
-                ("since", &Utc::now().timestamp().to_string()),
-            ],
-        )?;
+pub fn get_ohlc_eth(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+    let name = "ETHUSD".to_string();
+    let string = get_ohlc_untyped(client, &name)?;
+    let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
+    response.to_ohlc(name)
+}
 
-        let response = self.http_client.get(url).send()?;
-        let string = response.text()?;
-        Ok(string)
-    }
-
-    pub fn get_ohlc_bitcoin(&self) -> Result<Ohlc, Box<dyn Error>> {
-        let name = "XBTUSD".to_string();
-        let string = self.get_ohlc_untyped(&name)?;
-        let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
-        response.to_ohlc(name)
-    }
-
-    pub fn get_ohlc_eth(&self) -> Result<Ohlc, Box<dyn Error>> {
-        let name = "ETHUSD".to_string();
-        let string = self.get_ohlc_untyped(&name)?;
-        let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
-        response.to_ohlc(name)
-    }
-
-    pub fn get_ohlc_gno(&self) -> Result<Ohlc, Box<dyn Error>> {
-        let name = "GNOUSD".to_string();
-        let string = self.get_ohlc_untyped(&name)?;
-        let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
-        response.to_ohlc(name)
-    }
+pub fn get_ohlc_gno(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+    let name = "GNOUSD".to_string();
+    let string = get_ohlc_untyped(client, &name)?;
+    let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
+    response.to_ohlc(name)
 }
 
 trait OhlcResponse {

@@ -6,7 +6,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{metals, money::Currency, ticker::Ticker};
+use crate::app::{metals, money::Currency, ticker};
 
 use super::transaction::Transaction;
 
@@ -26,12 +26,10 @@ impl Txs2nd {
 
     pub fn get_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
         let http_client = Client::new();
-        // fixme
-        let ticker = Ticker::init();
 
         match self.currency {
             Currency::Btc => {
-                let btc = ticker.get_ohlc_bitcoin()?;
+                let btc = ticker::get_ohlc_bitcoin(&http_client)?;
                 let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
                 Ok(Transaction {
                     amount: dec!(0),
@@ -41,7 +39,7 @@ impl Txs2nd {
                 })
             }
             Currency::Eth => {
-                let eth = ticker.get_ohlc_eth()?;
+                let eth = ticker::get_ohlc_eth(&http_client)?;
                 let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
                 Ok(Transaction {
                     amount: dec!(0),
@@ -51,7 +49,7 @@ impl Txs2nd {
                 })
             }
             Currency::Gno => {
-                let gno = ticker.get_ohlc_gno()?;
+                let gno = ticker::get_ohlc_gno(&http_client)?;
                 let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
                 Ok(Transaction {
                     amount: dec!(0),
