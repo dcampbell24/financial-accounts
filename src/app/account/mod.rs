@@ -2,9 +2,9 @@ pub mod transaction;
 pub mod transactions;
 pub mod transactions_secondary;
 
-use std::{error::Error, mem::take, rc::Rc};
+use std::{error::Error, mem::take};
 
-use chrono::{DateTime, Datelike, Months, NaiveDate, TimeZone, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, TimeZone, Utc};
 use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
@@ -81,13 +81,14 @@ impl Account {
 
     pub fn list_transactions(
         &self,
-        txs_struct: Rc<dyn Transactions>,
+        mut txs_struct: Box<dyn Transactions>,
         total: Decimal,
         balance: Decimal,
     ) -> Scrollable<Message> {
-        // Fixme: not graphing the filtered txs.
+        txs_struct.filter_month(self.filter_date);
+
         let my_chart = MyChart {
-            txs: txs_struct.clone(),
+            txs: dyn_clone::clone_box(&*txs_struct),
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -97,17 +98,7 @@ impl Account {
         let mut col_4 = column![text_cell(" Comment ")];
         let mut col_5 = column![text_cell("")];
 
-        let mut txs = txs_struct.transactions();
-        let mut filtered_tx = Vec::new();
-        if let Some(date) = self.filter_date {
-            for tx in txs.iter() {
-                if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
-                    filtered_tx.push(tx.clone())
-                }
-            }
-            txs = &filtered_tx;
-        }
-
+        let txs = txs_struct.transactions();
         for (i, tx) in txs.iter().enumerate() {
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
