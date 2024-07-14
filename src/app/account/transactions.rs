@@ -84,8 +84,10 @@ pub trait Transactions: DynClone {
     }
 }
 
-
-fn filter_month(txs: &Vec<Transaction>, filter_date: Option<DateTime<Utc>>) -> Option<Vec<Transaction>>{
+fn filter_month(
+    txs: &[Transaction],
+    filter_date: Option<DateTime<Utc>>,
+) -> Option<Vec<Transaction>> {
     match filter_date {
         Some(date) => {
             let mut filtered_tx = Vec::new();
