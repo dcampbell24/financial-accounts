@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [Switch from markdown to djot for the man page.](https://github.com/dcampbell24/financial-accounts/commit/66929e72e6c5bd0bbc0c2f447295fb02e5bf4a3b)
 - [Chart filtered transactions](https://github.com/dcampbell24/financial-accounts/commit/dad92faaa4b339aa0be7bf202d34d9768911fb06).
 - [Change ticker module to crypto module](https://github.com/dcampbell24/financial-accounts/commit/b555d6a38dfea71f4ea7a66d93232b5e1f8263db).
 
