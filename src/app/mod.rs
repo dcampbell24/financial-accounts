@@ -12,7 +12,6 @@ pub mod solarized;
 
 use std::{cmp::Ordering, mem, path::PathBuf};
 
-use chart::MyChart;
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
@@ -83,9 +82,7 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let my_chart = MyChart {
-            txs: self.accounts.all_accounts_txs_1st()
-        };
+        let my_chart = self.accounts.all_accounts_txs_1st();
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
         let mut col_0 = column![text_cell(" Account "), text_cell("")];

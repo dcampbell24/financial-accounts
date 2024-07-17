@@ -21,7 +21,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell, ROW_SPACING};
+use super::{button_cell, money::Currency, number_cell, text_cell, ROW_SPACING};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -85,10 +85,7 @@ impl Account {
     ) -> Scrollable<Message> {
         txs_struct.filter_month(self.filter_date);
 
-        let my_chart = MyChart {
-            txs: txs_struct.clone(),
-        };
-        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+        let chart = ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
