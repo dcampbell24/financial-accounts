@@ -26,6 +26,12 @@ pub fn get_ohlc_untyped(client: &Client, name: &str) -> Result<String, Box<dyn E
     Ok(string)
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct Response<T> {
+    error: Vec<String>,
+    result: T,
+}
+
 pub fn get_ohlc_bitcoin(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
     let name = "XBTUSD".to_string();
     let string = get_ohlc_untyped(client, &name)?;
@@ -47,8 +53,19 @@ pub fn get_ohlc_gno(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
     response.to_ohlc(name)
 }
 
-trait OhlcResponse {
+trait OhlcErrorsTrait {
     fn errors(&self) -> OhlcErrors;
+}
+
+impl<T> OhlcErrorsTrait for Response<T> {
+    fn errors(&self) -> OhlcErrors {
+        OhlcErrors {
+            errors: self.error.clone(),
+        }
+    }
+}
+
+trait OhlcResponse: OhlcErrorsTrait {
     fn result(&self) -> OhlcVec;
 
     fn to_ohlc(&self, name: String) -> Result<Ohlc, Box<dyn Error>> {
@@ -78,12 +95,6 @@ trait OhlcResponse {
 }
 
 impl OhlcResponse for Response<BitCoinOhlcVec> {
-    fn errors(&self) -> OhlcErrors {
-        OhlcErrors {
-            errors: self.error.clone(),
-        }
-    }
-
     fn result(&self) -> OhlcVec {
         OhlcVec {
             ohlc: self.result.ohlc.clone(),
@@ -93,12 +104,6 @@ impl OhlcResponse for Response<BitCoinOhlcVec> {
 }
 
 impl OhlcResponse for Response<EthOhlcVec> {
-    fn errors(&self) -> OhlcErrors {
-        OhlcErrors {
-            errors: self.error.clone(),
-        }
-    }
-
     fn result(&self) -> OhlcVec {
         OhlcVec {
             ohlc: self.result.ohlc.clone(),
@@ -108,24 +113,12 @@ impl OhlcResponse for Response<EthOhlcVec> {
 }
 
 impl OhlcResponse for Response<GnoOhlcVec> {
-    fn errors(&self) -> OhlcErrors {
-        OhlcErrors {
-            errors: self.error.clone(),
-        }
-    }
-
     fn result(&self) -> OhlcVec {
         OhlcVec {
             ohlc: self.result.ohlc.clone(),
             last: self.result.last,
         }
     }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct Response<T> {
-    error: Vec<String>,
-    result: T,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

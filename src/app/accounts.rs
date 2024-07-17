@@ -11,7 +11,7 @@ use std::path::PathBuf;
 
 use crate::app::account::{transaction::Transaction, Account};
 
-use super::account::transactions::Txs;
+use super::account::transactions::Transactions;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -21,7 +21,7 @@ pub struct Accounts {
 }
 
 impl Accounts {
-    pub fn all_accounts_txs_1st(&self) -> Txs {
+    pub fn all_accounts_txs_1st(&self) -> Transactions {
         let mut txs = Vec::new();
         for account in self.inner.iter() {
             for tx in account.txs_1st.txs.iter() {
@@ -36,7 +36,7 @@ impl Accounts {
             tx.balance = balance;
         }
 
-        let mut transactions = Txs::new();
+        let mut transactions = Transactions::new(super::money::Currency::Usd);
         transactions.txs = txs;
         transactions
     }

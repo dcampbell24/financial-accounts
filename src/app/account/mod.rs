@@ -1,6 +1,5 @@
 pub mod transaction;
 pub mod transactions;
-pub mod transactions_secondary;
 
 use std::{error::Error, mem::take};
 
@@ -13,8 +12,7 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use transactions::{Transactions, Txs};
-use transactions_secondary::Txs2nd;
+use transactions::Transactions;
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
@@ -23,7 +21,7 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, chart::MyChart, money::Currency, number_cell, text_cell, ROW_SPACING};
+use super::{button_cell, money::Currency, number_cell, text_cell, ROW_SPACING};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -33,9 +31,9 @@ pub struct Account {
     #[serde(skip)]
     pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
-    pub txs_1st: Txs,
+    pub txs_1st: Transactions,
     #[serde(rename = "transactions_secondary")]
-    pub txs_2nd: Option<Txs2nd>,
+    pub txs_2nd: Option<Transactions>,
     #[serde(rename = "transactions_monthly")]
     pub txs_monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
@@ -52,7 +50,7 @@ impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
         let txs_2nd = match currency {
             Currency::Btc | Currency::Eth | Currency::Gno | Currency::GoldOz => {
-                Some(Txs2nd::new(currency))
+                Some(Transactions::new(currency))
             }
             Currency::Usd => None,
         };
@@ -61,7 +59,7 @@ impl Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            txs_1st: Txs::new(),
+            txs_1st: Transactions::new(Currency::Usd),
             txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
@@ -81,16 +79,13 @@ impl Account {
 
     pub fn list_transactions(
         &self,
-        mut txs_struct: Box<dyn Transactions>,
+        mut txs_struct: Transactions,
         total: Decimal,
         balance: Decimal,
     ) -> Scrollable<Message> {
         txs_struct.filter_month(self.filter_date);
 
-        let my_chart = MyChart {
-            txs: dyn_clone::clone_box(&*txs_struct),
-        };
-        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+        let chart = ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
@@ -98,8 +93,7 @@ impl Account {
         let mut col_4 = column![text_cell(" Comment ")];
         let mut col_5 = column![text_cell("")];
 
-        let txs = txs_struct.transactions();
-        for (i, tx) in txs.iter().enumerate() {
+        for (i, tx) in txs_struct.txs.iter().enumerate() {
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(number_cell(tx.balance));
@@ -141,7 +135,7 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, txs_struct.currency())),
+            text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],

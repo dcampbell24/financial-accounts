@@ -10,11 +10,7 @@ use crate::app::message::Message;
 
 use super::{account::transactions::Transactions, solarized};
 
-pub struct MyChart {
-    pub txs: Box<dyn Transactions>,
-}
-
-impl Chart<Message> for MyChart {
+impl Chart<Message> for Transactions {
     type State = ();
 
     fn build_chart<DB: plotters::prelude::DrawingBackend>(
@@ -23,10 +19,10 @@ impl Chart<Message> for MyChart {
         mut chart: plotters::prelude::ChartBuilder<DB>,
     ) {
         if let (Some(Some(min_balance)), Some(Some(max_balance)), Some(min_date), Some(max_date)) = (
-            self.txs.min_balance().map(|min| min.to_f64()),
-            self.txs.max_balance().map(|max| max.to_f64()),
-            self.txs.min_date(),
-            self.txs.max_date(),
+            self.min_balance().map(|min| min.to_f64()),
+            self.max_balance().map(|max| max.to_f64()),
+            self.min_date(),
+            self.max_date(),
         ) {
             let mut chart = chart
                 .x_label_area_size(28)
@@ -62,7 +58,6 @@ impl Chart<Message> for MyChart {
                 .draw_series(
                     AreaSeries::new(
                         self.txs
-                            .transactions()
                             .iter()
                             .map(|tx| (tx.date, tx.balance.to_f64().unwrap())),
                         0.0,
