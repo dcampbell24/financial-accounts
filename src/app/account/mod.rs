@@ -93,8 +93,7 @@ impl Account {
         let mut col_4 = column![text_cell(" Comment ")];
         let mut col_5 = column![text_cell("")];
 
-        let txs = txs_struct.transactions();
-        for (i, tx) in txs.iter().enumerate() {
+        for (i, tx) in txs_struct.txs.iter().enumerate() {
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(number_cell(tx.balance));
@@ -136,7 +135,7 @@ impl Account {
         ];
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, txs_struct.currency())),
+            text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],

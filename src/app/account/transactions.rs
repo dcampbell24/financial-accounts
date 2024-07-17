@@ -25,14 +25,10 @@ impl Transactions {
     }
 
     pub fn balance(&self) -> Decimal {
-        match self.transactions().last() {
+        match self.txs.last() {
             Some(tx) => tx.balance,
             None => dec!(0),
         }
-    }
-
-    pub fn currency(&self) -> Currency {
-        self.currency
     }
 
     pub fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
@@ -96,26 +92,22 @@ impl Transactions {
     }
 
     pub fn max_balance(&self) -> Option<Decimal> {
-        self.transactions().iter().map(|tx| tx.balance).max()
+        self.txs.iter().map(|tx| tx.balance).max()
     }
 
     pub fn min_balance(&self) -> Option<Decimal> {
-        self.transactions().iter().map(|tx| tx.balance).min()
+        self.txs.iter().map(|tx| tx.balance).min()
     }
 
     pub fn max_date(&self) -> Option<DateTime<Utc>> {
-        self.transactions().iter().map(|tx| tx.date).max()
+        self.txs.iter().map(|tx| tx.date).max()
     }
 
     pub fn min_date(&self) -> Option<DateTime<Utc>> {
-        self.transactions().iter().map(|tx| tx.date).min()
+        self.txs.iter().map(|tx| tx.date).min()
     }
 
     pub fn total(&self) -> Decimal {
-        self.transactions().iter().map(|d| d.amount).sum()
-    }
-
-    pub fn transactions(&self) -> &Vec<Transaction> {
-        &self.txs
+        self.txs.iter().map(|d| d.amount).sum()
     }
 }
