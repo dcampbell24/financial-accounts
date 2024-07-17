@@ -9,6 +9,7 @@ mod metals;
 mod money;
 mod screen;
 pub mod solarized;
+mod stocks;
 
 use std::{cmp::Ordering, mem, path::PathBuf};
 
@@ -26,6 +27,7 @@ use iced::{
 };
 use money::Currency;
 use plotters_iced::ChartWidget;
+// use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
@@ -374,6 +376,11 @@ impl Application for App {
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::GetOhlc(i) => {
+                // fixme:
+                // let client = Client::new();
+                // let stock = &stocks::get_stock_price(&client).unwrap();
+                // println!("{stock}");
+
                 let account = &mut self.accounts[i];
 
                 match account.submit_ohlc() {

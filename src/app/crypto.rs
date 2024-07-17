@@ -64,7 +64,9 @@ trait OhlcResponse {
                 high: Decimal::from_str(&result.ohlc[0][2].clone().take_string())?,
                 low: Decimal::from_str(&result.ohlc[0][3].clone().take_string())?,
                 close: Decimal::from_str(&result.ohlc[0][4].clone().take_string())?,
-                vwap: Decimal::from_str(&result.ohlc[0][5].clone().take_string())?,
+                volume_weighted_average_price: Decimal::from_str(
+                    &result.ohlc[0][5].clone().take_string(),
+                )?,
                 volume: Decimal::from_str(&result.ohlc[0][6].clone().take_string())?,
                 count: result.ohlc[0][7].take_i64(),
             };
@@ -191,7 +193,7 @@ pub struct Ohlc {
     pub high: Decimal,
     pub low: Decimal,
     pub close: Decimal,
-    pub vwap: Decimal,
+    pub volume_weighted_average_price: Decimal,
     pub volume: Decimal,
     pub count: i64,
 }
@@ -205,7 +207,11 @@ impl Display for Ohlc {
         writeln!(f, "high: {}", self.high)?;
         writeln!(f, "low: {}", self.low)?;
         writeln!(f, "close: {}", self.close)?;
-        writeln!(f, "vwap: {}", self.vwap)?;
+        writeln!(
+            f,
+            "volume_weighted_average_price: {}",
+            self.volume_weighted_average_price
+        )?;
         writeln!(f, "volume: {}", self.volume)?;
         writeln!(f, "count: {}", self.count)
     }
