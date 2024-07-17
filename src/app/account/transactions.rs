@@ -1,103 +1,121 @@
+use std::error::Error;
+
 use chrono::{DateTime, Months, Utc};
-use dyn_clone::DynClone;
+use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::money::Currency;
+use crate::app::{crypto, metals, money::Currency};
 
-use super::{transaction::Transaction, transactions_secondary::Txs2nd};
+use super::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Txs {
+pub struct Transactions {
+    pub currency: Currency,
     pub txs: Vec<Transaction>,
 }
 
-impl Txs {
-    pub fn new() -> Txs {
-        Txs { txs: Vec::new() }
-    }
-}
-
-impl Transactions for Txs {
-    fn transactions(&self) -> &Vec<Transaction> {
-        &self.txs
-    }
-
-    fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
-        if let Some(txs) = filter_month(&self.txs, filter_date) {
-            self.txs = txs;
+impl Transactions {
+    pub fn new(currency: Currency) -> Self {
+        Transactions {
+            currency,
+            txs: Vec::new(),
         }
     }
-}
 
-impl Transactions for Txs2nd {
-    fn transactions(&self) -> &Vec<Transaction> {
-        &self.txs
-    }
-
-    fn currency(&self) -> Currency {
-        self.currency
-    }
-
-    fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
-        if let Some(txs) = filter_month(&self.txs, filter_date) {
-            self.txs = txs;
-        }
-    }
-}
-
-pub trait Transactions: DynClone {
-    fn transactions(&self) -> &Vec<Transaction>;
-
-    fn balance(&self) -> Decimal {
+    pub fn balance(&self) -> Decimal {
         match self.transactions().last() {
             Some(tx) => tx.balance,
             None => dec!(0),
         }
     }
 
-    fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>);
-
-    fn currency(&self) -> Currency {
-        Currency::Usd
+    pub fn currency(&self) -> Currency {
+        self.currency
     }
 
-    fn max_balance(&self) -> Option<Decimal> {
-        self.transactions().iter().map(|tx| tx.balance).max()
-    }
-
-    fn min_balance(&self) -> Option<Decimal> {
-        self.transactions().iter().map(|tx| tx.balance).min()
-    }
-
-    fn max_date(&self) -> Option<DateTime<Utc>> {
-        self.transactions().iter().map(|tx| tx.date).max()
-    }
-
-    fn min_date(&self) -> Option<DateTime<Utc>> {
-        self.transactions().iter().map(|tx| tx.date).min()
-    }
-
-    fn total(&self) -> Decimal {
-        self.transactions().iter().map(|d| d.amount).sum()
-    }
-}
-
-fn filter_month(
-    txs: &[Transaction],
-    filter_date: Option<DateTime<Utc>>,
-) -> Option<Vec<Transaction>> {
-    match filter_date {
-        Some(date) => {
+    pub fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
+        if let Some(date) = filter_date {
             let mut filtered_tx = Vec::new();
-            for tx in txs.iter() {
+            for tx in self.txs.iter() {
                 if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
                     filtered_tx.push(tx.clone());
                 }
             }
-            Some(filtered_tx)
+            self.txs = filtered_tx;
         }
-        None => None,
+    }
+
+    pub fn get_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
+        let http_client = Client::new();
+
+        match self.currency {
+            Currency::Btc => {
+                let btc = crypto::get_ohlc_bitcoin(&http_client)?;
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * btc.close,
+                    date: Utc::now(),
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, btc.close),
+                })
+            }
+            Currency::Eth => {
+                let eth = crypto::get_ohlc_eth(&http_client)?;
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * eth.close,
+                    date: Utc::now(),
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, eth.close),
+                })
+            }
+            Currency::Gno => {
+                let gno = crypto::get_ohlc_gno(&http_client)?;
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * gno.close,
+                    date: Utc::now(),
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, gno.close),
+                })
+            }
+            Currency::GoldOz => {
+                let gold = metals::get_price_gold(&http_client)?;
+                let count: Decimal = self.txs.iter().map(|tx| tx.amount).sum();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * gold.price,
+                    date: Utc::now(),
+                    comment: format!("OHLC: {count} {} at {} USD", self.currency, gold.price),
+                })
+            }
+            Currency::Usd => panic!("You can't hold USD as a secondary currency!"),
+        }
+    }
+
+    pub fn max_balance(&self) -> Option<Decimal> {
+        self.transactions().iter().map(|tx| tx.balance).max()
+    }
+
+    pub fn min_balance(&self) -> Option<Decimal> {
+        self.transactions().iter().map(|tx| tx.balance).min()
+    }
+
+    pub fn max_date(&self) -> Option<DateTime<Utc>> {
+        self.transactions().iter().map(|tx| tx.date).max()
+    }
+
+    pub fn min_date(&self) -> Option<DateTime<Utc>> {
+        self.transactions().iter().map(|tx| tx.date).min()
+    }
+
+    pub fn total(&self) -> Decimal {
+        self.transactions().iter().map(|d| d.amount).sum()
+    }
+
+    pub fn transactions(&self) -> &Vec<Transaction> {
+        &self.txs
     }
 }

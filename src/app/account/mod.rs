@@ -1,6 +1,5 @@
 pub mod transaction;
 pub mod transactions;
-pub mod transactions_secondary;
 
 use std::{error::Error, mem::take};
 
@@ -13,8 +12,7 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use transactions::{Transactions, Txs};
-use transactions_secondary::Txs2nd;
+use transactions::Transactions;
 
 use crate::app::{
     account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
@@ -33,9 +31,9 @@ pub struct Account {
     #[serde(skip)]
     pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
-    pub txs_1st: Txs,
+    pub txs_1st: Transactions,
     #[serde(rename = "transactions_secondary")]
-    pub txs_2nd: Option<Txs2nd>,
+    pub txs_2nd: Option<Transactions>,
     #[serde(rename = "transactions_monthly")]
     pub txs_monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
@@ -52,7 +50,7 @@ impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
         let txs_2nd = match currency {
             Currency::Btc | Currency::Eth | Currency::Gno | Currency::GoldOz => {
-                Some(Txs2nd::new(currency))
+                Some(Transactions::new(currency))
             }
             Currency::Usd => None,
         };
@@ -61,7 +59,7 @@ impl Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            txs_1st: Txs::new(),
+            txs_1st: Transactions::new(Currency::Usd),
             txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
@@ -81,14 +79,14 @@ impl Account {
 
     pub fn list_transactions(
         &self,
-        mut txs_struct: Box<dyn Transactions>,
+        mut txs_struct: Transactions,
         total: Decimal,
         balance: Decimal,
     ) -> Scrollable<Message> {
         txs_struct.filter_month(self.filter_date);
 
         let my_chart = MyChart {
-            txs: dyn_clone::clone_box(&*txs_struct),
+            txs: txs_struct.clone(),
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 

@@ -11,7 +11,7 @@ use crate::app::message::Message;
 use super::{account::transactions::Transactions, solarized};
 
 pub struct MyChart {
-    pub txs: Box<dyn Transactions>,
+    pub txs: Transactions,
 }
 
 impl Chart<Message> for MyChart {

@@ -84,7 +84,7 @@ impl App {
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
         let my_chart = MyChart {
-            txs: Box::new(self.accounts.all_accounts_txs_1st())
+            txs: self.accounts.all_accounts_txs_1st()
         };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
 
@@ -527,7 +527,7 @@ impl Application for App {
                 let account = &self.accounts[i];
                 self.accounts[i]
                     .list_transactions(
-                        Box::new(account.txs_1st.clone()),
+                        account.txs_1st.clone(),
                         account.total_1st(),
                         account.balance_1st(),
                     )
@@ -538,7 +538,7 @@ impl Application for App {
                 let txs = account.txs_2nd.as_ref().unwrap();
                 self.accounts[i]
                     .list_transactions(
-                        Box::new(txs.clone()),
+                        txs.clone(),
                         account.total_2nd(),
                         account.balance_2nd().unwrap(),
                     )
