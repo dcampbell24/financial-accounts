@@ -6,6 +6,8 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use ohlc_response_macro::OhlcResponseDerive;
+
 use super::money::Currency;
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
@@ -92,54 +94,27 @@ trait OhlcResponse: OhlcErrorsTrait {
     }
 }
 
-impl OhlcResponse for Response<BitCoinOhlcVec> {
-    fn result(&self) -> OhlcVec {
-        OhlcVec {
-            ohlc: self.result.ohlc.clone(),
-            last: self.result.last,
-        }
-    }
-}
-
-impl OhlcResponse for Response<EthOhlcVec> {
-    fn result(&self) -> OhlcVec {
-        OhlcVec {
-            ohlc: self.result.ohlc.clone(),
-            last: self.result.last,
-        }
-    }
-}
-
-impl OhlcResponse for Response<GnoOhlcVec> {
-    fn result(&self) -> OhlcVec {
-        OhlcVec {
-            ohlc: self.result.ohlc.clone(),
-            last: self.result.last,
-        }
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct OhlcVec {
     ohlc: Vec<Vec<IntOrString>>,
     last: u64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
 struct BitCoinOhlcVec {
     #[serde(rename = "XXBTZUSD")]
     ohlc: Vec<Vec<IntOrString>>,
     last: u64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
 struct EthOhlcVec {
     #[serde(rename = "XETHZUSD")]
     ohlc: Vec<Vec<IntOrString>>,
     last: u64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
 struct GnoOhlcVec {
     #[serde(rename = "GNOUSD")]
     ohlc: Vec<Vec<IntOrString>>,
