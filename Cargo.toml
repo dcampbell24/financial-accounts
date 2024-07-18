@@ -12,6 +12,11 @@ documentation = "https://docs.rs/financial-accounts"
 repository = "https://github.com/dcampbell24/financial-accounts"
 readme = "README.md"
 
+[workspace]
+members = [
+    "ohlc_response_macro",
+]
+
 [dependencies]
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -19,6 +24,7 @@ clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
 csv = "1"
 iced = { version = "0.12", features = ["canvas", "tokio"] }
+ohlc_response_macro = { version = "0.1", path = "./ohlc_response_macro" }
 plotters = "0.3"
 plotters-iced = "0.10"
 regex = "1"
