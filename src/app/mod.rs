@@ -11,7 +11,7 @@ mod screen;
 pub mod solarized;
 mod stocks;
 
-use std::{cmp::Ordering, mem, path::PathBuf};
+use std::{cmp::Ordering, path::PathBuf};
 
 use iced::{
     event, executor,
@@ -42,7 +42,7 @@ const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct App {
     accounts: Accounts,
     file_path: PathBuf,
@@ -52,7 +52,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
-    err_string: String,
+    error: Option<anyhow::Error>,
 }
 
 impl App {
@@ -72,7 +72,7 @@ impl App {
             ]),
             project_months: None,
             screen,
-            err_string: String::new(),
+            error: None,
         }
     }
 
@@ -153,6 +153,11 @@ impl App {
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13];
 
+        let error = match &self.error {
+            Some(error) => row![text_cell(error)],
+            None => row![],
+        };
+
         let col_1 = column![
             text_cell("total current month USD: "),
             text_cell("total last month USD: "),
@@ -199,7 +204,7 @@ impl App {
         let cols = column![
             chart,
             rows,
-            row![text_cell(&self.err_string)],
+            error,
             text_cell(""),
             totals,
             text_cell(""),
@@ -274,9 +279,13 @@ impl Application for App {
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
-        let list_monthly = self.list_monthly();
         let selected_account = self.selected_account();
-        self.err_string = String::new();
+        let list_monthly = self.list_monthly();
+
+        self.error = None;
+        if let Some(account) = selected_account {
+            self.accounts[account].error = None;
+        }
 
         match message {
             Message::NewFile(file) => {
@@ -293,7 +302,7 @@ impl Application for App {
             Message::ChangeFileName(file) => self.file_picker.change_file_name(&file),
             Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
-            Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
+            Message::ChangeAccountName(name) => self.account_name = name,
             Message::ChangeBalance(balance) => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 set_amount(&mut account.tx.balance, &balance);
@@ -310,9 +319,9 @@ impl Application for App {
             Message::ChangeComment(comment) => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
-                    account.tx_monthly.comment = comment.trim().to_string();
+                    account.tx_monthly.comment = comment;
                 } else {
-                    account.tx.comment = comment.trim().to_string();
+                    account.tx.comment = comment;
                 }
             }
             Message::ChangeFilterDateYear(date) => {
@@ -386,8 +395,8 @@ impl Application for App {
                         account.txs_1st.txs.sort_by_key(|tx| tx.date);
                         self.accounts.save(&self.file_path).unwrap();
                     }
-                    Err(e) => {
-                        self.err_string = e.to_string();
+                    Err(error) => {
+                        self.error = Some(error);
                     }
                 }
             }
@@ -403,14 +412,16 @@ impl Application for App {
                     account.txs_1st.txs.push(tx);
                 }
                 account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path).unwrap();
                 self.screen = Screen::Accounts;
             }
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::UpdateAccount(i) => {
-                self.accounts[i].name = mem::take(&mut self.account_name);
+                self.accounts[i].name = self.account_name.trim().to_string();
+                self.accounts
+                    .inner
+                    .sort_by_key(|account| account.name.clone());
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::UpdateCurrency(currency) => {
@@ -421,7 +432,7 @@ impl Application for App {
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitAccount => {
                 self.accounts.inner.push(Account::new(
-                    mem::take(&mut self.account_name),
+                    self.account_name.trim().to_string(),
                     self.currency,
                 ));
                 self.accounts
@@ -437,12 +448,11 @@ impl Application for App {
                         Ok(tx) => {
                             account.txs_1st.txs.push(tx);
                             account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::AccountSecondary(_) => match account.submit_balance_2nd() {
@@ -454,12 +464,11 @@ impl Application for App {
                                 .unwrap()
                                 .txs
                                 .sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::Accounts
@@ -478,12 +487,11 @@ impl Application for App {
                         Ok(tx) => {
                             account.txs_1st.txs.push(tx);
                             account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::AccountSecondary(_) => match account.submit_tx_2nd() {
@@ -495,12 +503,12 @@ impl Application for App {
                                 .unwrap()
                                 .txs
                                 .sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
+
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::Monthly(_) => {
@@ -514,7 +522,6 @@ impl Application for App {
             Message::SubmitFilterDate => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 account.filter_date = account.submit_filter_date();
-                account.error_str = String::new();
             }
             Message::Exit => {
                 return window::close(window::Id::MAIN);

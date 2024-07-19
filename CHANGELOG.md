@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [Display ParseDateError](https://github.com/dcampbell24/financial-accounts/commit/3627d92a30ea5ac1d86298b04e254e61513f4d4d).
+- [Trim when you add a string not modify it](https://github.com/dcampbell24/financial-accounts/commit/cbc5b5ba4bfad7f497b097c17bed567936f08d91).
+- [Sort the accounts when you change a name](https://github.com/dcampbell24/financial-accounts/commit/351a52a8111137d8a2c99749b451a78cb91a7611).
 - [Get rid of Txs2nd](https://github.com/dcampbell24/financial-accounts/commit/ae7a0bfe86fec03acc177f2912afe9c872359b8c).
 - [Switch from markdown to djot for the man page](https://github.com/dcampbell24/financial-accounts/commit/66929e72e6c5bd0bbc0c2f447295fb02e5bf4a3b).
 - [Chart filtered transactions](https://github.com/dcampbell24/financial-accounts/commit/dad92faaa4b339aa0be7bf202d34d9768911fb06).

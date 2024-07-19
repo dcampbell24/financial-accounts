@@ -1,9 +1,9 @@
 pub mod transaction;
 pub mod transactions;
 
-use std::{error::Error, mem::take};
+use std::{error::Error, fmt::Display, mem::take};
 
-use chrono::{DateTime, Datelike, NaiveDate, TimeZone, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
 use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
@@ -43,7 +43,7 @@ pub struct Account {
     #[serde(skip)]
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
-    pub error_str: String,
+    pub error: Option<ParseDateError>,
 }
 
 impl Account {
@@ -65,7 +65,7 @@ impl Account {
             filter_date: None,
             filter_date_year: None,
             filter_date_month: None,
-            error_str: String::new(),
+            error: None,
         }
     }
 
@@ -134,6 +134,12 @@ impl Account {
             text(" ".repeat(EDGE_PADDING)),
         ];
 
+        let error = if let Some(error) = &self.error {
+            row![text_cell(error)]
+        } else {
+            row![]
+        };
+
         let col = column![
             text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
             chart,
@@ -142,6 +148,7 @@ impl Account {
             row![text_cell("balance: "), number_cell(balance)],
             input.padding(PADDING).spacing(ROW_SPACING),
             filter_date.padding(PADDING).spacing(ROW_SPACING),
+            error,
             back_exit_view(),
         ];
 
@@ -192,7 +199,7 @@ impl Account {
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
-    pub fn submit_balance_1st(&self) -> Result<Transaction, String> {
+    pub fn submit_balance_1st(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
 
         let mut date = Utc::now();
@@ -201,10 +208,8 @@ impl Account {
                 Ok(naive_date) => {
                     date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
                 }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
+                Err(error) => {
+                    Err(ParseDateError { error })?;
                 }
             }
         }
@@ -217,7 +222,7 @@ impl Account {
         })
     }
 
-    pub fn submit_balance_2nd(&self) -> Result<Transaction, String> {
+    pub fn submit_balance_2nd(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
 
         let mut date = Utc::now();
@@ -226,10 +231,8 @@ impl Account {
                 Ok(naive_date) => {
                     date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
                 }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
+                Err(error) => {
+                    Err(ParseDateError { error })?;
                 }
             }
         }
@@ -242,13 +245,13 @@ impl Account {
         })
     }
 
-    pub fn submit_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
+    pub fn submit_ohlc(&self) -> anyhow::Result<Transaction> {
         let mut tx = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
         tx.amount = tx.balance - self.balance_1st();
         Ok(tx)
     }
 
-    pub fn submit_tx_1st(&self) -> Result<Transaction, String> {
+    pub fn submit_tx_1st(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
 
         let mut date = Utc::now();
@@ -257,10 +260,8 @@ impl Account {
                 Ok(naive_date) => {
                     date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
                 }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
+                Err(error) => {
+                    Err(ParseDateError { error })?;
                 }
             }
         }
@@ -268,12 +269,12 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_1st() + amount,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.comment.trim().to_string(),
             date,
         })
     }
 
-    pub fn submit_tx_2nd(&self) -> Result<Transaction, String> {
+    pub fn submit_tx_2nd(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
 
         let mut date = Utc::now();
@@ -282,10 +283,8 @@ impl Account {
                 Ok(naive_date) => {
                     date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
                 }
-                Err(err) => {
-                    let mut msg = "Parse Date error: ".to_string();
-                    msg.push_str(&err.to_string());
-                    return Err(msg);
+                Err(error) => {
+                    Err(ParseDateError { error })?;
                 }
             }
         }
@@ -293,7 +292,7 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_2nd().unwrap() + amount,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.comment.trim().to_string(),
             date,
         })
     }
@@ -421,3 +420,16 @@ fn back_exit_view<'a>() -> Row<'a, Message> {
     ]
     .spacing(ROW_SPACING)
 }
+
+#[derive(Clone, Debug)]
+pub struct ParseDateError {
+    error: ParseError,
+}
+
+impl Display for ParseDateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        writeln!(f, "Parse Date error: {}", self.error)
+    }
+}
+
+impl Error for ParseDateError {}

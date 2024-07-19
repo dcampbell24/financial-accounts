@@ -12,7 +12,7 @@ use super::money::Currency;
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
 
-pub fn get_ohlc_untyped(client: &Client, name: &str) -> Result<String, Box<dyn Error>> {
+pub fn get_ohlc_untyped(client: &Client, name: &str) -> anyhow::Result<String> {
     let url = Url::parse_with_params(
         URL_KRAKEN_OHLC,
         &[
@@ -34,21 +34,21 @@ struct Response<T> {
     result: T,
 }
 
-pub fn get_ohlc_bitcoin(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+pub fn get_ohlc_bitcoin(client: &Client) -> anyhow::Result<Ohlc> {
     let name = "XBTUSD".to_string();
     let string = get_ohlc_untyped(client, &name)?;
     let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
     response.to_ohlc(name)
 }
 
-pub fn get_ohlc_eth(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+pub fn get_ohlc_eth(client: &Client) -> anyhow::Result<Ohlc> {
     let name = "ETHUSD".to_string();
     let string = get_ohlc_untyped(client, &name)?;
     let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
     response.to_ohlc(name)
 }
 
-pub fn get_ohlc_gno(client: &Client) -> Result<Ohlc, Box<dyn Error>> {
+pub fn get_ohlc_gno(client: &Client) -> anyhow::Result<Ohlc> {
     let name = "GNOUSD".to_string();
     let string = get_ohlc_untyped(client, &name)?;
     let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
@@ -70,7 +70,7 @@ impl<T> OhlcErrorsTrait for Response<T> {
 trait OhlcResponse: OhlcErrorsTrait {
     fn result(&self) -> OhlcVec;
 
-    fn to_ohlc(&self, name: String) -> Result<Ohlc, Box<dyn Error>> {
+    fn to_ohlc(&self, name: String) -> anyhow::Result<Ohlc> {
         let errors = self.errors();
         let result = self.result();
 
@@ -91,7 +91,7 @@ trait OhlcResponse: OhlcErrorsTrait {
             };
             Ok(ohlc)
         } else {
-            Err(Box::new(errors))
+            Err(errors)?
         }
     }
 }

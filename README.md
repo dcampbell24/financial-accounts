@@ -1,5 +1,4 @@
-financial-accounts
-===================
+# financial-accounts
 
 [![github]](https://github.com/dcampbell24/financial-accounts)&ensp;[![crates-io]](https://crates.io/crates/financial-accounts)&ensp;[![docs-rs]](https://docs.rs/financial-accounts)
 
@@ -29,3 +28,7 @@ On Tx and 2nd Tx you can limit transactions displayed by month.
 It would be trivial to add support for more cypto currencies and metals, but I
 have only implemented the ones I use. I could also add more bank imports, but
 again I have only implemented the one I use.
+
+## Upgrading from 1.x to 2.x
+
+You have to add the entry `"currency": "Usd",` to every `"transactions"` entry.
