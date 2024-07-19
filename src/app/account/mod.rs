@@ -268,7 +268,7 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_1st() + amount,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.comment.trim().to_string(),
             date,
         })
     }
@@ -293,7 +293,7 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_2nd().unwrap() + amount,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.comment.trim().to_string(),
             date,
         })
     }

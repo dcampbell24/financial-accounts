@@ -10,7 +10,7 @@ mod money;
 mod screen;
 pub mod solarized;
 
-use std::{cmp::Ordering, mem, path::PathBuf};
+use std::{cmp::Ordering, path::PathBuf};
 
 use iced::{
     event, executor,
@@ -291,7 +291,7 @@ impl Application for App {
             Message::ChangeFileName(file) => self.file_picker.change_file_name(&file),
             Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
-            Message::ChangeAccountName(name) => self.account_name = name.trim().to_string(),
+            Message::ChangeAccountName(name) => self.account_name = name,
             Message::ChangeBalance(balance) => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 set_amount(&mut account.tx.balance, &balance);
@@ -308,9 +308,9 @@ impl Application for App {
             Message::ChangeComment(comment) => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 if list_monthly {
-                    account.tx_monthly.comment = comment.trim().to_string();
+                    account.tx_monthly.comment = comment;
                 } else {
-                    account.tx.comment = comment.trim().to_string();
+                    account.tx.comment = comment;
                 }
             }
             Message::ChangeFilterDateYear(date) => {
@@ -403,7 +403,7 @@ impl Application for App {
             }
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::UpdateAccount(i) => {
-                self.accounts[i].name = mem::take(&mut self.account_name);
+                self.accounts[i].name = self.account_name.trim().to_string();
                 self.accounts
                     .inner
                     .sort_by_key(|account| account.name.clone());
@@ -417,7 +417,7 @@ impl Application for App {
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitAccount => {
                 self.accounts.inner.push(Account::new(
-                    mem::take(&mut self.account_name),
+                    self.account_name.trim().to_string(),
                     self.currency,
                 ));
                 self.accounts
