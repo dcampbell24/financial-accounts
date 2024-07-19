@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use chrono::{DateTime, Months, Utc};
 use reqwest::blocking::Client;
 use rust_decimal::Decimal;
@@ -43,7 +41,7 @@ impl Transactions {
         }
     }
 
-    pub fn get_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
+    pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
         let http_client = Client::new();
 
         match self.currency {

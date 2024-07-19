@@ -245,7 +245,7 @@ impl Account {
         })
     }
 
-    pub fn submit_ohlc(&self) -> Result<Transaction, Box<dyn Error>> {
+    pub fn submit_ohlc(&self) -> anyhow::Result<Transaction> {
         let mut tx = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
         tx.amount = tx.balance - self.balance_1st();
         Ok(tx)

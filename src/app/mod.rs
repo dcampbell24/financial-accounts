@@ -40,7 +40,7 @@ const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct App {
     accounts: Accounts,
     file_path: PathBuf,
@@ -50,7 +50,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
-    err_string: String,
+    error: Option<anyhow::Error>,
 }
 
 impl App {
@@ -70,7 +70,7 @@ impl App {
             ]),
             project_months: None,
             screen,
-            err_string: String::new(),
+            error: None,
         }
     }
 
@@ -151,6 +151,11 @@ impl App {
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13];
 
+        let error = match &self.error {
+            Some(error) => row![text_cell(error)],
+            None => row![],
+        };
+
         let col_1 = column![
             text_cell("total current month USD: "),
             text_cell("total last month USD: "),
@@ -197,7 +202,7 @@ impl App {
         let cols = column![
             chart,
             rows,
-            row![text_cell(&self.err_string)],
+            error,
             text_cell(""),
             totals,
             text_cell(""),
@@ -273,12 +278,12 @@ impl Application for App {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         let selected_account = self.selected_account();
+        let list_monthly = self.list_monthly();
+
+        self.error = None;
         if let Some(account) = selected_account {
             self.accounts[account].error = None;
         }
-
-        let list_monthly = self.list_monthly();
-        self.err_string = String::new();
 
         match message {
             Message::NewFile(file) => {
@@ -383,8 +388,8 @@ impl Application for App {
                         account.txs_1st.txs.sort_by_key(|tx| tx.date);
                         self.accounts.save(&self.file_path).unwrap();
                     }
-                    Err(e) => {
-                        self.err_string = e.to_string();
+                    Err(error) => {
+                        self.error = Some(error);
                     }
                 }
             }
