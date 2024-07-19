@@ -272,8 +272,12 @@ impl Application for App {
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
-        let list_monthly = self.list_monthly();
         let selected_account = self.selected_account();
+        if let Some(account) = selected_account {
+            self.accounts[account].error = None;
+        }
+
+        let list_monthly = self.list_monthly();
         self.err_string = String::new();
 
         match message {
@@ -396,7 +400,6 @@ impl Application for App {
                     account.txs_1st.txs.push(tx);
                 }
                 account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                account.error_str = String::new();
                 account.tx = TransactionToSubmit::new();
                 self.accounts.save(&self.file_path).unwrap();
                 self.screen = Screen::Accounts;
@@ -433,12 +436,11 @@ impl Application for App {
                         Ok(tx) => {
                             account.txs_1st.txs.push(tx);
                             account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::AccountSecondary(_) => match account.submit_balance_2nd() {
@@ -450,12 +452,11 @@ impl Application for App {
                                 .unwrap()
                                 .txs
                                 .sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::Accounts
@@ -474,12 +475,11 @@ impl Application for App {
                         Ok(tx) => {
                             account.txs_1st.txs.push(tx);
                             account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::AccountSecondary(_) => match account.submit_tx_2nd() {
@@ -491,12 +491,12 @@ impl Application for App {
                                 .unwrap()
                                 .txs
                                 .sort_by_key(|tx| tx.date);
-                            account.error_str = String::new();
+
                             account.tx = TransactionToSubmit::new();
                             self.accounts.save(&self.file_path).unwrap();
                         }
                         Err(err) => {
-                            account.error_str = err;
+                            account.error = Some(err);
                         }
                     },
                     Screen::Monthly(_) => {
@@ -510,7 +510,6 @@ impl Application for App {
             Message::SubmitFilterDate => {
                 let account = &mut self.accounts[selected_account.unwrap()];
                 account.filter_date = account.submit_filter_date();
-                account.error_str = String::new();
             }
             Message::Exit => {
                 return window::close(window::Id::MAIN);
