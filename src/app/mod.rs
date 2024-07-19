@@ -404,6 +404,9 @@ impl Application for App {
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = mem::take(&mut self.account_name);
+                self.accounts
+                    .inner
+                    .sort_by_key(|account| account.name.clone());
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::UpdateCurrency(currency) => {
