@@ -11,7 +11,7 @@ mod screen;
 pub mod solarized;
 mod stocks;
 
-use std::{cmp::Ordering, path::PathBuf};
+use std::{cmp::Ordering, path::PathBuf, sync::Arc};
 
 use iced::{
     event, executor,
@@ -42,7 +42,7 @@ const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
     file_path: PathBuf,
@@ -52,7 +52,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
-    error: Option<anyhow::Error>,
+    error: Option<Arc<anyhow::Error>>,
 }
 
 impl App {
@@ -238,17 +238,6 @@ impl App {
             | Screen::ImportBoa(account) => Some(account),
         }
     }
-
-    fn list_monthly(&self) -> bool {
-        match self.screen {
-            Screen::NewOrLoadFile
-            | Screen::Accounts
-            | Screen::Account(_)
-            | Screen::AccountSecondary(_)
-            | Screen::ImportBoa(_) => false,
-            Screen::Monthly(_) => true,
-        }
-    }
 }
 
 impl Application for App {
@@ -280,14 +269,14 @@ impl Application for App {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         let selected_account = self.selected_account();
-        let list_monthly = self.list_monthly();
-
         self.error = None;
-        if let Some(account) = selected_account {
-            self.accounts[account].error = None;
-        }
 
         match message {
+            Message::Account(message) => {
+                if self.accounts[selected_account.unwrap()].update(&self.screen, message) {
+                    self.accounts.save(&self.file_path).unwrap();
+                }
+            }
             Message::NewFile(file) => {
                 if let Some((accounts, file_path)) = self.file_picker.new_file(file) {
                     self.new_(accounts, file_path, Screen::Accounts);
@@ -303,47 +292,6 @@ impl Application for App {
             Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
-            Message::ChangeBalance(balance) => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-                set_amount(&mut account.tx.balance, &balance);
-            }
-            Message::ChangeTx(tx) => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-                if list_monthly {
-                    set_amount(&mut account.tx_monthly.amount, &tx);
-                } else {
-                    set_amount(&mut account.tx.amount, &tx);
-                }
-            }
-            Message::ChangeDate(date) => self.accounts[selected_account.unwrap()].tx.date = date,
-            Message::ChangeComment(comment) => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-                if list_monthly {
-                    account.tx_monthly.comment = comment;
-                } else {
-                    account.tx.comment = comment;
-                }
-            }
-            Message::ChangeFilterDateYear(date) => {
-                if date.is_empty() {
-                    self.accounts[selected_account.unwrap()].filter_date_year = None;
-                }
-                if let Ok(date) = date.parse() {
-                    if (0..3_000).contains(&date) {
-                        self.accounts[selected_account.unwrap()].filter_date_year = Some(date)
-                    }
-                }
-            }
-            Message::ChangeFilterDateMonth(date) => {
-                if date.is_empty() {
-                    self.accounts[selected_account.unwrap()].filter_date_month = None;
-                }
-                if let Ok(date) = date.parse() {
-                    if (1..13).contains(&date) {
-                        self.accounts[selected_account.unwrap()].filter_date_month = Some(date)
-                    }
-                }
-            }
             Message::ChangeProjectMonths(months) => {
                 if months.is_empty() {
                     self.project_months = None;
@@ -351,12 +299,6 @@ impl Application for App {
                 if let Ok(months) = months.parse() {
                     self.project_months = Some(months);
                 }
-            }
-            Message::ClearDate => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-                account.filter_date_year = None;
-                account.filter_date_month = None;
-                account.filter_date = None;
             }
             Message::Delete(i) => {
                 match self.screen {
@@ -396,7 +338,7 @@ impl Application for App {
                         self.accounts.save(&self.file_path).unwrap();
                     }
                     Err(error) => {
-                        self.error = Some(error);
+                        self.error = Some(Arc::new(error));
                     }
                 }
             }
@@ -439,89 +381,6 @@ impl Application for App {
                     .inner
                     .sort_by_key(|account| account.name.clone());
                 self.accounts.save(&self.file_path).unwrap();
-            }
-            Message::SubmitBalance => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-
-                match self.screen {
-                    Screen::Account(_) => match account.submit_balance_1st() {
-                        Ok(tx) => {
-                            account.txs_1st.txs.push(tx);
-                            account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.tx = TransactionToSubmit::new();
-                            self.accounts.save(&self.file_path).unwrap();
-                        }
-                        Err(err) => {
-                            account.error = Some(err);
-                        }
-                    },
-                    Screen::AccountSecondary(_) => match account.submit_balance_2nd() {
-                        Ok(tx) => {
-                            account.txs_2nd.as_mut().unwrap().txs.push(tx);
-                            account
-                                .txs_2nd
-                                .as_mut()
-                                .unwrap()
-                                .txs
-                                .sort_by_key(|tx| tx.date);
-                            account.tx = TransactionToSubmit::new();
-                            self.accounts.save(&self.file_path).unwrap();
-                        }
-                        Err(err) => {
-                            account.error = Some(err);
-                        }
-                    },
-                    Screen::Accounts
-                    | Screen::ImportBoa(_)
-                    | Screen::Monthly(_)
-                    | Screen::NewOrLoadFile => {
-                        panic!("You can't submit a balance here!");
-                    }
-                }
-            }
-            Message::SubmitTx => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-
-                match self.screen {
-                    Screen::Account(_) => match account.submit_tx_1st() {
-                        Ok(tx) => {
-                            account.txs_1st.txs.push(tx);
-                            account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                            account.tx = TransactionToSubmit::new();
-                            self.accounts.save(&self.file_path).unwrap();
-                        }
-                        Err(err) => {
-                            account.error = Some(err);
-                        }
-                    },
-                    Screen::AccountSecondary(_) => match account.submit_tx_2nd() {
-                        Ok(tx) => {
-                            account.txs_2nd.as_mut().unwrap().txs.push(tx);
-                            account
-                                .txs_2nd
-                                .as_mut()
-                                .unwrap()
-                                .txs
-                                .sort_by_key(|tx| tx.date);
-
-                            account.tx = TransactionToSubmit::new();
-                            self.accounts.save(&self.file_path).unwrap();
-                        }
-                        Err(err) => {
-                            account.error = Some(err);
-                        }
-                    },
-                    Screen::Monthly(_) => {
-                        account.submit_tx_monthly();
-                    }
-                    Screen::Accounts | Screen::ImportBoa(_) | Screen::NewOrLoadFile => {
-                        panic!("You can't submit a transaction here!");
-                    }
-                }
-            }
-            Message::SubmitFilterDate => {
-                let account = &mut self.accounts[selected_account.unwrap()];
-                account.filter_date = account.submit_filter_date();
             }
             Message::Exit => {
                 return window::close(window::Id::MAIN);

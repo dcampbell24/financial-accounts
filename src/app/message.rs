@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use super::money::Currency;
+use super::{account::MessageAccount, money::Currency};
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    Account(MessageAccount),
     NewFile(PathBuf),
     LoadFile(PathBuf),
     ChangeDir(PathBuf),
@@ -11,14 +12,7 @@ pub enum Message {
     HiddenFilesToggle,
     Back,
     ChangeAccountName(String),
-    ChangeBalance(String),
-    ChangeTx(String),
-    ChangeDate(String),
-    ChangeComment(String),
-    ChangeFilterDateYear(String),
-    ChangeFilterDateMonth(String),
     ChangeProjectMonths(String),
-    ClearDate,
     Delete(usize),
     GetOhlc(usize),
     ImportBoa(usize, PathBuf),
@@ -29,8 +23,5 @@ pub enum Message {
     SelectAccountSecondary(usize),
     SelectMonthly(usize),
     SubmitAccount,
-    SubmitBalance,
-    SubmitTx,
-    SubmitFilterDate,
     Exit,
 }

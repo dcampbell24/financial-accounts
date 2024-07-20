@@ -21,7 +21,9 @@ use crate::app::{
 
 use self::transaction::TransactionMonthlyToSubmit;
 
-use super::{button_cell, money::Currency, number_cell, text_cell, ROW_SPACING};
+use super::{
+    button_cell, money::Currency, number_cell, screen::Screen, set_amount, text_cell, ROW_SPACING,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -115,17 +117,20 @@ impl Account {
             Some(year) => text_input("Year", &year.to_string()),
             None => text_input("Year", ""),
         };
-        year = year.on_input(Message::ChangeFilterDateYear);
+        year =
+            year.on_input(|string| Message::Account(MessageAccount::ChangeFilterDateYear(string)));
         let mut month = match &self.filter_date_month {
             Some(month) => text_input("Month", &month.to_string()),
             None => text_input("Month", ""),
         };
-        month = month.on_input(Message::ChangeFilterDateMonth);
+        month = month
+            .on_input(|string| Message::Account(MessageAccount::ChangeFilterDateMonth(string)));
         let mut filter_button = button("Filter");
         if self.submit_filter_date().is_some() {
-            filter_button = filter_button.on_press(Message::SubmitFilterDate);
+            filter_button =
+                filter_button.on_press(Message::Account(MessageAccount::SubmitFilterDate));
         }
-        let clear_button = button("Clear").on_press(Message::ClearDate);
+        let clear_button = button("Clear").on_press(Message::Account(MessageAccount::ClearDate));
         let filter_date = row![
             year,
             month,
@@ -377,6 +382,122 @@ impl Account {
         }
         amount
     }
+
+    pub fn update(&mut self, screen: &Screen, message: MessageAccount) -> bool {
+        let list_monthly = list_monthly(screen);
+        self.error = None;
+
+        match message {
+            MessageAccount::ChangeBalance(balance) => {
+                set_amount(&mut self.tx.balance, &balance);
+            }
+            MessageAccount::ChangeComment(comment) => {
+                if list_monthly {
+                    self.tx_monthly.comment = comment;
+                } else {
+                    self.tx.comment = comment;
+                }
+            }
+            MessageAccount::ChangeDate(date) => self.tx.date = date,
+            MessageAccount::ChangeFilterDateMonth(date) => {
+                if date.is_empty() {
+                    self.filter_date_month = None;
+                }
+                if let Ok(date) = date.parse() {
+                    if (1..13).contains(&date) {
+                        self.filter_date_month = Some(date)
+                    }
+                }
+            }
+            MessageAccount::ChangeFilterDateYear(date) => {
+                if date.is_empty() {
+                    self.filter_date_year = None;
+                }
+                if let Ok(date) = date.parse() {
+                    if (0..3_000).contains(&date) {
+                        self.filter_date_year = Some(date)
+                    }
+                }
+            }
+            MessageAccount::ChangeTx(tx) => {
+                if list_monthly {
+                    set_amount(&mut self.tx_monthly.amount, &tx);
+                } else {
+                    set_amount(&mut self.tx.amount, &tx);
+                }
+            }
+            MessageAccount::ClearDate => {
+                self.filter_date_year = None;
+                self.filter_date_month = None;
+                self.filter_date = None;
+            }
+            MessageAccount::SubmitBalance => match screen {
+                Screen::Account(_) => match self.submit_balance_1st() {
+                    Ok(tx) => {
+                        self.txs_1st.txs.push(tx);
+                        self.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        self.tx = TransactionToSubmit::new();
+                        return true;
+                    }
+                    Err(err) => {
+                        self.error = Some(err);
+                    }
+                },
+                Screen::AccountSecondary(_) => match self.submit_balance_2nd() {
+                    Ok(tx) => {
+                        self.txs_2nd.as_mut().unwrap().txs.push(tx);
+                        self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
+                        self.tx = TransactionToSubmit::new();
+                        return true;
+                    }
+                    Err(err) => {
+                        self.error = Some(err);
+                    }
+                },
+                Screen::Accounts
+                | Screen::ImportBoa(_)
+                | Screen::Monthly(_)
+                | Screen::NewOrLoadFile => {
+                    panic!("You can't submit a balance here!");
+                }
+            },
+            MessageAccount::SubmitFilterDate => {
+                self.filter_date = self.submit_filter_date();
+            }
+            MessageAccount::SubmitTx => match screen {
+                Screen::Account(_) => match self.submit_tx_1st() {
+                    Ok(tx) => {
+                        self.txs_1st.txs.push(tx);
+                        self.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        self.tx = TransactionToSubmit::new();
+                        return true;
+                    }
+                    Err(err) => {
+                        self.error = Some(err);
+                    }
+                },
+                Screen::AccountSecondary(_) => match self.submit_tx_2nd() {
+                    Ok(tx) => {
+                        self.txs_2nd.as_mut().unwrap().txs.push(tx);
+                        self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
+
+                        self.tx = TransactionToSubmit::new();
+                        return true;
+                    }
+                    Err(err) => {
+                        self.error = Some(err);
+                    }
+                },
+                Screen::Monthly(_) => {
+                    self.submit_tx_monthly();
+                }
+                Screen::Accounts | Screen::ImportBoa(_) | Screen::NewOrLoadFile => {
+                    panic!("You can't submit a transaction here!");
+                }
+            },
+        }
+        false
+    }
 }
 
 fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
@@ -384,7 +505,7 @@ fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
         Some(amount) => text_input("Amount", &amount.to_string()),
         None => text_input("Amount", ""),
     };
-    amount.on_input(Message::ChangeTx)
+    amount.on_input(|string| Message::Account(MessageAccount::ChangeTx(string)))
 }
 
 fn balance_view(balance: &Option<Decimal>) -> TextInput<Message> {
@@ -392,22 +513,26 @@ fn balance_view(balance: &Option<Decimal>) -> TextInput<Message> {
         Some(balance) => text_input("Balance", &balance.to_string()),
         None => text_input("Balance", ""),
     };
-    balance.on_input(Message::ChangeBalance)
+    balance.on_input(|string| Message::Account(MessageAccount::ChangeBalance(string)))
 }
 
 fn date_view(date: &str) -> TextInput<Message> {
-    text_input("Date YYYY-MM-DD (empty for today)", date).on_input(Message::ChangeDate)
+    text_input("Date YYYY-MM-DD (empty for today)", date)
+        .on_input(|string| Message::Account(MessageAccount::ChangeDate(string)))
 }
 
 fn comment_view(comment: &str) -> TextInput<Message> {
-    text_input("Comment", comment).on_input(Message::ChangeComment)
+    text_input("Comment", comment)
+        .on_input(|string| Message::Account(MessageAccount::ChangeComment(string)))
 }
 
 fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, Message> {
     let mut add = button("Add");
     match (amount, balance) {
-        (Some(_amount), None) => add = add.on_press(Message::SubmitTx),
-        (None, Some(_balance)) => add = add.on_press(Message::SubmitBalance),
+        (Some(_amount), None) => add = add.on_press(Message::Account(MessageAccount::SubmitTx)),
+        (None, Some(_balance)) => {
+            add = add.on_press(Message::Account(MessageAccount::SubmitBalance))
+        }
         (None, None) | (Some(_), Some(_)) => {}
     }
     add
@@ -419,6 +544,17 @@ fn back_exit_view<'a>() -> Row<'a, Message> {
         button("Exit").on_press(Message::Exit),
     ]
     .spacing(ROW_SPACING)
+}
+
+fn list_monthly(screen: &Screen) -> bool {
+    match screen {
+        Screen::NewOrLoadFile
+        | Screen::Accounts
+        | Screen::Account(_)
+        | Screen::AccountSecondary(_)
+        | Screen::ImportBoa(_) => false,
+        Screen::Monthly(_) => true,
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -433,3 +569,17 @@ impl Display for ParseDateError {
 }
 
 impl Error for ParseDateError {}
+
+#[derive(Clone, Debug)]
+pub enum MessageAccount {
+    ChangeBalance(String),
+    ChangeComment(String),
+    ChangeDate(String),
+    ChangeFilterDateMonth(String),
+    ChangeFilterDateYear(String),
+    ChangeTx(String),
+    ClearDate,
+    SubmitBalance,
+    SubmitFilterDate,
+    SubmitTx,
+}
