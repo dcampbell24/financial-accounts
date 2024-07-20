@@ -10,7 +10,7 @@ mod money;
 mod screen;
 pub mod solarized;
 
-use std::{cmp::Ordering, path::PathBuf};
+use std::{cmp::Ordering, path::PathBuf, sync::Arc};
 
 use iced::{
     event, executor,
@@ -40,7 +40,7 @@ const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
     file_path: PathBuf,
@@ -50,7 +50,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
-    error: Option<anyhow::Error>,
+    error: Option<Arc<anyhow::Error>>,
 }
 
 impl App {
@@ -389,7 +389,7 @@ impl Application for App {
                         self.accounts.save(&self.file_path).unwrap();
                     }
                     Err(error) => {
-                        self.error = Some(error);
+                        self.error = Some(Arc::new(error));
                     }
                 }
             }
