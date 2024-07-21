@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [Add stocks](https://github.com/dcampbell24/financial-accounts/commit/e54732e3819d0ca843567259dabb04b194a7f1bc).
 - [Move the account messages to MessageAccount](https://github.com/dcampbell24/financial-accounts/commit/56f6705caaea2fa07bb0331116c47adaa69880f4).
 - [Display ParseDateError](https://github.com/dcampbell24/financial-accounts/commit/3627d92a30ea5ac1d86298b04e254e61513f4d4d).
 - [Trim when you add a string not modify it](https://github.com/dcampbell24/financial-accounts/commit/cbc5b5ba4bfad7f497b097c17bed567936f08d91).
