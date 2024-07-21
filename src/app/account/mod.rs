@@ -51,9 +51,11 @@ pub struct Account {
 impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
         let txs_2nd = match currency {
-            Currency::Btc | Currency::Eth | Currency::Gno | Currency::GoldOz => {
-                Some(Transactions::new(currency))
-            }
+            Currency::Btc
+            | Currency::Eth
+            | Currency::Gno
+            | Currency::Stocks(_)
+            | Currency::GoldOz => Some(Transactions::new(currency)),
             Currency::Usd => None,
         };
 

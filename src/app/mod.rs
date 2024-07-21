@@ -24,9 +24,8 @@ use iced::{
     },
     window, Alignment, Application, Command, Element, Event, Length, Theme,
 };
-use money::Currency;
+use money::{Currency, Stock};
 use plotters_iced::ChartWidget;
-// use reqwest::blocking::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use thousands::Separable;
@@ -68,6 +67,14 @@ impl App {
                 Currency::Eth,
                 Currency::Gno,
                 Currency::GoldOz,
+                Currency::Stocks(Stock::Cvx),
+                Currency::Stocks(Stock::Csco),
+                Currency::Stocks(Stock::Dis),
+                Currency::Stocks(Stock::Chtrx),
+                Currency::Stocks(Stock::Jnj),
+                Currency::Stocks(Stock::Kmi),
+                Currency::Stocks(Stock::Txn),
+                Currency::Stocks(Stock::Wbs),
                 Currency::Usd,
             ]),
             project_months: None,
@@ -324,11 +331,6 @@ impl Application for App {
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::GetOhlc(i) => {
-                // fixme:
-                // let client = Client::new();
-                // let stock = &stocks::get_stock_price(&client).unwrap();
-                // println!("{stock}");
-
                 let account = &mut self.accounts[i];
 
                 match account.submit_ohlc() {

@@ -7,17 +7,21 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use super::money::Stock;
+
 const LOCATION_ACCESS_TOKEN: &str = "./polygon.io.txt";
 
-pub fn get_stock_price(client: &Client) -> anyhow::Result<StockPrice> {
+pub fn get_stock_price(client: &Client, stock: Stock) -> anyhow::Result<StockPrice> {
     let pwd = env::current_dir()?;
     let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
         "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
     ))?;
     let access_token = access_token.trim();
 
-    let symbol = "AAPL";
-    let url = format!("https://api.polygon.io/v2/aggs/ticker/{symbol}/prev");
+    let url = format!(
+        "https://api.polygon.io/v2/aggs/ticker/{}/prev",
+        stock.symbol()
+    );
     let url = Url::parse(&url)?;
 
     let response = client
