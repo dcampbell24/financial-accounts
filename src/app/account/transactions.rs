@@ -10,12 +10,12 @@ use super::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transactions {
-    pub currency: Option<Currency>,
+    pub currency: Currency,
     pub txs: Vec<Transaction>,
 }
 
 impl Transactions {
-    pub fn new(currency: Option<Currency>) -> Self {
+    pub fn new(currency: Currency) -> Self {
         Transactions {
             currency,
             txs: Vec::new(),
@@ -47,9 +47,8 @@ impl Transactions {
 
     pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
         let http_client = Client::new();
-        let currency = self.currency.as_ref().unwrap();
 
-        match currency {
+        match &self.currency {
             Currency::Btc => {
                 let btc = crypto::get_ohlc_bitcoin(&http_client)?;
                 let count = self.count();
@@ -57,7 +56,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * btc.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", currency, btc.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, btc.close),
                 })
             }
             Currency::Eth => {
@@ -67,7 +66,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * eth.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", currency, eth.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, eth.close),
                 })
             }
             Currency::Gno => {
@@ -77,30 +76,30 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * gno.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", currency, gno.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, gno.close),
                 })
             }
+            Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => {
-                let gold = metals::get_price_metal(&http_client, metal)?;
+                let gold = metals::get_price_metal(&http_client, &metal)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * gold.price,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", currency, gold.price),
+                    comment: format!("{count} {} at {} USD", &self.currency, gold.price),
                 })
             }
             Currency::Stock(stock) => {
-                let stock_price = stocks::get_stock_price(&http_client, stock)?;
+                let stock_price = stocks::get_stock_price(&http_client, &stock)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: count * stock_price.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", currency, stock_price.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, stock_price.close),
                 })
             }
-            Currency::Usd => panic!("You can't hold USD as a secondary currency!"),
         }
     }
 

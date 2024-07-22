@@ -1,11 +1,21 @@
 {
-  "checked_up_to": "2024-07-22T20:23:26.206759781Z",
+  "checked_up_to": "2024-07-22T23:36:40.536561688Z",
   "accounts": [],
   "metals": [
     {
-      "currency": "USD",
+      "currency": "Usd",
       "description": "Gold Troy Oz",
       "symbol": "XAU"
+    },
+    {
+      "currency": "Eur",
+      "description": "Silver Troy Oz in Euros",
+      "symbol": "XAG"
+    },
+    {
+      "currency": "Usd",
+      "description": "Silver Troy Oz",
+      "symbol": "XAG"
     }
   ],
   "stocks": [

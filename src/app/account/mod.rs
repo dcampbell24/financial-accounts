@@ -22,7 +22,11 @@ use crate::app::{
 use self::transaction::TransactionMonthlyToSubmit;
 
 use super::{
-    button_cell, money::Currency, number_cell, screen::Screen, set_amount, text_cell, ROW_SPACING,
+    button_cell,
+    money::{Currency, Fiat},
+    number_cell,
+    screen::Screen,
+    set_amount, text_cell, ROW_SPACING,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -50,20 +54,23 @@ pub struct Account {
 
 impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
-        let txs_2nd = match currency {
-            Currency::Btc
-            | Currency::Eth
-            | Currency::Gno
-            | Currency::Metal(_)
-            | Currency::Stock(_) => Some(Transactions::new(Some(currency))),
-            Currency::Usd => None,
+        let (txs_1st, txs_2nd) = match &currency {
+            Currency::Btc | Currency::Eth | Currency::Gno | Currency::Stock(_) => (
+                Transactions::new(Currency::Fiat(Fiat::Usd)),
+                Some(Transactions::new(currency)),
+            ),
+            Currency::Metal(metal) => (
+                Transactions::new(Currency::Fiat(metal.currency.clone())),
+                Some(Transactions::new(currency)),
+            ),
+            Currency::Fiat(_) => (Transactions::new(currency), None),
         };
 
         Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            txs_1st: Transactions::new(Some(Currency::Usd)),
+            txs_1st,
             txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
@@ -147,12 +154,8 @@ impl Account {
             row![]
         };
 
-        let currency = match &txs_struct.currency {
-            Some(currency) => currency,
-            None => &Currency::Usd,
-        };
         let col = column![
-            text_cell(format!("{} {}", &self.name, currency)),
+            text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],

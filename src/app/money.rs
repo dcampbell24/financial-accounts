@@ -7,9 +7,9 @@ pub enum Currency {
     Btc,
     Eth,
     Gno,
+    Fiat(Fiat),
     Metal(Metal),
     Stock(Stock),
-    Usd,
 }
 
 impl fmt::Display for Currency {
@@ -18,16 +18,40 @@ impl fmt::Display for Currency {
             Currency::Btc => write!(f, "BTC"),
             Currency::Eth => write!(f, "ETH"),
             Currency::Gno => write!(f, "GNO"),
+            Currency::Fiat(fiat) => write!(f, "{fiat}"),
             Currency::Metal(metal) => write!(f, "Metal: {metal}"),
             Currency::Stock(stock) => write!(f, "Stock: {stock}"),
-            Currency::Usd => write!(f, "USD"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+pub enum Fiat {
+    Eur,
+    Usd,
+}
+
+impl Fiat {
+    pub fn symbol(&self) -> String {
+        match self {
+            Fiat::Eur => "EUR".to_string(),
+            Fiat::Usd => "USD".to_string(),
+        }
+    }
+}
+
+impl fmt::Display for Fiat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Fiat::Eur => write!(f, "European Euro"),
+            Fiat::Usd => write!(f, "United States Dollar"),
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
 pub struct Metal {
-    pub currency: String,
+    pub currency: Fiat,
     pub description: String,
     pub symbol: String,
 }

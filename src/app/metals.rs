@@ -46,7 +46,8 @@ pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<MetalsP
 
     let url = Url::parse(&format!(
         "https://www.goldapi.io/api/{}/{}",
-        metal.symbol, metal.currency
+        metal.symbol,
+        metal.currency.symbol()
     ))?;
     let response = client
         .get(url)

@@ -24,7 +24,7 @@ use iced::{
     },
     window, Alignment, Application, Command, Element, Event, Length, Theme,
 };
-use money::Currency;
+use money::{Currency, Fiat};
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -56,7 +56,13 @@ pub struct App {
 
 impl App {
     fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
-        let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno, Currency::Usd];
+        let mut currencies = vec![
+            Currency::Btc,
+            Currency::Eth,
+            Currency::Gno,
+            Currency::Fiat(Fiat::Eur),
+            Currency::Fiat(Fiat::Usd),
+        ];
         if let Some(metals) = &accounts.metals {
             for metal in metals {
                 currencies.push(Currency::Metal(metal.clone()));
@@ -73,7 +79,7 @@ impl App {
             file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
-            currency: Currency::Usd,
+            currency: Currency::Fiat(Fiat::Usd),
             currency_selector: State::new(currencies),
             project_months: None,
             screen,
@@ -175,7 +181,7 @@ impl App {
         let mut total_for_last_month_usd = self.accounts.total_for_last_month_usd();
         let mut total_for_current_year_usd = self.accounts.total_for_current_year_usd();
         let mut total_for_last_year_usd = self.accounts.total_for_last_year_usd();
-        let mut balance = self.accounts.balance();
+        let mut balance = self.accounts.balance_usd();
 
         total_for_current_month_usd.rescale(2);
         total_for_last_month_usd.rescale(2);
