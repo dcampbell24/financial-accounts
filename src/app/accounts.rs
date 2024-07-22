@@ -36,7 +36,7 @@ impl Accounts {
             tx.balance = balance;
         }
 
-        let mut transactions = Transactions::new(super::money::Currency::Usd);
+        let mut transactions = Transactions::new(Some(super::money::Currency::Usd));
         transactions.txs = txs;
         transactions
     }

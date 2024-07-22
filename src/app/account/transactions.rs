@@ -10,12 +10,12 @@ use super::transaction::Transaction;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transactions {
-    pub currency: Currency,
+    pub currency: Option<Currency>,
     pub txs: Vec<Transaction>,
 }
 
 impl Transactions {
-    pub fn new(currency: Currency) -> Self {
+    pub fn new(currency: Option<Currency>) -> Self {
         Transactions {
             currency,
             txs: Vec::new(),
@@ -47,8 +47,9 @@ impl Transactions {
 
     pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
         let http_client = Client::new();
+        let currency = self.currency.unwrap();
 
-        match self.currency {
+        match currency {
             Currency::Btc => {
                 let btc = crypto::get_ohlc_bitcoin(&http_client)?;
                 let count = self.count();
@@ -56,7 +57,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * btc.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, btc.close),
+                    comment: format!("{count} {} at {} USD", currency, btc.close),
                 })
             }
             Currency::Eth => {
@@ -66,7 +67,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * eth.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, eth.close),
+                    comment: format!("{count} {} at {} USD", currency, eth.close),
                 })
             }
             Currency::Gno => {
@@ -76,7 +77,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * gno.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, gno.close),
+                    comment: format!("{count} {} at {} USD", currency, gno.close),
                 })
             }
             Currency::Stocks(stock) => {
@@ -86,7 +87,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * stock_price.close,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, stock_price.close),
+                    comment: format!("{count} {} at {} USD", currency, stock_price.close),
                 })
             }
             Currency::GoldOz => {
@@ -96,7 +97,7 @@ impl Transactions {
                     amount: dec!(0),
                     balance: count * gold.price,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, gold.price),
+                    comment: format!("{count} {} at {} USD", currency, gold.price),
                 })
             }
             Currency::Usd => panic!("You can't hold USD as a secondary currency!"),

@@ -55,7 +55,7 @@ impl Account {
             | Currency::Eth
             | Currency::Gno
             | Currency::Stocks(_)
-            | Currency::GoldOz => Some(Transactions::new(currency)),
+            | Currency::GoldOz => Some(Transactions::new(Some(currency))),
             Currency::Usd => None,
         };
 
@@ -63,7 +63,7 @@ impl Account {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),
-            txs_1st: Transactions::new(Currency::Usd),
+            txs_1st: Transactions::new(Some(Currency::Usd)),
             txs_2nd,
             txs_monthly: Vec::new(),
             filter_date: None,
@@ -147,8 +147,12 @@ impl Account {
             row![]
         };
 
+        let currency = match &txs_struct.currency {
+            Some(currency) => currency,
+            None => &Currency::Usd,
+        };
         let col = column![
-            text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
+            text_cell(format!("{} {}", &self.name, currency)),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],
