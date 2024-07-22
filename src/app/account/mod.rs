@@ -54,8 +54,8 @@ impl Account {
             Currency::Btc
             | Currency::Eth
             | Currency::Gno
-            | Currency::Stock(_)
-            | Currency::GoldOz => Some(Transactions::new(currency)),
+            | Currency::Metal(_)
+            | Currency::Stock(_) => Some(Transactions::new(currency)),
             Currency::Usd => None,
         };
 

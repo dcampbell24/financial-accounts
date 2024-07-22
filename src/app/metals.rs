@@ -7,6 +7,8 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use super::money::Metal;
+
 const _TESTING_RESPONSE: &str = r#"{
     "timestamp":1719978277,
     "metal":"XAU",
@@ -34,28 +36,30 @@ const _TESTING_RESPONSE: &str = r#"{
 }"#;
 
 const LOCATION_ACCESS_TOKEN: &str = "./www.goldapi.io-access-token.txt";
-const URL_GOLD_API_GOLD: &str = "https://www.goldapi.io/api/XAU/USD";
 
-pub fn get_price_gold(client: &Client) -> anyhow::Result<Metals> {
+pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<MetalsPrice> {
     let pwd = env::current_dir()?;
     let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
         "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
     ))?;
     let access_token = access_token.trim();
 
-    let url = Url::parse(URL_GOLD_API_GOLD)?;
+    let url = Url::parse(&format!(
+        "https://www.goldapi.io/api/{}/{}",
+        metal.symbol, metal.currency
+    ))?;
     let response = client
         .get(url)
         .header("x-access-token", access_token)
         .send()?;
     let string = response.text()?;
     // let string = _TESTING_RESPONSE;
-    let metals: Metals = serde_json::from_str(&string)?;
+    let metals: MetalsPrice = serde_json::from_str(&string)?;
     Ok(metals)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Metals {
+pub struct MetalsPrice {
     #[serde(with = "ts_seconds")]
     pub timestamp: DateTime<Utc>,
     pub metal: String,
@@ -83,7 +87,7 @@ pub struct Metals {
     pub price_gram_10k: Decimal,
 }
 
-impl Display for Metals {
+impl Display for MetalsPrice {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         writeln!(f, "timestamp: {}", self.timestamp)?;
         writeln!(f, "metal: {}", self.metal)?;

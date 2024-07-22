@@ -1,6 +1,13 @@
 {
-  "checked_up_to": "2024-07-22T00:04:34.760723863Z",
+  "checked_up_to": "2024-07-22T03:36:36.271965394Z",
   "accounts": [],
+  "metals": [
+    {
+      "currency": "USD",
+      "description": "Gold Troy Oz",
+      "symbol": "XAU"
+    }
+  ],
   "stocks": [
     {
       "description": "CHEVRON CORP",

@@ -79,6 +79,16 @@ impl Transactions {
                     comment: format!("{count} {} at {} USD", self.currency, gno.close),
                 })
             }
+            Currency::Metal(metal) => {
+                let gold = metals::get_price_metal(&http_client, metal)?;
+                let count = self.count();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * gold.price,
+                    date: Utc::now(),
+                    comment: format!("{count} {} at {} USD", self.currency, gold.price),
+                })
+            }
             Currency::Stock(stock) => {
                 let stock_price = stocks::get_stock_price(&http_client, stock)?;
                 let count = self.count();
@@ -87,16 +97,6 @@ impl Transactions {
                     balance: count * stock_price.close,
                     date: Utc::now(),
                     comment: format!("{count} {} at {} USD", self.currency, stock_price.close),
-                })
-            }
-            Currency::GoldOz => {
-                let gold = metals::get_price_gold(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * gold.price,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", self.currency, gold.price),
                 })
             }
             Currency::Usd => panic!("You can't hold USD as a secondary currency!"),

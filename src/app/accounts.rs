@@ -12,13 +12,14 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
-use super::money::Stock;
+use super::money::{Metal, Stock};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
+    pub metals: Vec<Metal>,
     pub stocks: Vec<Stock>,
 }
 
@@ -70,6 +71,7 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
+            metals: Vec::new(),
             stocks: Vec::new(),
         }
     }
