@@ -40,6 +40,7 @@ impl fmt::Display for Metal {
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
 pub struct Stock {
+    // currency: USD
     pub description: String,
     pub symbol: String,
 }
