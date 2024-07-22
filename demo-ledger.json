@@ -1,0 +1,38 @@
+{
+  "checked_up_to": "2024-07-22T00:04:34.760723863Z",
+  "accounts": [],
+  "stocks": [
+    {
+      "description": "CHEVRON CORP",
+      "symbol": "CVX"
+    },
+    {
+      "description": "CISCO SYSTEMS INC COM",
+      "symbol": "CSCO"
+    },
+    {
+      "description": "DISNEY (WALT) CO COM STK",
+      "symbol": "DIS"
+    },
+    {
+      "description": "INVESCO CHARTER FUND",
+      "symbol": "CHTRX"
+    },
+    {
+      "description": "JOHNSON AND JOHNSON COM",
+      "symbol": "JNJ"
+    },
+    {
+      "description": "KINDER MORGAN INC. DEL",
+      "symbol": "KMI"
+    },
+    {
+      "description": "TEXAS INSTRUMENTS",
+      "symbol": "TXN"
+    },
+    {
+      "description": "WEBSTER FINL CP PV $0.01",
+      "symbol": "WBS"
+    }
+  ]
+}

@@ -48,7 +48,7 @@ impl Transactions {
     pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
         let http_client = Client::new();
 
-        match self.currency {
+        match &self.currency {
             Currency::Btc => {
                 let btc = crypto::get_ohlc_bitcoin(&http_client)?;
                 let count = self.count();
@@ -79,8 +79,8 @@ impl Transactions {
                     comment: format!("{count} {} at {} USD", self.currency, gno.close),
                 })
             }
-            Currency::Stocks(stock) => {
-                let stock_price = stocks::get_stock_price(&http_client, stock)?;
+            Currency::Stock(stock) => {
+                let stock_price = stocks::get_stock_price(&http_client, &stock)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),

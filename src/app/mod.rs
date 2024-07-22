@@ -24,7 +24,7 @@ use iced::{
     },
     window, Alignment, Application, Command, Element, Event, Length, Theme,
 };
-use money::{Currency, Stock};
+use money::Currency;
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -56,27 +56,24 @@ pub struct App {
 
 impl App {
     fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
+        let mut currencies = vec![
+            Currency::Btc,
+            Currency::Eth,
+            Currency::Gno,
+            Currency::GoldOz,
+            Currency::Usd,
+        ];
+        for stock in &accounts.stocks {
+            currencies.push(Currency::Stock(stock.clone()));
+        }
+
         App {
             accounts,
             file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
             currency: Currency::Usd,
-            currency_selector: State::new(vec![
-                Currency::Btc,
-                Currency::Eth,
-                Currency::Gno,
-                Currency::GoldOz,
-                Currency::Stocks(Stock::Cvx),
-                Currency::Stocks(Stock::Csco),
-                Currency::Stocks(Stock::Dis),
-                Currency::Stocks(Stock::Chtrx),
-                Currency::Stocks(Stock::Jnj),
-                Currency::Stocks(Stock::Kmi),
-                Currency::Stocks(Stock::Txn),
-                Currency::Stocks(Stock::Wbs),
-                Currency::Usd,
-            ]),
+            currency_selector: State::new(currencies),
             project_months: None,
             screen,
             error: None,
@@ -377,7 +374,7 @@ impl Application for App {
             Message::SubmitAccount => {
                 self.accounts.inner.push(Account::new(
                     self.account_name.trim().to_string(),
-                    self.currency,
+                    self.currency.clone(),
                 ));
                 self.accounts
                     .inner

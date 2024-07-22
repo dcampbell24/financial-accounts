@@ -11,7 +11,7 @@ use super::money::Stock;
 
 const LOCATION_ACCESS_TOKEN: &str = "./polygon.io.txt";
 
-pub fn get_stock_price(client: &Client, stock: Stock) -> anyhow::Result<StockPrice> {
+pub fn get_stock_price(client: &Client, stock: &Stock) -> anyhow::Result<StockPrice> {
     let pwd = env::current_dir()?;
     let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
         "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
@@ -20,7 +20,7 @@ pub fn get_stock_price(client: &Client, stock: Stock) -> anyhow::Result<StockPri
 
     let url = format!(
         "https://api.polygon.io/v2/aggs/ticker/{}/prev",
-        stock.symbol()
+        &stock.symbol
     );
     let url = Url::parse(&url)?;
 
