@@ -80,7 +80,7 @@ impl Transactions {
                 })
             }
             Currency::Stock(stock) => {
-                let stock_price = stocks::get_stock_price(&http_client, &stock)?;
+                let stock_price = stocks::get_stock_price(&http_client, stock)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
