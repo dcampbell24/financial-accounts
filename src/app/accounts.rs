@@ -19,8 +19,8 @@ pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
-    pub metals: Vec<Metal>,
-    pub stocks: Vec<Stock>,
+    pub metals: Option<Vec<Metal>>,
+    pub stocks: Option<Vec<Stock>>,
 }
 
 impl Accounts {
@@ -71,8 +71,8 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
-            metals: Vec::new(),
-            stocks: Vec::new(),
+            metals: Some(Vec::new()),
+            stocks: Some(Vec::new()),
         }
     }
 
