@@ -1,10 +1,34 @@
 (
-    checked_up_to: "2024-07-23T20:16:34.735316239Z",
+    checked_up_to: "2024-07-23T18:25:04.957893281Z",
     accounts: [],
     fiats: [
         Usd,
+        // Aud,
+        // Gbp,
         Eur,
+        // Cad,
+        // Chf,
+        // Jpy,
+        // Krw,
+        // Inr,
+        // Cny,
+        // Zar,
+        // Thb,
+        // Sgd,
+        // Hkd,
+        // Czk,
+        // Pln,
+        // Myr,
+        // Rub,
+        // Aed,
+        // Kwd,
+        // Egp,
+        // Omr,
+        // Sar,
+        // Mxn,
+        // Jod,
     ],
+    // Supports all the metals on www.goldapi.io .
     metals: [
         (
             currency: Usd,
@@ -22,6 +46,8 @@
             symbol: "XAG",
         ),
     ],
+    // Supports all the stocks on polygon.io .
+    // All stocks are in Usd.
     stocks: [
         (
             description: "CHEVRON CORP",
@@ -35,6 +61,7 @@
             description: "DISNEY (WALT) CO COM STK",
             symbol: "DIS",
         ),
+        // Mutual Funds are not supported.
         (
             description: "INVESCO CHARTER FUND - Mutual Fund Not Supported",
             symbol: "CHTRX",
