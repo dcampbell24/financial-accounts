@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add fiat currencies and make them configurable via the configuration file.
+- Make metals and stocks configurable via the configuration file.
+- Change the configuration file format to RON.
 - [Add stocks](https://github.com/dcampbell24/financial-accounts/commit/e54732e3819d0ca843567259dabb04b194a7f1bc).
 - [Move the account messages to MessageAccount](https://github.com/dcampbell24/financial-accounts/commit/56f6705caaea2fa07bb0331116c47adaa69880f4).
 - [Display ParseDateError](https://github.com/dcampbell24/financial-accounts/commit/3627d92a30ea5ac1d86298b04e254e61513f4d4d).
