@@ -1,5 +1,5 @@
 {
-  "checked_up_to": "2024-07-23T02:56:39.793174378Z",
+  "checked_up_to": "2024-07-23T05:02:00.632048961Z",
   "accounts": [],
   "metals": [
     {
@@ -32,7 +32,7 @@
       "symbol": "DIS"
     },
     {
-      "description": "INVESCO CHARTER FUND",
+      "description": "INVESCO CHARTER FUND - Mutual Funds Not Supported",
       "symbol": "CHTRX"
     },
     {
