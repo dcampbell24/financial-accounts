@@ -24,7 +24,7 @@ use iced::{
     },
     window, Alignment, Application, Command, Element, Event, Length, Theme,
 };
-use money::{Currency, Fiat};
+use money::Currency;
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -47,7 +47,7 @@ pub struct App {
     file_path: PathBuf,
     file_picker: FilePicker,
     account_name: String,
-    currency: Currency,
+    currency: Option<Currency>,
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
@@ -72,7 +72,7 @@ impl App {
             file_path,
             file_picker: FilePicker::new(),
             account_name: String::new(),
-            currency: Currency::Fiat(Fiat::Usd),
+            currency: None,
             currency_selector: State::new(currencies),
             project_months: None,
             screen,
@@ -202,7 +202,7 @@ impl App {
         months = months.on_input(Message::ChangeProjectMonths);
 
         let mut add = button("Add");
-        if !self.account_name.is_empty() {
+        if !self.account_name.is_empty() && self.currency.is_some() {
             add = add.on_press(Message::SubmitAccount);
         }
         let cols = column![
@@ -215,7 +215,7 @@ impl App {
             row![
                 text("Account").size(TEXT_SIZE),
                 name,
-                ComboBox::new(&self.currency_selector, "currency", Some(&self.currency), |currency|  { Message::UpdateCurrency(currency) }),
+                ComboBox::new(&self.currency_selector, "currency", self.currency.as_ref(), |currency|  { Message::UpdateCurrency(Some(currency)) }),
                 add,
                 text(" ".repeat(EDGE_PADDING)),
 
@@ -374,7 +374,7 @@ impl Application for App {
             Message::SubmitAccount => {
                 self.accounts.inner.push(Account::new(
                     self.account_name.trim().to_string(),
-                    self.currency.clone(),
+                    self.currency.clone().unwrap(),
                 ));
                 self.accounts
                     .inner

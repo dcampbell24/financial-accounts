@@ -18,7 +18,7 @@ pub enum Message {
     ImportBoa(usize, PathBuf),
     ImportBoaScreen(usize),
     UpdateAccount(usize),
-    UpdateCurrency(Currency),
+    UpdateCurrency(Option<Currency>),
     SelectAccount(usize),
     SelectAccountSecondary(usize),
     SelectMonthly(usize),
