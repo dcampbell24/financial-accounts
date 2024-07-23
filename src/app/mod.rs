@@ -56,13 +56,12 @@ pub struct App {
 
 impl App {
     fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
-        let mut currencies = vec![
-            Currency::Btc,
-            Currency::Eth,
-            Currency::Gno,
-            Currency::Fiat(Fiat::Eur),
-            Currency::Fiat(Fiat::Usd),
-        ];
+        let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
+        if let Some(fiats) = &accounts.fiats {
+            for fiat in fiats {
+                currencies.push(Currency::Fiat(fiat.clone()));
+            }
+        }
         if let Some(metals) = &accounts.metals {
             for metal in metals {
                 currencies.push(Currency::Metal(metal.clone()));

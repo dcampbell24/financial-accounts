@@ -1,6 +1,10 @@
 {
-  "checked_up_to": "2024-07-23T05:02:00.632048961Z",
+  "checked_up_to": "2024-07-23T16:44:55.193404020Z",
   "accounts": [],
+  "fiats": [
+    "Usd",
+    "Eur"
+  ],
   "metals": [
     {
       "currency": "Usd",
