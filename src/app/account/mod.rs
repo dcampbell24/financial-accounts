@@ -37,9 +37,9 @@ pub struct Account {
     #[serde(skip)]
     pub tx_monthly: TransactionMonthlyToSubmit,
     #[serde(rename = "transactions")]
-    pub txs_1st: Transactions,
+    pub txs_1st: Transactions<Fiat>,
     #[serde(rename = "transactions_secondary")]
-    pub txs_2nd: Option<Transactions>,
+    pub txs_2nd: Option<Transactions<Currency>>,
     #[serde(rename = "transactions_monthly")]
     pub txs_monthly: Vec<TransactionMonthly>,
     #[serde(skip)]
@@ -56,14 +56,14 @@ impl Account {
     pub fn new(name: String, currency: Currency) -> Self {
         let (txs_1st, txs_2nd) = match &currency {
             Currency::Btc | Currency::Eth | Currency::Gno | Currency::Stock(_) => (
-                Transactions::new(Currency::Fiat(Fiat::Usd)),
+                Transactions::new(Fiat::Usd),
                 Some(Transactions::new(currency)),
             ),
             Currency::Metal(metal) => (
-                Transactions::new(Currency::Fiat(metal.currency.clone())),
+                Transactions::new(metal.currency.clone()),
                 Some(Transactions::new(currency)),
             ),
-            Currency::Fiat(_) => (Transactions::new(currency), None),
+            Currency::Fiat(currency) => (Transactions::new(currency.clone()), None),
         };
 
         Account {
@@ -88,15 +88,15 @@ impl Account {
         self.txs_2nd.as_ref().map(|txs| txs.balance())
     }
 
-    pub fn list_transactions(
-        &self,
-        mut txs_struct: Transactions,
+    pub fn list_transactions<'a, T: 'a + Clone + Display>(
+        &'a self,
+        mut txs_struct: Transactions<T>,
         total: Decimal,
         balance: Decimal,
     ) -> Scrollable<Message> {
         txs_struct.filter_month(self.filter_date);
 
-        let chart = ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
+        let chart: ChartWidget<'a, _, _, _, _> = ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];

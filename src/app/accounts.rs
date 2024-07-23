@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
-use super::money::{Currency, Fiat, Metal, Stock};
+use super::money::{Fiat, Metal, Stock};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -24,10 +24,10 @@ pub struct Accounts {
 }
 
 impl Accounts {
-    pub fn all_accounts_txs_1st(&self) -> Transactions {
+    pub fn all_accounts_txs_1st(&self) -> Transactions<Fiat> {
         let mut txs = Vec::new();
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 for tx in account.txs_1st.txs.iter() {
                     txs.push(tx.clone());
                 }
@@ -42,7 +42,7 @@ impl Accounts {
         }
 
         // Fixme: what to do when transactions are not in USD?
-        let mut transactions = Transactions::new(Currency::Fiat(Fiat::Usd));
+        let mut transactions = Transactions::new(Fiat::Usd);
         transactions.txs = txs;
         transactions
     }
@@ -89,7 +89,7 @@ impl Accounts {
     pub fn balance_usd(&self) -> Decimal {
         let mut balance = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 balance += account.balance_1st();
             }
         }
@@ -99,7 +99,7 @@ impl Accounts {
     pub fn total_for_months_usd(&self, project_months: u16) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_monthly();
                 let times: Decimal = project_months.into();
                 total += sum * times
@@ -111,7 +111,7 @@ impl Accounts {
     pub fn total_for_current_month_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_current_month();
                 total += sum
             }
@@ -122,7 +122,7 @@ impl Accounts {
     pub fn total_for_last_month_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_last_month();
                 total += sum
             }
@@ -133,7 +133,7 @@ impl Accounts {
     pub fn total_for_current_year_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_current_year();
                 total += sum
             }
@@ -144,7 +144,7 @@ impl Accounts {
     pub fn total_for_last_year_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in self.inner.iter() {
-            if account.txs_1st.currency == Currency::Fiat(Fiat::Usd) {
+            if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_last_year();
                 total += sum
             }

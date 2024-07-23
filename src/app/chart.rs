@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use plotters::{
     series::AreaSeries,
     style::{Color, FontTransform, IntoFont, ShapeStyle},
@@ -10,7 +12,7 @@ use crate::app::message::Message;
 
 use super::{account::transactions::Transactions, solarized};
 
-impl Chart<Message> for Transactions {
+impl<T: Clone + Display> Chart<Message> for Transactions<T> {
     type State = ();
 
     fn build_chart<DB: plotters::prelude::DrawingBackend>(
