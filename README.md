@@ -10,7 +10,7 @@ An application for tracking your personal finances.
 
 To get the price of metals I use a service from goldapi.io and it requires a
 token (free for 100 requests per month). The token is stored in a file named
-"www.goldapi.io-access-token.txt" stored in the same directory as the program
+"goldapi.io.txt" stored in the same directory as the program
 is run from or your home directory if you installed the application.
 
 To get the price of stocks I use a service from polygon.io and it requires a

@@ -35,7 +35,7 @@ const _TESTING_RESPONSE: &str = r#"{
     "price_gram_10k":31.2241
 }"#;
 
-const LOCATION_ACCESS_TOKEN: &str = "./www.goldapi.io-access-token.txt";
+const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
 
 pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<MetalsPrice> {
     let pwd = env::current_dir()?;
