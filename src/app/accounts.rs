@@ -1,4 +1,5 @@
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
+use ron::ser::PrettyConfig;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -19,9 +20,9 @@ pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
-    pub fiats: Option<Vec<Fiat>>,
-    pub metals: Option<Vec<Metal>>,
-    pub stocks: Option<Vec<Stock>>,
+    pub fiats: Vec<Fiat>,
+    pub metals: Vec<Metal>,
+    pub stocks: Vec<Stock>,
 }
 
 impl Accounts {
@@ -75,9 +76,9 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
-            fiats: Some(Vec::new()),
-            metals: Some(Vec::new()),
-            stocks: Some(Vec::new()),
+            fiats: Vec::new(),
+            metals: Vec::new(),
+            stocks: Vec::new(),
         }
     }
 
@@ -155,7 +156,8 @@ impl Accounts {
     }
 
     pub fn save_first(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
-        let j = serde_json::to_string_pretty(self)?;
+        let pretty_config = PrettyConfig::new();
+        let j = ron::ser::to_string_pretty(self, pretty_config)?;
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -165,7 +167,8 @@ impl Accounts {
     }
 
     pub fn save(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
-        let j = serde_json::to_string_pretty(self)?;
+        let pretty_config = PrettyConfig::new();
+        let j = ron::ser::to_string_pretty(self, pretty_config)?;
         let mut file = File::create(file_path)?;
         file.write_all(j.as_bytes())?;
         Ok(())
@@ -175,7 +178,7 @@ impl Accounts {
         let mut buf = String::new();
         let mut file = File::open(file_path)?;
         file.read_to_string(&mut buf)?;
-        let accounts = serde_json::from_str(&buf)?;
+        let accounts = ron::from_str(&buf)?;
         Ok(accounts)
     }
 }

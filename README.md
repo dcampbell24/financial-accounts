@@ -8,16 +8,24 @@
 
 An application for tracking your personal finances.
 
-To get the gold price I use a service from goldapi.io and it requires a token
-(free for 100 requests per month). The token is stored in a file named
+To get the price of metals I use a service from goldapi.io and it requires a
+token (free for 100 requests per month). The token is stored in a file named
 "www.goldapi.io-access-token.txt" stored in the same directory as the program
 is run from or your home directory if you installed the application.
 
+To get the price of stocks I use a service from polygon.io and it requires a
+token (free for 5 API Calls / Minute). The token is stored in a file named
+"polygon.io.txt" and is preceded by the string "Bearer ". It is stored in the
+same directory as the program is run from or your home directory if you
+installed the application.
+
 You can import Bank of America transactions via Import BoA.
 
-Via Tx 2nd it supports and getting the price of Bitcoin, Ethereum, Gnosis, and
-gold troy ounce. Tx 2nd becomes active when you select one of these currencies.
-Tx remains USD (imported when "Get Price" is selected).
+Via Tx 2nd you can get the price of metals, stocks, Bitcoin, Ethereum, and
+Gnosis. Tx 2nd becomes active when you select one of these currencies.
+Tx is the currency Tx 2nd is traded in. When you select "Get Price" Tx is
+populated with the quantity of Tx 2nd you hold times the current price
+(sometimes a day old price).
 
 Via Monthly Tx it supports making predictions into the future for what will
 happen to your finances. It also automatically submits these transactions at
@@ -25,6 +33,10 @@ the beginning of each month.
 
 On Tx and 2nd Tx you can limit transactions displayed by month.
 
-It would be trivial to add support for more cypto currencies and metals, but I
-have only implemented the ones I use. I could also add more bank imports, but
-again I have only implemented the one I use.
+Because there are many metals and stocks to choose from and many possible
+fiat currencies, you select which ones you want in your config file. An
+example of a config is shown in demo-ledger.ron. All the allowed fiat
+currencies are shown.
+
+I may allow for cypto currencies in the same way I do stocks and metals, but I
+haven't figured out the best way to support it yet.

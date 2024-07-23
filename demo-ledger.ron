@@ -1,0 +1,86 @@
+(
+    checked_up_to: "2024-07-23T18:25:04.957893281Z",
+    accounts: [],
+    fiats: [
+        Usd,
+        // Aud,
+        // Gbp,
+        Eur,
+        // Cad,
+        // Chf,
+        // Jpy,
+        // Krw,
+        // Inr,
+        // Cny,
+        // Zar,
+        // Thb,
+        // Sgd,
+        // Hkd,
+        // Czk,
+        // Pln,
+        // Myr,
+        // Rub,
+        // Aed,
+        // Kwd,
+        // Egp,
+        // Omr,
+        // Sar,
+        // Mxn,
+        // Jod,
+    ],
+    // Supports all the metals on www.goldapi.io .
+    metals: [
+        (
+            currency: Usd,
+            description: "Gold Troy Oz",
+            symbol: "XAU",
+        ),
+        (
+            currency: Usd,
+            description: "Silver Troy Oz",
+            symbol: "XAG",
+        ),
+        (
+            currency: Eur,
+            description: "Silver Troy Oz in Euros",
+            symbol: "XAG",
+        ),
+    ],
+    // Supports all the stocks on polygon.io .
+    // All stocks are in Usd.
+    stocks: [
+        (
+            description: "CHEVRON CORP",
+            symbol: "CVX",
+        ),
+        (
+            description: "CISCO SYSTEMS INC COM",
+            symbol: "CSCO",
+        ),
+        (
+            description: "DISNEY (WALT) CO COM STK",
+            symbol: "DIS",
+        ),
+        // Mutual Funds are not supported.
+        (
+            description: "INVESCO CHARTER FUND - Mutual Fund Not Supported",
+            symbol: "CHTRX",
+        ),
+        (
+            description: "JOHNSON AND JOHNSON COM",
+            symbol: "JNJ",
+        ),
+        (
+            description: "KINDER MORGAN INC. DEL",
+            symbol: "KMI",
+        ),
+        (
+            description: "TEXAS INSTRUMENTS",
+            symbol: "TXN",
+        ),
+        (
+            description: "WEBSTER FINL CP PV $0.01",
+            symbol: "WBS",
+        ),
+    ],
+)
