@@ -96,7 +96,8 @@ impl Account {
     ) -> Scrollable<Message> {
         txs_struct.filter_month(self.filter_date);
 
-        let chart: ChartWidget<'a, _, _, _, _> = ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
+        let chart: ChartWidget<'a, _, _, _, _> =
+            ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
