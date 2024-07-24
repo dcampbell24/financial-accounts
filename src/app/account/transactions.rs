@@ -70,7 +70,9 @@ impl<T: Clone + Display> Transactions<T> {
 
 impl Transactions<Currency> {
     pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
-        let http_client = Client::new();
+        let http_client = Client::builder()
+        .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts")
+        .build()?;
 
         match &self.currency {
             Currency::Btc => {
@@ -115,7 +117,7 @@ impl Transactions<Currency> {
                 })
             }
             Currency::MutualFund(fund) => {
-                let fund_price = mutual_funds::get_mutual_fund_price(&fund.symbol)?;
+                let fund_price = mutual_funds::get_mutual_fund_price(&http_client, &fund.symbol)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),

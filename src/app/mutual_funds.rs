@@ -7,11 +7,7 @@ use html5ever::parse_document;
 use html5ever::tree_builder::{TreeBuilderOpts, TreeSink};
 use rust_decimal::Decimal;
 
-pub fn get_mutual_fund_price(symbol: &str) -> anyhow::Result<Decimal> {
-    let client = Client::builder()
-        .user_agent("Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0")
-        .build()?;
-
+pub fn get_mutual_fund_price(client: &Client, symbol: &str) -> anyhow::Result<Decimal> {
     let resp = client
         .get(&format!("https://finance.yahoo.com/quote/{symbol}/"))
         .send()?;
