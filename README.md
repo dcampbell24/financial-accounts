@@ -21,10 +21,10 @@ installed the application.
 
 You can import Bank of America transactions via Import BoA.
 
-Via Tx 2nd you can get the price of metals, stocks, Bitcoin, Ethereum, and
-Gnosis. Tx 2nd becomes active when you select one of these currencies.
-Tx is the currency Tx 2nd is traded in. When you select "Get Price" Tx is
-populated with the quantity of Tx 2nd you hold times the current price
+Via Tx 2nd you can get the price of metals, mutual funds, stocks, Bitcoin,
+Ethereum, and Gnosis. Tx 2nd becomes active when you select one of these
+currencies. Tx is the currency Tx 2nd is traded in. When you select "Get Price"
+Tx is populated with the quantity of Tx 2nd you hold times the current price
 (sometimes a day old price).
 
 Via Monthly Tx it supports making predictions into the future for what will
