@@ -64,6 +64,9 @@ impl App {
         for metal in &accounts.metals {
             currencies.push(Currency::Metal(metal.clone()));
         }
+        for mutual_fund in &accounts.mutual_funds {
+            currencies.push(Currency::MutualFund(mutual_fund.clone()));
+        }
         for stock in &accounts.stocks {
             currencies.push(Currency::Stock(stock.clone()));
         }

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use html5ever::tendril::TendrilSink;
 use html5ever::ParseOpts;
 use markup5ever_rcdom::{NodeData, RcDom};
@@ -7,14 +5,15 @@ use reqwest::blocking::Client;
 
 use html5ever::parse_document;
 use html5ever::tree_builder::{TreeBuilderOpts, TreeSink};
+use rust_decimal::Decimal;
 
-fn get_mutual_fund_price() -> Result<(), Box<dyn Error>> {
+pub fn get_mutual_fund_price(symbol: &str) -> anyhow::Result<Decimal> {
     let client = Client::builder()
         .user_agent("Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0")
         .build()?;
 
     let resp = client
-        .get("https://finance.yahoo.com/quote/CHTRX/")
+        .get(&format!("https://finance.yahoo.com/quote/{symbol}/"))
         .send()?;
 
     let text = resp.text()?;
@@ -36,6 +35,7 @@ fn get_mutual_fund_price() -> Result<(), Box<dyn Error>> {
 
     let mut children = document.children.clone().into_inner();
     let mut children_2nd = Vec::new();
+    let mut price = "".into();
 
     'end: while children.len() > 0 {
         for child_1st in children {
@@ -48,8 +48,8 @@ fn get_mutual_fund_price() -> Result<(), Box<dyn Error>> {
                 NodeData::Element { name, attrs, .. } => {
                     let name: String = name.local.as_ascii().iter().map(|c| c.as_str()).collect();
                     let attrs = attrs.clone().into_inner();
-                    if name == "fin-streamer" && attrs[0].value == "CHTRX".into() {
-                        println!("{}: {}", attrs[0].value, attrs[1].value);
+                    if name == "fin-streamer" && attrs[0].value == symbol.into() {
+                        price = attrs[1].value.clone();
                         break 'end;
                     }
                 }
@@ -62,5 +62,6 @@ fn get_mutual_fund_price() -> Result<(), Box<dyn Error>> {
         children_2nd = Vec::new();
     }
 
-    Ok(())
+    let price: Decimal = price.parse()?;
+    Ok(price)
 }

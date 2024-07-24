@@ -9,6 +9,7 @@ pub enum Currency {
     Gno,
     Fiat(Fiat),
     Metal(Metal),
+    MutualFund(MutualFund),
     Stock(Stock),
 }
 
@@ -20,6 +21,7 @@ impl fmt::Display for Currency {
             Currency::Gno => write!(f, "GNO"),
             Currency::Fiat(fiat) => write!(f, "{fiat}"),
             Currency::Metal(metal) => write!(f, "Metal: {metal}"),
+            Currency::MutualFund(mutual_fund) => write!(f, "Mutual Fund: {mutual_fund}"),
             Currency::Stock(stock) => write!(f, "Stock: {stock}"),
         }
     }
@@ -128,6 +130,19 @@ pub struct Metal {
 }
 
 impl fmt::Display for Metal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.description)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+pub struct MutualFund {
+    // currency: USD
+    pub description: String,
+    pub symbol: String,
+}
+
+impl fmt::Display for MutualFund {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.description)
     }

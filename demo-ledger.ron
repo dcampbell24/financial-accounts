@@ -46,6 +46,14 @@
             symbol: "XAG",
         ),
     ],
+    // Supports everything on finance.yahoo.com .
+    // All mutual funds are in Usd.
+    mutual_funds: [
+        (
+            description: "Invesco Charter A",
+            symbol: "CHTRX",
+        ),
+    ],
     // Supports all the stocks on polygon.io .
     // All stocks are in Usd.
     stocks: [
@@ -60,11 +68,6 @@
         (
             description: "DISNEY (WALT) CO COM STK",
             symbol: "DIS",
-        ),
-        // Mutual Funds are not supported.
-        (
-            description: "INVESCO CHARTER FUND - Mutual Fund Not Supported",
-            symbol: "CHTRX",
         ),
         (
             description: "JOHNSON AND JOHNSON COM",

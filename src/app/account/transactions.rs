@@ -6,7 +6,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{crypto, metals, money::Currency, stocks};
+use crate::app::{crypto, metals, money::Currency, mutual_funds, stocks};
 
 use super::transaction::Transaction;
 
@@ -112,6 +112,16 @@ impl Transactions<Currency> {
                     balance: count * gold.price,
                     date: Utc::now(),
                     comment: format!("{count} {} at {} USD", &self.currency, gold.price),
+                })
+            }
+            Currency::MutualFund(fund) => {
+                let fund_price = mutual_funds::get_mutual_fund_price(&fund.symbol)?;
+                let count = self.count();
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: count * fund_price,
+                    date: Utc::now(),
+                    comment: format!("{count} {} at {} USD", &self.currency, fund_price),
                 })
             }
             Currency::Stock(stock) => {
