@@ -58,6 +58,7 @@ impl Account {
             Currency::Btc
             | Currency::Eth
             | Currency::Gno
+            | Currency::House(_)
             | Currency::MutualFund(_)
             | Currency::Stock(_) => (
                 Transactions::new(Fiat::Usd),

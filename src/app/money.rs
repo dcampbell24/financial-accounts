@@ -2,12 +2,15 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use super::houses::Address;
+
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
 pub enum Currency {
     Btc,
     Eth,
     Gno,
     Fiat(Fiat),
+    House(Address),
     Metal(Metal),
     MutualFund(MutualFund),
     Stock(Stock),
@@ -20,6 +23,7 @@ impl fmt::Display for Currency {
             Currency::Eth => write!(f, "ETH"),
             Currency::Gno => write!(f, "GNO"),
             Currency::Fiat(fiat) => write!(f, "{fiat}"),
+            Currency::House(address) => write!(f, "House: {address}"),
             Currency::Metal(metal) => write!(f, "Metal: {metal}"),
             Currency::MutualFund(mutual_fund) => write!(f, "Mutual Fund: {mutual_fund}"),
             Currency::Stock(stock) => write!(f, "Stock: {stock}"),

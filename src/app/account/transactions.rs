@@ -6,7 +6,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{crypto, metals, money::Currency, mutual_funds, stocks};
+use crate::app::{crypto, houses, metals, money::Currency, mutual_funds, stocks};
 
 use super::transaction::Transaction;
 
@@ -114,6 +114,15 @@ impl Transactions<Currency> {
                     balance: count * gold.price,
                     date: Utc::now(),
                     comment: format!("{count} {} at {} USD", &self.currency, gold.price),
+                })
+            }
+            Currency::House(address) => {
+                let house_price = houses::get_house_price(&http_client, address)?;
+                Ok(Transaction {
+                    amount: dec!(0),
+                    balance: house_price,
+                    date: Utc::now(),
+                    comment: address.to_string(),
                 })
             }
             Currency::MutualFund(fund) => {

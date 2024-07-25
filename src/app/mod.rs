@@ -3,6 +3,7 @@ mod accounts;
 mod chart;
 mod crypto;
 mod file_picker;
+mod houses;
 mod import_boa;
 mod message;
 mod metals;
@@ -60,6 +61,9 @@ impl App {
         let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
         for fiat in &accounts.fiats {
             currencies.push(Currency::Fiat(fiat.clone()));
+        }
+        for address in &accounts.houses {
+            currencies.push(Currency::House(address.clone()));
         }
         for metal in &accounts.metals {
             currencies.push(Currency::Metal(metal.clone()));
@@ -151,7 +155,11 @@ impl App {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
             col_10 = col_10.push(button_cell(update_name));
-            col_11 = col_11.push(button_cell(button("Import BoA").on_press(Message::ImportBoaScreen(i))));
+            let mut import_boa = button("Import BoA");
+            if account.txs_2nd.is_none() {
+                import_boa = import_boa.on_press(Message::ImportBoaScreen(i));
+            }
+            col_11 = col_11.push(button_cell(import_boa));
             let mut get_ohlc = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
