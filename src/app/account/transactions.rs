@@ -147,4 +147,16 @@ impl Transactions<Currency> {
             }
         }
     }
+
+    pub fn has_txs_2nd(&self) -> bool {
+        match self.currency {
+            Currency::Btc
+            | Currency::Eth
+            | Currency::Gno
+            | Currency::Metal(_)
+            | Currency::MutualFund(_)
+            | Currency::Stock(_) => true,
+            Currency::Fiat(_) | Currency::House(_) => false,
+        }
+    }
 }
