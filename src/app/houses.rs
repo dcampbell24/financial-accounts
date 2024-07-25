@@ -95,6 +95,12 @@ pub fn get_house_price(client: &Client, address: &Address) -> anyhow::Result<Dec
         children_2nd = Vec::new();
     }
 
-    let price: Decimal = price.parse()?;
-    Ok(price)
+    if price.is_empty() {
+        Err(anyhow::Error::msg(
+            "zillow thinks you're a bot. Try again much later!",
+        ))
+    } else {
+        let price: Decimal = price.parse()?;
+        Ok(price)
+    }
 }
