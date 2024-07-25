@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add houses and make them configurable via the configuration file.
 - Add mutual funds and make them configurable via the configuration file.
 - Add fiat currencies and make them configurable via the configuration file.
 - Make metals and stocks configurable via the configuration file.
