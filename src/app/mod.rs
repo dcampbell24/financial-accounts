@@ -12,6 +12,7 @@ mod mutual_funds;
 mod screen;
 pub mod solarized;
 mod stocks;
+mod zillow_cookies;
 
 use std::{cmp::Ordering, path::PathBuf, sync::Arc};
 

@@ -1,13 +1,17 @@
 use std::fmt;
 
+use chrono::{TimeZone, Utc};
 use html5ever::tendril::TendrilSink;
 use markup5ever_rcdom::{NodeData, RcDom};
 use reqwest::blocking::Client;
 
 use html5ever::tree_builder::{TreeBuilderOpts, TreeSink};
 use html5ever::{parse_document, ParseOpts};
+use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+
+use super::zillow_cookies;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
 pub struct Address {
@@ -39,7 +43,36 @@ impl fmt::Display for Address {
     }
 }
 
-pub fn get_house_price(client: &Client, address: &Address) -> anyhow::Result<Decimal> {
+pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
+    let cookie_store = {
+        if let Ok(file) = std::fs::File::open("zillow-cookies.json").map(std::io::BufReader::new) {
+            let cookie_store = reqwest_cookie_store::CookieStore::load_json(file).unwrap();
+            cookie_store
+        } else {
+            let cookies = zillow_cookies::get_cookies()?;
+            let mut cookie_store = reqwest_cookie_store::CookieStore::new(None);
+            let request_url = Url::parse("https://www.zillow.com")?;
+
+            for cookie in cookies {
+                if Utc::timestamp_opt(&Utc, cookie.expiry, 0).unwrap() > Utc::now() {
+                    cookie_store.insert(
+                        cookie_store::Cookie::parse(cookie.to_string(), &request_url)?,
+                        &request_url,
+                    )?;
+                }
+            }
+            cookie_store
+        }
+    };
+
+    let cookie_store = reqwest_cookie_store::CookieStoreMutex::new(cookie_store);
+    let cookie_store = std::sync::Arc::new(cookie_store);
+
+    let client = Client::builder()
+    .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts")
+    .cookie_provider(std::sync::Arc::clone(&cookie_store))
+    .build()?;
+
     let resp = client
         .get(&format!(
             "https://www.zillow.com/homes/{}",
@@ -49,6 +82,10 @@ pub fn get_house_price(client: &Client, address: &Address) -> anyhow::Result<Dec
 
     let text = resp.text()?;
 
+    let mut writer = std::fs::File::create("zillow-cookies.json").map(std::io::BufWriter::new)?;
+    let store = cookie_store.lock().unwrap();
+    store.save_json(&mut writer).unwrap();
+
     let opts = ParseOpts {
         tree_builder: TreeBuilderOpts {
             drop_doctype: true,
@@ -56,11 +93,9 @@ pub fn get_house_price(client: &Client, address: &Address) -> anyhow::Result<Dec
         },
         ..Default::default()
     };
-
     let mut dom = parse_document(RcDom::default(), opts)
         .from_utf8()
-        .read_from(&mut text.as_bytes())
-        .unwrap();
+        .read_from(&mut text.as_bytes())?;
 
     let document = dom.get_document();
 
@@ -97,7 +132,7 @@ pub fn get_house_price(client: &Client, address: &Address) -> anyhow::Result<Dec
 
     if price.is_empty() {
         Err(anyhow::Error::msg(
-            "zillow thinks you're a bot. Try again much later!",
+            "zillow thinks you're a bot. Re-do the captcha!",
         ))
     } else {
         let price: Decimal = price.parse()?;

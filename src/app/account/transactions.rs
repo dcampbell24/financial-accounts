@@ -117,7 +117,7 @@ impl Transactions<Currency> {
                 })
             }
             Currency::House(address) => {
-                let house_price = houses::get_house_price(&http_client, address)?;
+                let house_price = houses::get_house_price(address)?;
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: house_price,
