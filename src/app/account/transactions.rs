@@ -71,7 +71,7 @@ impl<T: Clone + Display> Transactions<T> {
 impl Transactions<Currency> {
     pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
         let http_client = Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts")
+        .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
         .build()?;
 
         match &self.currency {
