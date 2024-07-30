@@ -561,7 +561,7 @@ fn back_exit_view<'a>() -> Row<'a, Message> {
     .spacing(ROW_SPACING)
 }
 
-fn list_monthly(screen: &Screen) -> bool {
+const fn list_monthly(screen: &Screen) -> bool {
     match screen {
         Screen::NewOrLoadFile
         | Screen::Accounts

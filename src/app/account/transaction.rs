@@ -20,7 +20,7 @@ pub struct TransactionToSubmit {
 }
 
 impl TransactionToSubmit {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             amount: None,
             balance: None,
@@ -49,7 +49,7 @@ pub struct TransactionMonthlyToSubmit {
 }
 
 impl TransactionMonthlyToSubmit {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             amount: None,
             comment: String::new(),

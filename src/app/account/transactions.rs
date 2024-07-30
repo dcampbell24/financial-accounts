@@ -17,7 +17,7 @@ pub struct Transactions<T: Clone + Display> {
 }
 
 impl<T: Clone + Display> Transactions<T> {
-    pub fn new(currency: T) -> Self {
+    pub const fn new(currency: T) -> Self {
         Self {
             currency,
             txs: Vec::new(),
@@ -148,7 +148,7 @@ impl Transactions<Currency> {
         }
     }
 
-    pub fn has_txs_2nd(&self) -> bool {
+    pub const fn has_txs_2nd(&self) -> bool {
         match self.currency {
             Currency::Btc
             | Currency::Eth

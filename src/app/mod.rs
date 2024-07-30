@@ -246,7 +246,7 @@ impl App {
         Scrollable::new(cols)
     }
 
-    fn selected_account(&self) -> Option<usize> {
+    const fn selected_account(&self) -> Option<usize> {
         match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts => None,
             Screen::Account(account)
