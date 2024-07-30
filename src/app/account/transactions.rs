@@ -76,7 +76,7 @@ impl Transactions<Currency> {
 
         match &self.currency {
             Currency::Btc => {
-                let btc = crypto::get_ohlc_bitcoin(&http_client)?;
+                let btc = crypto::BtcOhlc::get(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
@@ -86,7 +86,7 @@ impl Transactions<Currency> {
                 })
             }
             Currency::Eth => {
-                let eth = crypto::get_ohlc_eth(&http_client)?;
+                let eth = crypto::EthOhlc::get(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
@@ -96,7 +96,7 @@ impl Transactions<Currency> {
                 })
             }
             Currency::Gno => {
-                let gno = crypto::get_ohlc_gno(&http_client)?;
+                let gno = crypto::GnoOhlc::get(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),

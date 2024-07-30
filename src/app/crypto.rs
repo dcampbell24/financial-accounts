@@ -39,19 +39,21 @@ struct OhlcVec {
 }
 
 macro_rules! impl_get_ohlc {
-    ($fn_name:ident, $ty:ident, $request:expr, $response:expr) => {
-        pub fn $fn_name(client: &Client) -> anyhow::Result<Ohlc> {
-            let name = $request.to_string();
-            let string = get_ohlc_untyped(client, &name)?;
-            let response: Response<$ty> = serde_json::from_str(&string)?;
-            response.to_ohlc(name)
-        }
-
+    ($ty:ident, $request:expr, $response:expr) => {
         #[derive(Clone, Debug, Serialize, Deserialize)]
-        struct $ty {
+        pub struct $ty {
             #[serde(rename = $response)]
             ohlc: Vec<Vec<IntOrString>>,
             last: u64,
+        }
+
+        impl $ty {
+            pub fn get(client: &Client) -> anyhow::Result<Ohlc> {
+                let name = $request.to_string();
+                let string = get_ohlc_untyped(client, &name)?;
+                let response: Response<$ty> = serde_json::from_str(&string)?;
+                response.to_ohlc(name)
+            }
         }
 
         impl OhlcResponse for Response<$ty> {
@@ -65,9 +67,9 @@ macro_rules! impl_get_ohlc {
     };
 }
 
-impl_get_ohlc!(get_ohlc_bitcoin, BitCoinOhlcVec, "XBTUSD", "XXBTZUSD");
-impl_get_ohlc!(get_ohlc_eth, EthOhlcVec, "ETHUSD", "XETHZUSD");
-impl_get_ohlc!(get_ohlc_gno, GnoOhlcVec, "GNOUSD", "GNOUSD");
+impl_get_ohlc!(BtcOhlc, "XBTUSD", "XXBTZUSD");
+impl_get_ohlc!(EthOhlc, "ETHUSD", "XETHZUSD");
+impl_get_ohlc!(GnoOhlc, "GNOUSD", "GNOUSD");
 
 trait OhlcErrorsTrait {
     fn errors(&self) -> OhlcErrors;
