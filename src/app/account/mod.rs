@@ -71,7 +71,7 @@ impl Account {
             Currency::Fiat(currency) => (Transactions::new(currency.clone()), None),
         };
 
-        Account {
+        Self {
             name,
             tx: TransactionToSubmit::new(),
             tx_monthly: TransactionMonthlyToSubmit::new(),

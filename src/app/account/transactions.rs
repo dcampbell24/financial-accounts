@@ -18,7 +18,7 @@ pub struct Transactions<T: Clone + Display> {
 
 impl<T: Clone + Display> Transactions<T> {
     pub fn new(currency: T) -> Self {
-        Transactions {
+        Self {
             currency,
             txs: Vec::new(),
         }

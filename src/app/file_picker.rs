@@ -66,7 +66,7 @@ impl FilePicker {
             Err(_) => PathBuf::from("."),
         };
 
-        FilePicker {
+        Self {
             current: path,
             filename: String::new(),
             error: String::new(),

@@ -76,7 +76,7 @@ impl App {
             currencies.push(Currency::Stock(stock.clone()));
         }
 
-        App {
+        Self {
             accounts,
             file_path,
             file_picker: FilePicker::new(),
@@ -266,11 +266,11 @@ impl Application for App {
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
         match FilePicker::load_or_new_file() {
             Some((accounts, path_buf)) => (
-                App::new(accounts, path_buf, Screen::Accounts),
+                Self::new(accounts, path_buf, Screen::Accounts),
                 window::maximize(window::Id::MAIN, true),
             ),
             None => (
-                App::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
+                Self::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
                 window::maximize(window::Id::MAIN, true),
             ),
         }

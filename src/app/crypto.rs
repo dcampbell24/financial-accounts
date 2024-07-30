@@ -122,22 +122,22 @@ enum IntOrString {
 impl IntOrString {
     fn take_i64(&self) -> i64 {
         match self {
-            IntOrString::I64(i) => *i,
-            IntOrString::Str(_) => panic!("You can only take i64s!"),
+            Self::I64(i) => *i,
+            Self::Str(_) => panic!("You can only take i64s!"),
         }
     }
 
     fn take_string(self) -> String {
         match self {
-            IntOrString::I64(_) => panic!("You can only take Strings!"),
-            IntOrString::Str(s) => s,
+            Self::I64(_) => panic!("You can only take Strings!"),
+            Self::Str(s) => s,
         }
     }
 }
 
 impl Default for IntOrString {
     fn default() -> Self {
-        IntOrString::I64(0)
+        Self::I64(0)
     }
 }
 
