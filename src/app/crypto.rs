@@ -34,6 +34,12 @@ struct Response<T> {
     result: T,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct OhlcVec {
+    ohlc: Vec<Vec<IntOrString>>,
+    last: u64,
+}
+
 macro_rules! get_ohlc {
     ($fn_name:ident, $ty:ident, $e:expr) => {
         pub fn $fn_name(client: &Client) -> anyhow::Result<Ohlc> {
@@ -45,9 +51,27 @@ macro_rules! get_ohlc {
     };
 }
 
-get_ohlc!(get_ohlc_bitcoin, BitCoinOhlcVec, "XBTUSD");
-get_ohlc!(get_ohlc_eth, EthOhlcVec, "ETHUSD");
-get_ohlc!(get_ohlc_gno, GnoOhlcVec, "GNOUSD");
+macro_rules! ohlc_vec {
+    ($ty:ident, $e:expr) => {
+        #[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
+        struct $ty {
+            #[serde(rename = $e)]
+            ohlc: Vec<Vec<IntOrString>>,
+            last: u64,
+        }
+    };
+}
+
+macro_rules! impl_get_ohlc {
+    ($fn_name:ident, $ty:ident, $request:expr, $response:expr) => {
+        get_ohlc!($fn_name, $ty, $request);
+        ohlc_vec!($ty, $response);
+    };
+}
+
+impl_get_ohlc!(get_ohlc_bitcoin, BitCoinOhlcVec, "XBTUSD", "XXBTZUSD");
+impl_get_ohlc!(get_ohlc_eth, EthOhlcVec, "ETHUSD", "XETHZUSD");
+impl_get_ohlc!(get_ohlc_gno, GnoOhlcVec, "GNOUSD", "GNOUSD");
 
 trait OhlcErrorsTrait {
     fn errors(&self) -> OhlcErrors;
@@ -89,27 +113,6 @@ trait OhlcResponse: OhlcErrorsTrait {
         }
     }
 }
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct OhlcVec {
-    ohlc: Vec<Vec<IntOrString>>,
-    last: u64,
-}
-
-macro_rules! ohlc_vec {
-    ($i:ident, $e:expr) => {
-        #[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
-        struct $i {
-            #[serde(rename = $e)]
-            ohlc: Vec<Vec<IntOrString>>,
-            last: u64,
-        }
-    };
-}
-
-ohlc_vec!(BitCoinOhlcVec, "XXBTZUSD");
-ohlc_vec!(EthOhlcVec, "XETHZUSD");
-ohlc_vec!(GnoOhlcVec, "GNOUSD");
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
