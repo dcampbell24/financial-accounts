@@ -32,7 +32,7 @@ impl fmt::Display for Currency {
 }
 
 // Supported by https://www.goldapi.io/ .
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub enum Fiat {
     Usd,
     Aud,
@@ -126,7 +126,7 @@ impl fmt::Display for Fiat {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub struct Metal {
     pub currency: Fiat,
     pub description: String,
@@ -139,7 +139,7 @@ impl fmt::Display for Metal {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub struct MutualFund {
     // currency: USD
     pub description: String,
@@ -152,7 +152,7 @@ impl fmt::Display for MutualFund {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub struct Stock {
     // currency: USD
     pub description: String,

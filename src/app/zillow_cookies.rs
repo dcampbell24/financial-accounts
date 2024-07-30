@@ -74,10 +74,10 @@ pub fn get_cookies() -> anyhow::Result<Vec<Cookie>> {
 
     let mut profile_path_default = profile_path.clone();
     profile_path_default.push("cookies.sqlite");
-    let mut profile_path_bak = profile_path.clone();
+    let mut profile_path_bak = profile_path;
     profile_path_bak.push("cookies.bak.sqlite");
 
-    if let Ok(true) = fs::exists(&profile_path_bak) {
+    if matches!(fs::exists(&profile_path_bak), Ok(true)) {
         Err(anyhow::Error::msg(
             r#""cookies.bak.sqlite" already exists!"#,
         ))?;

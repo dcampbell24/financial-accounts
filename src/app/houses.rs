@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use super::zillow_cookies;
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub struct Address {
     street_address: String,
     // apt_suite_other: Option<String>,
