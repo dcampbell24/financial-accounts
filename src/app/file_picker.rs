@@ -80,7 +80,7 @@ impl FilePicker {
         }
 
         let mut file_path = self.current.clone();
-        file.set_extension("json");
+        file.set_extension("ron");
         file_path.push(file);
         let accounts = Accounts::new();
         if let Err(err) = accounts.save_first(&file_path) {
@@ -132,10 +132,10 @@ impl FilePicker {
                 .on_input(Message::ChangeFileName)
                 .on_submit(Message::NewFile(PathBuf::from(&self.filename)));
             col = col
-                .push(row![input, text(".json"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
+                .push(row![input, text(".ron"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
-            let is_json = Regex::new(".json$").unwrap();
-            col = col.push(self.files(is_json, account).unwrap());
+            let is_ron = Regex::new(".ron$").unwrap();
+            col = col.push(self.files(is_ron, account).unwrap());
         } else {
             let is_csv = Regex::new(".csv$").unwrap();
             col = col.push(self.files(is_csv, account).unwrap());
