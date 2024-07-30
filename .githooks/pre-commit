@@ -1,3 +1,4 @@
 #!/bin/sh
 cargo check --workspace --all-targets --all-features --release
+cargo clippy
 cargo fmt --all --check
