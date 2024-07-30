@@ -34,26 +34,20 @@ struct Response<T> {
     result: T,
 }
 
-pub fn get_ohlc_bitcoin(client: &Client) -> anyhow::Result<Ohlc> {
-    let name = "XBTUSD".to_string();
-    let string = get_ohlc_untyped(client, &name)?;
-    let response: Response<BitCoinOhlcVec> = serde_json::from_str(&string)?;
-    response.to_ohlc(name)
+macro_rules! get_ohlc {
+    ($fn_name:ident, $ty:ident, $e:expr) => {
+        pub fn $fn_name(client: &Client) -> anyhow::Result<Ohlc> {
+            let name = $e.to_string();
+            let string = get_ohlc_untyped(client, &name)?;
+            let response: Response<$ty> = serde_json::from_str(&string)?;
+            response.to_ohlc(name)
+        }
+    };
 }
 
-pub fn get_ohlc_eth(client: &Client) -> anyhow::Result<Ohlc> {
-    let name = "ETHUSD".to_string();
-    let string = get_ohlc_untyped(client, &name)?;
-    let response: Response<EthOhlcVec> = serde_json::from_str(&string)?;
-    response.to_ohlc(name)
-}
-
-pub fn get_ohlc_gno(client: &Client) -> anyhow::Result<Ohlc> {
-    let name = "GNOUSD".to_string();
-    let string = get_ohlc_untyped(client, &name)?;
-    let response: Response<GnoOhlcVec> = serde_json::from_str(&string)?;
-    response.to_ohlc(name)
-}
+get_ohlc!(get_ohlc_bitcoin, BitCoinOhlcVec, "XBTUSD");
+get_ohlc!(get_ohlc_eth, EthOhlcVec, "ETHUSD");
+get_ohlc!(get_ohlc_gno, GnoOhlcVec, "GNOUSD");
 
 trait OhlcErrorsTrait {
     fn errors(&self) -> OhlcErrors;
