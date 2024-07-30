@@ -92,7 +92,7 @@ trait OhlcResponse: OhlcErrorsTrait {
 
         if errors.errors.is_empty() {
             let ohlc = Ohlc {
-                name: name.to_string(),
+                name,
                 currency: Currency::Fiat(Fiat::Usd),
                 date_time: DateTime::from_timestamp(result.ohlc[0][0].take_i64(), 0).unwrap(),
                 open: Decimal::from_str(&result.ohlc[0][1].clone().take_string())?,
