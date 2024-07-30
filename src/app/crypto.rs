@@ -6,8 +6,6 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use ohlc_response_macro::OhlcResponseDerive;
-
 use super::money::{Currency, Fiat};
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
@@ -40,32 +38,30 @@ struct OhlcVec {
     last: u64,
 }
 
-macro_rules! get_ohlc {
-    ($fn_name:ident, $ty:ident, $e:expr) => {
+macro_rules! impl_get_ohlc {
+    ($fn_name:ident, $ty:ident, $request:expr, $response:expr) => {
         pub fn $fn_name(client: &Client) -> anyhow::Result<Ohlc> {
-            let name = $e.to_string();
+            let name = $request.to_string();
             let string = get_ohlc_untyped(client, &name)?;
             let response: Response<$ty> = serde_json::from_str(&string)?;
             response.to_ohlc(name)
         }
-    };
-}
 
-macro_rules! ohlc_vec {
-    ($ty:ident, $e:expr) => {
-        #[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
+        #[derive(Clone, Debug, Serialize, Deserialize)]
         struct $ty {
-            #[serde(rename = $e)]
+            #[serde(rename = $response)]
             ohlc: Vec<Vec<IntOrString>>,
             last: u64,
         }
-    };
-}
 
-macro_rules! impl_get_ohlc {
-    ($fn_name:ident, $ty:ident, $request:expr, $response:expr) => {
-        get_ohlc!($fn_name, $ty, $request);
-        ohlc_vec!($ty, $response);
+        impl OhlcResponse for Response<$ty> {
+            fn result(&self) -> OhlcVec {
+                OhlcVec {
+                    ohlc: self.result.ohlc.clone(),
+                    last: self.result.last,
+                }
+            }
+        }
     };
 }
 

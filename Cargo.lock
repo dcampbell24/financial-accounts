@@ -1048,7 +1048,6 @@ dependencies = [
  "html5ever",
  "iced",
  "markup5ever_rcdom",
- "ohlc_response_macro",
  "plotters",
  "plotters-iced",
  "regex",
@@ -2620,14 +2619,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "081b846d1d56ddfc18fdf1a922e4f6e07a11768ea1b92dec44e42b72712ccfce"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "ohlc_response_macro"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn 2.0.71",
 ]
 
 [[package]]

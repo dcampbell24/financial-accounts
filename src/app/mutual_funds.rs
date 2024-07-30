@@ -42,7 +42,7 @@ pub fn get_mutual_fund_price(client: &Client, symbol: &str) -> anyhow::Result<De
                 | NodeData::Comment { .. }
                 | NodeData::ProcessingInstruction { .. } => {}
                 NodeData::Element { name, attrs, .. } => {
-                    let name: String = name.local.as_ascii().iter().map(|c| c.as_str()).collect();
+                    let name = name.local.to_string();
                     let attrs = attrs.clone().into_inner();
                     if name == "fin-streamer" && attrs[0].value == symbol.into() {
                         price = attrs[1].value.clone();
