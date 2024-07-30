@@ -134,11 +134,9 @@ pub fn get_cookies() -> anyhow::Result<Vec<Cookie>> {
 
     let mut cookies = Vec::new();
     let regex = Regex::new(r".*[\.]zillow[\.][[:alpha:]]").unwrap();
-    for cookie in cookie_iter {
-        if let Ok(cookie) = cookie {
-            if regex.is_match(&cookie.host) {
-                cookies.push(cookie);
-            }
+    for cookie in cookie_iter.flatten() {
+        if regex.is_match(&cookie.host) {
+            cookies.push(cookie);
         }
     }
 

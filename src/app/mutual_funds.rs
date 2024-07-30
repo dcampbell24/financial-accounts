@@ -9,7 +9,7 @@ use rust_decimal::Decimal;
 
 pub fn get_mutual_fund_price(client: &Client, symbol: &str) -> anyhow::Result<Decimal> {
     let resp = client
-        .get(&format!("https://finance.yahoo.com/quote/{symbol}/"))
+        .get(format!("https://finance.yahoo.com/quote/{symbol}/"))
         .send()?;
 
     let text = resp.text()?;
@@ -33,7 +33,7 @@ pub fn get_mutual_fund_price(client: &Client, symbol: &str) -> anyhow::Result<De
     let mut children_2nd = Vec::new();
     let mut price = "".into();
 
-    'end: while children.len() > 0 {
+    'end: while !children.is_empty() {
         for child_1st in children {
             match &child_1st.data {
                 NodeData::Document

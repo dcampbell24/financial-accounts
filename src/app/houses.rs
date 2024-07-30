@@ -46,8 +46,7 @@ impl fmt::Display for Address {
 pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
     let cookie_store = {
         if let Ok(file) = std::fs::File::open("zillow-cookies.json").map(std::io::BufReader::new) {
-            let cookie_store = reqwest_cookie_store::CookieStore::load_json(file).unwrap();
-            cookie_store
+            reqwest_cookie_store::CookieStore::load_json(file).unwrap()
         } else {
             let cookies = zillow_cookies::get_cookies()?;
             let mut cookie_store = reqwest_cookie_store::CookieStore::new(None);
@@ -74,7 +73,7 @@ pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
     .build()?;
 
     let resp = client
-        .get(&format!(
+        .get(format!(
             "https://www.zillow.com/homes/{}",
             address.zillow_search_string()
         ))
@@ -103,7 +102,7 @@ pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
     let mut children_2nd = Vec::new();
     let mut price = "".to_string();
 
-    'end: while children.len() > 0 {
+    'end: while !children.is_empty() {
         for child_1st in children {
             match &child_1st.data {
                 NodeData::Document
