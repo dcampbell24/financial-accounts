@@ -106,7 +106,7 @@ impl App {
         let mut col_3 = column![text_cell(" Current Year "), text_cell("")].align_items(Alignment::End);
         let mut col_4 = column![text_cell(" Last Year "), text_cell("")].align_items(Alignment::End);
         let mut col_5 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell(" Balance 2nd"), text_cell("")].align_items(Alignment::End);
+        let mut col_6 = column![text_cell(" Quantity "), text_cell("")].align_items(Alignment::End);
         let mut col_7 = column![text_cell(""), text_cell("")];
         let mut col_8 = column![text_cell(""), text_cell("")];
         let mut col_9 = column![text_cell(""), text_cell("")];
