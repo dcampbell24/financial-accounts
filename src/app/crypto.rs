@@ -102,26 +102,20 @@ struct OhlcVec {
     last: u64,
 }
 
-#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
-struct BitCoinOhlcVec {
-    #[serde(rename = "XXBTZUSD")]
-    ohlc: Vec<Vec<IntOrString>>,
-    last: u64,
+macro_rules! ohlc_vec {
+    ($i:ident, $e:expr) => {
+        #[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
+        struct $i {
+            #[serde(rename = $e)]
+            ohlc: Vec<Vec<IntOrString>>,
+            last: u64,
+        }
+    };
 }
 
-#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
-struct EthOhlcVec {
-    #[serde(rename = "XETHZUSD")]
-    ohlc: Vec<Vec<IntOrString>>,
-    last: u64,
-}
-
-#[derive(Clone, Debug, OhlcResponseDerive, Serialize, Deserialize)]
-struct GnoOhlcVec {
-    #[serde(rename = "GNOUSD")]
-    ohlc: Vec<Vec<IntOrString>>,
-    last: u64,
-}
+ohlc_vec!(BitCoinOhlcVec, "XXBTZUSD");
+ohlc_vec!(EthOhlcVec, "XETHZUSD");
+ohlc_vec!(GnoOhlcVec, "GNOUSD");
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
