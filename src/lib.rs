@@ -3,7 +3,7 @@
 //  clippy::restriction,
 //  clippy::pedantic,
 //  clippy::nursery,
-//  clippy::cargo,
+    clippy::cargo,
 )]
 
 /// The financial-accounts application.
