@@ -61,10 +61,7 @@ impl FilePicker {
     }
 
     pub fn new() -> Self {
-        let path = match fs::canonicalize(".") {
-            Ok(path) => path,
-            Err(_) => PathBuf::from("."),
-        };
+        let path = fs::canonicalize(".").unwrap_or_else(|_| PathBuf::from("."));
 
         Self {
             current: path,
@@ -269,18 +266,12 @@ trait ToStrErrorless {
 
 impl ToStrErrorless for OsString {
     fn to_str_errorless(&self) -> &str {
-        match self.to_str() {
-            Some(s) => s,
-            None => "Invalid OsString conversion to &str.",
-        }
+        self.to_str().map_or("Invalid OsString conversion to &str.", |s| s)
     }
 }
 
 impl ToStrErrorless for PathBuf {
     fn to_str_errorless(&self) -> &str {
-        match self.to_str() {
-            Some(s) => s,
-            None => "Invalid PathBuf conversion to &str.",
-        }
+        self.to_str().map_or("Invalid PathBuf conversion to &str.", |s| s)
     }
 }

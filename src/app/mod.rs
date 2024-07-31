@@ -122,14 +122,10 @@ impl App {
             let mut last_year = account.sum_last_year();
             let mut balance_1st = account.balance_1st();
 
-            let balance_2nd = match account.balance_2nd() {
-                Some(mut balance) => {
-                    balance.rescale(8);
-                    number_cell(balance)
-                }
-                None => text_cell("")
-
-            };
+            let balance_2nd = account.balance_2nd().map_or_else(|| text_cell(""), |mut balance| {
+                balance.rescale(8);
+                number_cell(balance)
+            });
 
             current_month.rescale(2);
             last_month.rescale(2);
@@ -170,10 +166,7 @@ impl App {
         }
         let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13];
 
-        let error = match &self.error {
-            Some(error) => row![text_cell(error)],
-            None => row![],
-        };
+        let error = self.error.as_ref().map_or_else(|| row![], |error| row![text_cell(error)]);
 
         let col_1 = column![
             text_cell("total current month USD: "),

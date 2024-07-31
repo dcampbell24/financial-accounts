@@ -88,10 +88,10 @@ impl Accounts {
     }
 
     pub fn project_months(&self, months: Option<u16>) -> Decimal {
-        match months {
-            Some(months) => self.balance_usd() + self.total_for_months_usd(months),
-            None => self.balance_usd(),
-        }
+        months.map_or_else(
+            || self.balance_usd(),
+            |months| self.balance_usd() + self.total_for_months_usd(months),
+        )
     }
 
     pub fn balance_usd(&self) -> Decimal {
