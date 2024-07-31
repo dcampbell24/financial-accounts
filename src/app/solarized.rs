@@ -23,66 +23,82 @@ green     #859900  2/2 green     64 #5f8700 60 -20  65 133 153   0  68 100  60
 
 use iced::Color;
 
+#[must_use]
 pub fn base03() -> Color {
     Color::from_rgb8(0, 43, 54)
 }
 
+#[must_use]
 pub fn base02() -> Color {
     Color::from_rgb8(7, 54, 66)
 }
 
+#[must_use]
 pub fn base01() -> Color {
     Color::from_rgb8(88, 110, 117)
 }
 
+#[must_use]
 pub fn base00() -> Color {
     Color::from_rgb8(101, 123, 131)
 }
 
+#[must_use]
 pub fn base0() -> Color {
     Color::from_rgb8(131, 148, 150)
 }
 
+#[must_use]
 pub fn base1() -> Color {
     Color::from_rgb8(147, 161, 161)
 }
 
+#[must_use]
 pub fn base2() -> Color {
     Color::from_rgb8(238, 232, 213)
 }
 
+#[must_use]
 pub fn base3() -> Color {
     Color::from_rgb8(253, 246, 227)
 }
 
+#[must_use]
 pub fn yellow() -> Color {
     Color::from_rgb8(181, 137, 0)
 }
 
+#[must_use]
 pub fn orange() -> Color {
     Color::from_rgb8(203, 75, 22)
 }
 
+#[must_use]
 pub fn red() -> Color {
     Color::from_rgb8(220, 50, 47)
 }
 
+#[must_use]
 pub fn magenta() -> Color {
     Color::from_rgb8(211, 54, 130)
 }
 
+#[must_use]
 pub fn violet() -> Color {
     Color::from_rgb8(108, 113, 196)
 }
 
+#[must_use]
 pub fn blue() -> Color {
     Color::from_rgb8(38, 139, 210)
 }
 
+#[must_use]
 pub fn cyan() -> Color {
     Color::from_rgb8(42, 161, 152)
 }
 
+#[must_use]
 pub fn green() -> Color {
     Color::from_rgb8(133, 153, 0)
 }
@@ -90,66 +106,82 @@ pub fn green() -> Color {
 pub mod plot {
     use plotters::style::RGBAColor;
 
+    #[must_use]
     pub const fn base03() -> RGBAColor {
         RGBAColor(0, 43, 54, 1.0)
     }
 
+    #[must_use]
     pub const fn base02() -> RGBAColor {
         RGBAColor(7, 54, 66, 1.0)
     }
 
+    #[must_use]
     pub const fn base01() -> RGBAColor {
         RGBAColor(88, 110, 117, 1.0)
     }
 
+    #[must_use]
     pub const fn base00() -> RGBAColor {
         RGBAColor(101, 123, 131, 1.0)
     }
 
+    #[must_use]
     pub const fn base0() -> RGBAColor {
         RGBAColor(131, 148, 150, 1.0)
     }
 
+    #[must_use]
     pub const fn base1() -> RGBAColor {
         RGBAColor(147, 161, 161, 1.0)
     }
 
+    #[must_use]
     pub const fn base2() -> RGBAColor {
         RGBAColor(238, 232, 213, 1.0)
     }
 
+    #[must_use]
     pub const fn base3() -> RGBAColor {
         RGBAColor(253, 246, 227, 1.0)
     }
 
+    #[must_use]
     pub const fn yellow() -> RGBAColor {
         RGBAColor(181, 137, 0, 1.0)
     }
 
+    #[must_use]
     pub const fn orange() -> RGBAColor {
         RGBAColor(203, 75, 22, 1.0)
     }
 
+    #[must_use]
     pub const fn red() -> RGBAColor {
         RGBAColor(220, 50, 47, 1.0)
     }
 
+    #[must_use]
     pub const fn magenta() -> RGBAColor {
         RGBAColor(211, 54, 130, 1.0)
     }
 
+    #[must_use]
     pub const fn violet() -> RGBAColor {
         RGBAColor(108, 113, 196, 1.0)
     }
 
+    #[must_use]
     pub const fn blue() -> RGBAColor {
         RGBAColor(38, 139, 210, 1.0)
     }
 
+    #[must_use]
     pub const fn cyan() -> RGBAColor {
         RGBAColor(42, 161, 152, 1.0)
     }
 
+    #[must_use]
     pub const fn green() -> RGBAColor {
         RGBAColor(133, 153, 0, 1.0)
     }

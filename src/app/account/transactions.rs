@@ -35,7 +35,7 @@ impl<T: Clone + Display> Transactions<T> {
     pub fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
         if let Some(date) = filter_date {
             let mut filtered_tx = Vec::new();
-            for tx in self.txs.iter() {
+            for tx in &self.txs {
                 if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
                     filtered_tx.push(tx.clone());
                 }

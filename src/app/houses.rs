@@ -103,7 +103,7 @@ pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
 
     let mut children = document.children.clone().into_inner();
     let mut children_2nd = Vec::new();
-    let mut price = "".to_string();
+    let mut price = String::new();
 
     'end: while !children.is_empty() {
         for child_1st in children {

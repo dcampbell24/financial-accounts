@@ -443,7 +443,7 @@ impl Application for App {
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
     value
         .as_ref()
-        .map_or_else(|| "".to_string(), |value| value.to_string())
+        .map_or_else(String::new, std::string::ToString::to_string)
 }
 
 fn set_amount(amount: &mut Option<Decimal>, string: &str) {

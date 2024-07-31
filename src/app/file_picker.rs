@@ -114,7 +114,7 @@ impl FilePicker {
     pub fn view(&self, account: Option<usize>) -> Scrollable<Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
-            col = col.push(text_cell(&self.error))
+            col = col.push(text_cell(&self.error));
         }
 
         if let Some(dir) = self.current.parent() {
@@ -153,7 +153,7 @@ impl FilePicker {
             let dir = entry?;
             dirs.push(dir);
         }
-        dirs.sort_by_key(|dir| dir.file_name());
+        dirs.sort_by_key(std::fs::DirEntry::file_name);
 
         for dir in dirs {
             let file_path = dir.path();
@@ -172,7 +172,7 @@ impl FilePicker {
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                         match account {
                             Some(account) => {
-                                button = button.on_press(Message::ImportBoa(account, file_path))
+                                button = button.on_press(Message::ImportBoa(account, file_path));
                             }
                             None => button = button.on_press(Message::LoadFile(file_path)),
                         }
@@ -185,7 +185,7 @@ impl FilePicker {
                     ));
                 }
                 FileTypeEnum::Symlink => {
-                    let file_path_real = fs::read_link(&file_path)?.to_path_buf();
+                    let file_path_real = fs::read_link(&file_path)?.clone();
                     if let Ok(metadata) = fs::metadata(&file_path) {
                         if metadata.is_file()
                             && file_regex.is_match(file_path_real.as_os_str().as_encoded_bytes())
@@ -200,7 +200,8 @@ impl FilePicker {
                                 .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                             match account {
                                 Some(account) => {
-                                    button = button.on_press(Message::ImportBoa(account, file_path))
+                                    button =
+                                        button.on_press(Message::ImportBoa(account, file_path));
                                 }
                                 None => button = button.on_press(Message::LoadFile(file_path)),
                             }

@@ -6,7 +6,6 @@ use plotters::{
 };
 use plotters_iced::Chart;
 use rust_decimal::prelude::ToPrimitive;
-use thousands::Separable;
 
 use crate::app::message::Message;
 
@@ -52,7 +51,7 @@ impl<T: Clone + Display> Chart<Message> for Transactions<T> {
                         .color(&solarized::plot::base0())
                         .transform(FontTransform::Rotate90),
                 )
-                .y_label_formatter(&|y| y.separate_with_underscores())
+                .y_label_formatter(&thousands::Separable::separate_with_underscores)
                 .draw()
                 .expect("failed to draw chart mesh");
 

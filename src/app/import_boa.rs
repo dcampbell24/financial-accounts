@@ -36,7 +36,7 @@ pub fn import_boa(file_path: PathBuf) -> Result<VecDeque<Transaction>, Box<dyn E
 
         if i == 0 {
             assert!(record.amount.is_empty());
-            record.amount = "0".to_string()
+            record.amount = "0".to_string();
         }
         // We don't get the time of day, so can't tell what day it really is in UTC.
         record.date.push_str(" 00:00:00");

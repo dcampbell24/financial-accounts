@@ -90,7 +90,9 @@ impl Account {
     }
 
     pub fn balance_2nd(&self) -> Option<Decimal> {
-        self.txs_2nd.as_ref().map(|txs| txs.balance())
+        self.txs_2nd
+            .as_ref()
+            .map(transactions::Transactions::balance)
     }
 
     pub fn list_transactions<'a, T: 'a + Clone + Display>(
@@ -334,7 +336,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.txs.iter() {
+        for tx in &self.txs_1st.txs {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -355,7 +357,7 @@ impl Account {
             .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
             .unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.txs.iter() {
+        for tx in &self.txs_1st.txs {
             if tx.date >= month_start && tx.date < month_end {
                 amount += tx.amount;
             }
@@ -367,7 +369,7 @@ impl Account {
         let now = Utc::now();
         let date = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.txs.iter() {
+        for tx in &self.txs_1st.txs {
             if tx.date >= date {
                 amount += tx.amount;
             }
@@ -380,7 +382,7 @@ impl Account {
         let year_start = Utc.with_ymd_and_hms(now.year() - 1, 1, 1, 0, 0, 0).unwrap();
         let year_end = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
         let mut amount = dec!(0);
-        for tx in self.txs_1st.txs.iter() {
+        for tx in &self.txs_1st.txs {
             if tx.date >= year_start && tx.date < year_end {
                 amount += tx.amount;
             }
@@ -410,7 +412,7 @@ impl Account {
                 }
                 if let Ok(date) = date.parse() {
                     if (1..13).contains(&date) {
-                        self.filter_date_month = Some(date)
+                        self.filter_date_month = Some(date);
                     }
                 }
             }
@@ -420,7 +422,7 @@ impl Account {
                 }
                 if let Ok(date) = date.parse() {
                     if (0..3_000).contains(&date) {
-                        self.filter_date_year = Some(date)
+                        self.filter_date_year = Some(date);
                     }
                 }
             }
@@ -530,7 +532,7 @@ fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'
     match (amount, balance) {
         (Some(_amount), None) => add = add.on_press(Message::Account(MessageAccount::SubmitTx)),
         (None, Some(_balance)) => {
-            add = add.on_press(Message::Account(MessageAccount::SubmitBalance))
+            add = add.on_press(Message::Account(MessageAccount::SubmitBalance));
         }
         (None, None) | (Some(_), Some(_)) => {}
     }
