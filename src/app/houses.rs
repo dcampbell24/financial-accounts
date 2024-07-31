@@ -82,8 +82,11 @@ pub fn get_house_price(address: &Address) -> anyhow::Result<Decimal> {
     let text = resp.text()?;
 
     let mut writer = std::fs::File::create("zillow-cookies.json").map(std::io::BufWriter::new)?;
-    let store = cookie_store.lock().unwrap();
-    store.save_json(&mut writer).unwrap();
+
+    {
+        let store = cookie_store.lock().unwrap();
+        store.save_json(&mut writer).unwrap();
+    }
 
     let opts = ParseOpts {
         tree_builder: TreeBuilderOpts {

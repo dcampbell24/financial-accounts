@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::houses::Address;
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Currency {
     Btc,
     Eth,
