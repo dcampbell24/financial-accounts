@@ -208,11 +208,8 @@ impl App {
         let name = text_input("Name", &self.account_name)
             .on_input(Message::ChangeAccountName);
 
-        let mut months = match self.project_months {
-            Some(months) => text_input("Months", &months.to_string()),
-            None => text_input("Months", ""),
-        };
-        months = months.on_input(Message::ChangeProjectMonths);
+        let months = text_input("Months", &some_or_empty(&self.project_months))
+            .on_input(Message::ChangeProjectMonths);
 
         let mut add = button("Add");
         if !self.account_name.is_empty() && self.currency.is_some() {
@@ -448,6 +445,12 @@ impl Application for App {
             subscription
         })
     }
+}
+
+fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
+    value
+        .as_ref()
+        .map_or_else(|| "".to_string(), |value| value.to_string())
 }
 
 fn set_amount(amount: &mut Option<Decimal>, string: &str) {

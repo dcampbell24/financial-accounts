@@ -26,7 +26,7 @@ use super::{
     money::{Currency, Fiat},
     number_cell,
     screen::Screen,
-    set_amount, text_cell, ROW_SPACING,
+    set_amount, some_or_empty, text_cell, ROW_SPACING,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -503,12 +503,6 @@ impl Account {
         }
         false
     }
-}
-
-fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
-    value
-        .as_ref()
-        .map_or_else(|| "".to_string(), |value| value.to_string())
 }
 
 fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
