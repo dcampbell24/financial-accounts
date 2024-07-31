@@ -25,10 +25,7 @@ impl<T: Clone + Display> Transactions<T> {
     }
 
     pub fn balance(&self) -> Decimal {
-        match self.txs.last() {
-            Some(tx) => tx.balance,
-            None => dec!(0),
-        }
+        self.txs.last().map_or_else(|| dec!(0), |tx| tx.balance)
     }
 
     fn count(&self) -> Decimal {

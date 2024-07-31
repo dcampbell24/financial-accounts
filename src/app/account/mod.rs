@@ -1,7 +1,7 @@
 pub mod transaction;
 pub mod transactions;
 
-use std::{error::Error, fmt::Display, mem::take};
+use std::{error::Error, fmt::Display, mem::take, string::ToString};
 
 use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
 use iced::{
@@ -128,17 +128,9 @@ impl Account {
             text(" ".repeat(EDGE_PADDING)),
         ];
 
-        let mut year = match &self.filter_date_year {
-            Some(year) => text_input("Year", &year.to_string()),
-            None => text_input("Year", ""),
-        };
-        year =
-            year.on_input(|string| Message::Account(MessageAccount::ChangeFilterDateYear(string)));
-        let mut month = match &self.filter_date_month {
-            Some(month) => text_input("Month", &month.to_string()),
-            None => text_input("Month", ""),
-        };
-        month = month
+        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
+            .on_input(|string| Message::Account(MessageAccount::ChangeFilterDateYear(string)));
+        let month = text_input("Month", &some_or_empty(&self.filter_date_year))
             .on_input(|string| Message::Account(MessageAccount::ChangeFilterDateMonth(string)));
         let mut filter_button = button("Filter");
         if self.submit_filter_date().is_some() {
@@ -153,12 +145,10 @@ impl Account {
             clear_button,
             text(" ".repeat(EDGE_PADDING)),
         ];
-
-        let error = if let Some(error) = &self.error {
-            row![text_cell(error)]
-        } else {
-            row![]
-        };
+        let error = self
+            .error
+            .as_ref()
+            .map_or_else(|| row![], |error| row![text_cell(error)]);
 
         let col = column![
             text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
@@ -515,20 +505,20 @@ impl Account {
     }
 }
 
+fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
+    value
+        .as_ref()
+        .map_or_else(|| "".to_string(), |value| value.to_string())
+}
+
 fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
-    let amount = match amount {
-        Some(amount) => text_input("Amount", &amount.to_string()),
-        None => text_input("Amount", ""),
-    };
-    amount.on_input(|string| Message::Account(MessageAccount::ChangeTx(string)))
+    text_input("Amount", &some_or_empty(amount))
+        .on_input(|string| Message::Account(MessageAccount::ChangeTx(string)))
 }
 
 fn balance_view(balance: &Option<Decimal>) -> TextInput<Message> {
-    let balance = match balance {
-        Some(balance) => text_input("Balance", &balance.to_string()),
-        None => text_input("Balance", ""),
-    };
-    balance.on_input(|string| Message::Account(MessageAccount::ChangeBalance(string)))
+    text_input("Balance", &some_or_empty(balance))
+        .on_input(|string| Message::Account(MessageAccount::ChangeBalance(string)))
 }
 
 fn date_view(date: &str) -> TextInput<Message> {
