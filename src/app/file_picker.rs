@@ -266,12 +266,14 @@ trait ToStrErrorless {
 
 impl ToStrErrorless for OsString {
     fn to_str_errorless(&self) -> &str {
-        self.to_str().map_or("Invalid OsString conversion to &str.", |s| s)
+        self.to_str()
+            .map_or("Invalid OsString conversion to &str.", |s| s)
     }
 }
 
 impl ToStrErrorless for PathBuf {
     fn to_str_errorless(&self) -> &str {
-        self.to_str().map_or("Invalid PathBuf conversion to &str.", |s| s)
+        self.to_str()
+            .map_or("Invalid PathBuf conversion to &str.", |s| s)
     }
 }
