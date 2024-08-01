@@ -59,22 +59,7 @@ pub struct App {
 
 impl App {
     fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
-        let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
-        for fiat in &accounts.fiats {
-            currencies.push(Currency::Fiat(fiat.clone()));
-        }
-        for address in &accounts.houses {
-            currencies.push(Currency::House(address.clone()));
-        }
-        for metal in &accounts.metals {
-            currencies.push(Currency::Metal(metal.clone()));
-        }
-        for mutual_fund in &accounts.mutual_funds {
-            currencies.push(Currency::MutualFund(mutual_fund.clone()));
-        }
-        for stock in &accounts.stocks {
-            currencies.push(Currency::Stock(stock.clone()));
-        }
+        let currencies = accounts.get_currencies();
 
         Self {
             accounts,
@@ -90,7 +75,9 @@ impl App {
     }
 
     fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
+        let currencies = accounts.get_currencies();
         self.accounts = accounts;
+        self.currency_selector = State::new(currencies);
         self.file_path = file_path;
         self.screen = screen;
     }

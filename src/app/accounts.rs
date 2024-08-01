@@ -14,7 +14,7 @@ use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
 use super::houses::Address;
-use super::money::{Fiat, Metal, MutualFund, Stock};
+use super::money::{Currency, Fiat, Metal, MutualFund, Stock};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -73,6 +73,26 @@ impl Accounts {
             }
         }
         self.checked_up_to = now;
+    }
+
+    pub fn get_currencies(&self) -> Vec<Currency> {
+        let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
+        for fiat in &self.fiats {
+            currencies.push(Currency::Fiat(fiat.clone()));
+        }
+        for address in &self.houses {
+            currencies.push(Currency::House(address.clone()));
+        }
+        for metal in &self.metals {
+            currencies.push(Currency::Metal(metal.clone()));
+        }
+        for mutual_fund in &self.mutual_funds {
+            currencies.push(Currency::MutualFund(mutual_fund.clone()));
+        }
+        for stock in &self.stocks {
+            currencies.push(Currency::Stock(stock.clone()));
+        }
+        currencies
     }
 
     pub fn new() -> Self {
