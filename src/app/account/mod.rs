@@ -200,14 +200,9 @@ impl Account {
     }
 
     pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
-        let year = match self.filter_date_year {
-            Some(year) => year,
-            None => return None,
-        };
-        let month = match self.filter_date_month {
-            Some(month) => month,
-            None => return None,
-        };
+        let year = self.filter_date_year?;
+        let month = self.filter_date_month?;
+
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 

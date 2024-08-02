@@ -132,10 +132,10 @@ impl FilePicker {
                 .push(row![input, text(".ron"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
             let is_ron = Regex::new(".ron$").unwrap();
-            col = col.push(self.files(is_ron, account).unwrap());
+            col = col.push(self.files(&is_ron, account).unwrap());
         } else {
             let is_csv = Regex::new(".csv$").unwrap();
-            col = col.push(self.files(is_csv, account).unwrap());
+            col = col.push(self.files(&is_csv, account).unwrap());
         }
 
         col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
@@ -144,7 +144,7 @@ impl FilePicker {
 
     fn files(
         &self,
-        file_regex: Regex,
+        file_regex: &Regex,
         account: Option<usize>,
     ) -> Result<Column<Message>, Box<dyn Error>> {
         let mut col = Column::new();
