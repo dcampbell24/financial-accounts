@@ -129,8 +129,10 @@ impl App {
             col_6 = col_6.push(balance_2nd);
             col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
-            if account.txs_2nd.is_some() && account.txs_2nd.as_ref().unwrap().has_txs_2nd() {
-                txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
+            if let Some(account) = &account.txs_2nd {
+                if account.has_txs_2nd() {
+                    txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
+                }
             }
             col_8 = col_8.push(button_cell(txs_2nd));
             col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
