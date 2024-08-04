@@ -501,7 +501,6 @@ impl Account {
                     if let Ok(tx) = self.display_error(self.submit_tx_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
-
                         self.tx = TransactionToSubmit::new();
                         return true;
                     }
