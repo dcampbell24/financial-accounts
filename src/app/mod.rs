@@ -74,10 +74,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn list_accounts(&self) -> Scrollable<Message> {
-        let my_chart = self.accounts.all_accounts_txs_1st();
-        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
-
+    fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
         let mut col_1 = column![text_cell(" Current Month "), text_cell("")].align_items(Alignment::End);
         let mut col_2 = column![text_cell(" Last Month "), text_cell("")].align_items(Alignment::End);
@@ -144,8 +141,14 @@ impl App {
             col_12 = col_12.push(button_cell(get_ohlc));
             col_13 = col_13.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        let rows = row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13];
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13]
+    }
 
+    #[rustfmt::skip]
+    fn list_accounts(&self) -> Scrollable<Message> {
+        let my_chart = self.accounts.all_accounts_txs_1st();
+        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+        let rows = self.rows();
         let error = self.error.as_ref().map_or_else(|| row![], |error| row![text_cell(error)]);
 
         let col_1 = column![
