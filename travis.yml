@@ -1,0 +1,13 @@
+language: rust
+rust:
+  # - stable
+  - beta
+  - nightly
+before_install:
+  - cargo install clippy
+  - cargo install rustfmt
+
+jobs:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
