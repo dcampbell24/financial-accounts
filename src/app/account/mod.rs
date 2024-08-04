@@ -404,6 +404,15 @@ impl Account {
         amount
     }
 
+    fn display_error(
+        &mut self,
+        result: Result<Transaction, ParseDateError>,
+    ) -> Result<Transaction, ParseDateError> {
+        result.inspect_err(|err| {
+            self.error = Some(err.clone());
+        })
+    }
+
     pub fn update(&mut self, screen: &Screen, message: MessageAccount) -> bool {
         let list_monthly = list_monthly(screen);
         self.error = None;
@@ -453,28 +462,22 @@ impl Account {
                 self.filter_date = None;
             }
             MessageAccount::SubmitBalance => match screen {
-                Screen::Account(_) => match self.submit_balance_1st() {
-                    Ok(tx) => {
+                Screen::Account(_) => {
+                    if let Ok(tx) = self.display_error(self.submit_balance_1st()) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.txs.sort_by_key(|tx| tx.date);
                         self.tx = TransactionToSubmit::new();
                         return true;
                     }
-                    Err(err) => {
-                        self.error = Some(err);
-                    }
-                },
-                Screen::AccountSecondary(_) => match self.submit_balance_2nd() {
-                    Ok(tx) => {
+                }
+                Screen::AccountSecondary(_) => {
+                    if let Ok(tx) = self.display_error(self.submit_balance_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
                         self.tx = TransactionToSubmit::new();
                         return true;
                     }
-                    Err(err) => {
-                        self.error = Some(err);
-                    }
-                },
+                }
                 Screen::Accounts
                 | Screen::ImportBoa(_)
                 | Screen::Monthly(_)
@@ -486,29 +489,23 @@ impl Account {
                 self.filter_date = self.submit_filter_date();
             }
             MessageAccount::SubmitTx => match screen {
-                Screen::Account(_) => match self.submit_tx_1st() {
-                    Ok(tx) => {
+                Screen::Account(_) => {
+                    if let Ok(tx) = self.display_error(self.submit_tx_1st()) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.txs.sort_by_key(|tx| tx.date);
                         self.tx = TransactionToSubmit::new();
                         return true;
                     }
-                    Err(err) => {
-                        self.error = Some(err);
-                    }
-                },
-                Screen::AccountSecondary(_) => match self.submit_tx_2nd() {
-                    Ok(tx) => {
+                }
+                Screen::AccountSecondary(_) => {
+                    if let Ok(tx) = self.display_error(self.submit_tx_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
 
                         self.tx = TransactionToSubmit::new();
                         return true;
                     }
-                    Err(err) => {
-                        self.error = Some(err);
-                    }
-                },
+                }
                 Screen::Monthly(_) => {
                     self.submit_tx_monthly();
                 }
