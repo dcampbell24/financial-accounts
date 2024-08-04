@@ -1,19 +1,15 @@
 use std::path::PathBuf;
 
-use super::{account::MessageAccount, money::Currency};
+use super::{account::MessageAccount, file_picker, money::Currency};
 
 #[derive(Clone, Debug)]
 pub enum Message {
     Account(MessageAccount),
-    NewFile(PathBuf),
-    LoadFile(PathBuf),
-    ChangeDir(PathBuf),
-    ChangeFileName(String),
-    HiddenFilesToggle,
     Back,
     ChangeAccountName(String),
     ChangeProjectMonths(String),
     Delete(usize),
+    FilePicker(file_picker::Message),
     GetOhlc(usize),
     ImportBoa(usize, PathBuf),
     ImportBoaScreen(usize),

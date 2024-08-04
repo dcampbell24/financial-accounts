@@ -74,14 +74,6 @@ impl App {
         }
     }
 
-    fn new_(&mut self, accounts: Accounts, file_path: PathBuf, screen: Screen) {
-        let currencies = accounts.get_currencies();
-        self.accounts = accounts;
-        self.currency_selector = State::new(currencies);
-        self.file_path = file_path;
-        self.screen = screen;
-    }
-
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
         let my_chart = self.accounts.all_accounts_txs_1st();
@@ -273,19 +265,6 @@ impl Application for App {
                     self.accounts.save(&self.file_path).unwrap();
                 }
             }
-            Message::NewFile(file) => {
-                if let Some((accounts, file_path)) = self.file_picker.new_file(file) {
-                    self.new_(accounts, file_path, Screen::Accounts);
-                }
-            }
-            Message::LoadFile(file_path) => {
-                if let Some(accounts) = self.file_picker.load_file(&file_path) {
-                    self.new_(accounts, file_path, Screen::Accounts);
-                }
-            }
-            Message::ChangeDir(path) => self.file_picker.change_dir(path),
-            Message::ChangeFileName(file) => self.file_picker.change_file_name(&file),
-            Message::HiddenFilesToggle => self.file_picker.show_hidden_files_toggle(),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
             Message::ChangeProjectMonths(months) => {
@@ -318,6 +297,11 @@ impl Application for App {
                     }
                 };
                 self.accounts.save(&self.file_path).unwrap();
+            }
+            Message::FilePicker(message) => {
+                if let Some(app) = self.file_picker.update(message) {
+                    *self = app;
+                }
             }
             Message::GetOhlc(i) => {
                 let account = &mut self.accounts[i];
@@ -421,7 +405,8 @@ impl Application for App {
             }) = event
             {
                 if key == Key::Character("h".into()) && modifiers == Modifiers::CTRL {
-                    subscription = Some(Message::HiddenFilesToggle);
+                    subscription =
+                        Some(Message::FilePicker(file_picker::Message::HiddenFilesToggle));
                 }
             }
             subscription

@@ -13,9 +13,9 @@ use std::{
     path::PathBuf,
 };
 
-use crate::app::{Message, PADDING};
+use crate::app::{self, PADDING};
 
-use super::{accounts::Accounts, button_cell, text_cell, EDGE_PADDING};
+use super::{accounts::Accounts, button_cell, screen::Screen, text_cell, App, EDGE_PADDING};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -111,14 +111,15 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self, account: Option<usize>) -> Scrollable<Message> {
+    pub fn view(&self, account: Option<usize>) -> Scrollable<app::Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(text_cell(&self.error));
         }
 
         if let Some(dir) = self.current.parent() {
-            let button = button(text(dir.display())).on_press(Message::ChangeDir(dir.into()));
+            let button = button(text(dir.display()))
+                .on_press(app::Message::FilePicker(Message::ChangeDir(dir.into())));
             col = col.push(button_cell(button));
         }
 
@@ -126,8 +127,10 @@ impl FilePicker {
 
         if account.is_none() {
             let input = text_input("filename", &self.filename)
-                .on_input(Message::ChangeFileName)
-                .on_submit(Message::NewFile(PathBuf::from(&self.filename)));
+                .on_input(|string| app::Message::FilePicker(Message::ChangeFileName(string)))
+                .on_submit(app::Message::FilePicker(Message::NewFile(PathBuf::from(
+                    &self.filename,
+                ))));
             col = col
                 .push(row![input, text(".ron"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
 
@@ -138,7 +141,7 @@ impl FilePicker {
             col = col.push(self.files(&is_csv, account).unwrap());
         }
 
-        col = col.push(button_cell(button("Exit").on_press(Message::Exit)));
+        col = col.push(button_cell(button("Exit").on_press(app::Message::Exit)));
         Scrollable::new(col)
     }
 
@@ -146,7 +149,7 @@ impl FilePicker {
         &self,
         file_regex: &Regex,
         account: Option<usize>,
-    ) -> Result<Column<Message>, Box<dyn Error>> {
+    ) -> Result<Column<app::Message>, Box<dyn Error>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
         for entry in fs::read_dir(&self.current)? {
@@ -172,17 +175,23 @@ impl FilePicker {
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                         match account {
                             Some(account) => {
-                                button = button.on_press(Message::ImportBoa(account, file_path));
+                                button =
+                                    button.on_press(app::Message::ImportBoa(account, file_path));
                             }
-                            None => button = button.on_press(Message::LoadFile(file_path)),
+                            None => {
+                                button = button.on_press(app::Message::FilePicker(
+                                    Message::LoadFile(file_path),
+                                ));
+                            }
                         }
                         col = col.push(button_cell(button));
                     }
                 }
                 FileTypeEnum::Dir => {
-                    col = col.push(button_cell(
-                        button(text(file_name_str)).on_press(Message::ChangeDir(file_path)),
-                    ));
+                    col = col
+                        .push(button_cell(button(text(file_name_str)).on_press(
+                            app::Message::FilePicker(Message::ChangeDir(file_path)),
+                        )));
                 }
                 FileTypeEnum::Symlink => {
                     let file_path_real = fs::read_link(&file_path)?.clone();
@@ -200,10 +209,14 @@ impl FilePicker {
                                 .style(iced::theme::Button::Custom(Box::new(GreenButton)));
                             match account {
                                 Some(account) => {
-                                    button =
-                                        button.on_press(Message::ImportBoa(account, file_path));
+                                    button = button
+                                        .on_press(app::Message::ImportBoa(account, file_path));
                                 }
-                                None => button = button.on_press(Message::LoadFile(file_path)),
+                                None => {
+                                    button = button.on_press(app::Message::FilePicker(
+                                        Message::LoadFile(file_path),
+                                    ));
+                                }
                             }
                             col = col.push(button_cell(button));
                         } else if metadata.is_dir() {
@@ -212,9 +225,9 @@ impl FilePicker {
                                 file_name.to_str_errorless(),
                                 file_path_real.to_str_errorless(),
                             );
-                            col = col.push(button_cell(
-                                button(text(&s)).on_press(Message::ChangeDir(file_path)),
-                            ));
+                            col = col.push(button_cell(button(text(&s)).on_press(
+                                app::Message::FilePicker(Message::ChangeDir(file_path)),
+                            )));
                         }
                     }
                 }
@@ -226,6 +239,29 @@ impl FilePicker {
 
     pub fn show_hidden_files_toggle(&mut self) {
         self.show_hidden_files = !self.show_hidden_files;
+    }
+
+    pub fn update(&mut self, message: Message) -> Option<App> {
+        match message {
+            Message::NewFile(file) => self
+                .new_file(file)
+                .map(|(accounts, file_path)| App::new(accounts, file_path, Screen::Accounts)),
+            Message::LoadFile(file_path) => self
+                .load_file(&file_path)
+                .map(|accounts| App::new(accounts, file_path, Screen::Accounts)),
+            Message::ChangeDir(path) => {
+                self.change_dir(path);
+                None
+            }
+            Message::ChangeFileName(file) => {
+                self.change_file_name(&file);
+                None
+            }
+            Message::HiddenFilesToggle => {
+                self.show_hidden_files_toggle();
+                None
+            }
+        }
     }
 }
 
@@ -277,4 +313,13 @@ impl ToStrErrorless for PathBuf {
         self.to_str()
             .map_or("Invalid PathBuf conversion to &str.", |s| s)
     }
+}
+
+#[derive(Clone, Debug)]
+pub enum Message {
+    NewFile(PathBuf),
+    LoadFile(PathBuf),
+    ChangeDir(PathBuf),
+    ChangeFileName(String),
+    HiddenFilesToggle,
 }
