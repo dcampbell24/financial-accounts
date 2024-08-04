@@ -6,7 +6,6 @@
     clippy::cargo,
 )]
 #![allow(
-    clippy::module_name_repetitions,
     clippy::similar_names,
     clippy::struct_field_names,
     clippy::multiple_crate_versions

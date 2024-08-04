@@ -12,14 +12,14 @@ pub struct Transaction {
 }
 
 #[derive(Clone, Debug)]
-pub struct TransactionToSubmit {
+pub struct ToSubmit {
     pub amount: Option<Decimal>,
     pub balance: Option<Decimal>,
     pub comment: String,
     pub date: String,
 }
 
-impl TransactionToSubmit {
+impl ToSubmit {
     pub const fn new() -> Self {
         Self {
             amount: None,
@@ -30,25 +30,25 @@ impl TransactionToSubmit {
     }
 }
 
-impl Default for TransactionToSubmit {
+impl Default for ToSubmit {
     fn default() -> Self {
         Self::new()
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TransactionMonthly {
+pub struct Monthly {
     pub amount: Decimal,
     pub comment: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct TransactionMonthlyToSubmit {
+pub struct MonthlyToSubmit {
     pub amount: Option<Decimal>,
     pub comment: String,
 }
 
-impl TransactionMonthlyToSubmit {
+impl MonthlyToSubmit {
     pub const fn new() -> Self {
         Self {
             amount: None,
@@ -57,7 +57,7 @@ impl TransactionMonthlyToSubmit {
     }
 }
 
-impl Default for TransactionMonthlyToSubmit {
+impl Default for MonthlyToSubmit {
     fn default() -> Self {
         Self::new()
     }

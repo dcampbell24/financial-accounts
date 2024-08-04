@@ -37,7 +37,7 @@ const _TESTING_RESPONSE: &str = r#"{
 
 const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
 
-pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<MetalsPrice> {
+pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<Price> {
     let pwd = env::current_dir()?;
     let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
         "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
@@ -55,12 +55,12 @@ pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<MetalsP
         .send()?;
     let string = response.text()?;
     // let string = _TESTING_RESPONSE;
-    let metals: MetalsPrice = serde_json::from_str(&string)?;
+    let metals: Price = serde_json::from_str(&string)?;
     Ok(metals)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MetalsPrice {
+pub struct Price {
     #[serde(with = "ts_seconds")]
     pub timestamp: DateTime<Utc>,
     pub metal: String,
@@ -88,7 +88,7 @@ pub struct MetalsPrice {
     pub price_gram_10k: Decimal,
 }
 
-impl Display for MetalsPrice {
+impl Display for Price {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         writeln!(f, "timestamp: {}", self.timestamp)?;
         writeln!(f, "metal: {}", self.metal)?;

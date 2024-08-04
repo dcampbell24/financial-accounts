@@ -15,12 +15,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use transactions::Transactions;
 
-use crate::app::{
-    account::transaction::{Transaction, TransactionMonthly, TransactionToSubmit},
-    Message, EDGE_PADDING, PADDING,
-};
-
-use self::transaction::TransactionMonthlyToSubmit;
+use crate::app::{self, account::transaction::Transaction, EDGE_PADDING, PADDING};
 
 use super::{
     button_cell,
@@ -35,15 +30,15 @@ use super::{
 pub struct Account {
     pub name: String,
     #[serde(skip)]
-    pub tx: TransactionToSubmit,
+    pub tx: transaction::ToSubmit,
     #[serde(skip)]
-    pub tx_monthly: TransactionMonthlyToSubmit,
+    pub tx_monthly: transaction::MonthlyToSubmit,
     #[serde(rename = "transactions")]
     pub txs_1st: Transactions<Fiat>,
     #[serde(rename = "transactions_secondary")]
     pub txs_2nd: Option<Transactions<Currency>>,
     #[serde(rename = "transactions_monthly")]
-    pub txs_monthly: Vec<TransactionMonthly>,
+    pub txs_monthly: Vec<transaction::Monthly>,
     #[serde(skip)]
     pub filter_date: Option<DateTime<Utc>>,
     #[serde(skip)]
@@ -75,8 +70,8 @@ impl Account {
 
         Self {
             name,
-            tx: TransactionToSubmit::new(),
-            tx_monthly: TransactionMonthlyToSubmit::new(),
+            tx: transaction::ToSubmit::new(),
+            tx_monthly: transaction::MonthlyToSubmit::new(),
             txs_1st,
             txs_2nd,
             txs_monthly: Vec::new(),
@@ -110,7 +105,7 @@ impl Account {
             self.txs_1st.txs.push(tx);
         }
         self.txs_1st.txs.sort_by_key(|tx| tx.date);
-        self.tx = TransactionToSubmit::new();
+        self.tx = transaction::ToSubmit::new();
         Ok(())
     }
 
@@ -119,7 +114,7 @@ impl Account {
         mut txs_struct: Transactions<T>,
         total: Decimal,
         balance: Decimal,
-    ) -> Scrollable<Message> {
+    ) -> Scrollable<app::Message> {
         txs_struct.filter_month(self.filter_date);
 
         let chart: ChartWidget<'a, _, _, _, _> =
@@ -136,7 +131,9 @@ impl Account {
             col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
             col_3 = col_3.push(number_cell(tx.balance));
             col_4 = col_4.push(text_cell(&tx.comment));
-            col_5 = col_5.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_5 = col_5.push(button_cell(
+                button("Delete").on_press(app::Message::Delete(i)),
+            ));
         }
         let rows = row![col_1, col_2, col_3, col_4, col_5];
 
@@ -150,15 +147,15 @@ impl Account {
         ];
 
         let year = text_input("Year", &some_or_empty(&self.filter_date_year))
-            .on_input(|string| Message::Account(MessageAccount::ChangeFilterDateYear(string)));
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
         let month = text_input("Month", &some_or_empty(&self.filter_date_year))
-            .on_input(|string| Message::Account(MessageAccount::ChangeFilterDateMonth(string)));
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
         let mut filter_button = button("Filter");
         if self.submit_filter_date().is_some() {
             filter_button =
-                filter_button.on_press(Message::Account(MessageAccount::SubmitFilterDate));
+                filter_button.on_press(app::Message::Account(Message::SubmitFilterDate));
         }
-        let clear_button = button("Clear").on_press(Message::Account(MessageAccount::ClearDate));
+        let clear_button = button("Clear").on_press(app::Message::Account(Message::ClearDate));
         let filter_date = row![
             year,
             month,
@@ -186,7 +183,7 @@ impl Account {
         Scrollable::new(col)
     }
 
-    pub fn list_monthly(&self) -> Scrollable<Message> {
+    pub fn list_monthly(&self) -> Scrollable<app::Message> {
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Comment ")];
         let mut col_3 = column![text_cell("")];
@@ -196,7 +193,9 @@ impl Account {
             total += tx.amount;
             col_1 = col_1.push(number_cell(tx.amount));
             col_2 = col_2.push(text_cell(&tx.comment));
-            col_3 = col_3.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_3 = col_3.push(button_cell(
+                button("Delete").on_press(app::Message::Delete(i)),
+            ));
         }
         let rows = row![col_1, col_2, col_3];
 
@@ -325,7 +324,7 @@ impl Account {
 
     pub fn submit_tx_monthly(&mut self) {
         let tx = take(&mut self.tx_monthly);
-        let tx = TransactionMonthly {
+        let tx = transaction::Monthly {
             amount: tx.amount.unwrap(),
             comment: tx.comment,
         };
@@ -413,23 +412,23 @@ impl Account {
         })
     }
 
-    pub fn update(&mut self, screen: &Screen, message: MessageAccount) -> bool {
+    pub fn update(&mut self, screen: &Screen, message: Message) -> bool {
         let list_monthly = list_monthly(screen);
         self.error = None;
 
         match message {
-            MessageAccount::ChangeBalance(balance) => {
+            Message::ChangeBalance(balance) => {
                 set_amount(&mut self.tx.balance, &balance);
             }
-            MessageAccount::ChangeComment(comment) => {
+            Message::ChangeComment(comment) => {
                 if list_monthly {
                     self.tx_monthly.comment = comment;
                 } else {
                     self.tx.comment = comment;
                 }
             }
-            MessageAccount::ChangeDate(date) => self.tx.date = date,
-            MessageAccount::ChangeFilterDateMonth(date) => {
+            Message::ChangeDate(date) => self.tx.date = date,
+            Message::ChangeFilterDateMonth(date) => {
                 if date.is_empty() {
                     self.filter_date_month = None;
                 }
@@ -439,7 +438,7 @@ impl Account {
                     }
                 }
             }
-            MessageAccount::ChangeFilterDateYear(date) => {
+            Message::ChangeFilterDateYear(date) => {
                 if date.is_empty() {
                     self.filter_date_year = None;
                 }
@@ -449,24 +448,24 @@ impl Account {
                     }
                 }
             }
-            MessageAccount::ChangeTx(tx) => {
+            Message::ChangeTx(tx) => {
                 if list_monthly {
                     set_amount(&mut self.tx_monthly.amount, &tx);
                 } else {
                     set_amount(&mut self.tx.amount, &tx);
                 }
             }
-            MessageAccount::ClearDate => {
+            Message::ClearDate => {
                 self.filter_date_year = None;
                 self.filter_date_month = None;
                 self.filter_date = None;
             }
-            MessageAccount::SubmitBalance => match screen {
+            Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
                     if let Ok(tx) = self.display_error(self.submit_balance_1st()) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.txs.sort_by_key(|tx| tx.date);
-                        self.tx = TransactionToSubmit::new();
+                        self.tx = transaction::ToSubmit::new();
                         return true;
                     }
                 }
@@ -474,7 +473,7 @@ impl Account {
                     if let Ok(tx) = self.display_error(self.submit_balance_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
-                        self.tx = TransactionToSubmit::new();
+                        self.tx = transaction::ToSubmit::new();
                         return true;
                     }
                 }
@@ -485,15 +484,15 @@ impl Account {
                     panic!("You can't submit a balance here!");
                 }
             },
-            MessageAccount::SubmitFilterDate => {
+            Message::SubmitFilterDate => {
                 self.filter_date = self.submit_filter_date();
             }
-            MessageAccount::SubmitTx => match screen {
+            Message::SubmitTx => match screen {
                 Screen::Account(_) => {
                     if let Ok(tx) = self.display_error(self.submit_tx_1st()) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.txs.sort_by_key(|tx| tx.date);
-                        self.tx = TransactionToSubmit::new();
+                        self.tx = transaction::ToSubmit::new();
                         return true;
                     }
                 }
@@ -501,7 +500,7 @@ impl Account {
                     if let Ok(tx) = self.display_error(self.submit_tx_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
-                        self.tx = TransactionToSubmit::new();
+                        self.tx = transaction::ToSubmit::new();
                         return true;
                     }
                 }
@@ -517,42 +516,42 @@ impl Account {
     }
 }
 
-fn amount_view(amount: &Option<Decimal>) -> TextInput<Message> {
+fn amount_view(amount: &Option<Decimal>) -> TextInput<app::Message> {
     text_input("Amount", &some_or_empty(amount))
-        .on_input(|string| Message::Account(MessageAccount::ChangeTx(string)))
+        .on_input(|string| app::Message::Account(Message::ChangeTx(string)))
 }
 
-fn balance_view(balance: &Option<Decimal>) -> TextInput<Message> {
+fn balance_view(balance: &Option<Decimal>) -> TextInput<app::Message> {
     text_input("Balance", &some_or_empty(balance))
-        .on_input(|string| Message::Account(MessageAccount::ChangeBalance(string)))
+        .on_input(|string| app::Message::Account(Message::ChangeBalance(string)))
 }
 
-fn date_view(date: &str) -> TextInput<Message> {
+fn date_view(date: &str) -> TextInput<app::Message> {
     text_input("Date YYYY-MM-DD (empty for today)", date)
-        .on_input(|string| Message::Account(MessageAccount::ChangeDate(string)))
+        .on_input(|string| app::Message::Account(Message::ChangeDate(string)))
 }
 
-fn comment_view(comment: &str) -> TextInput<Message> {
+fn comment_view(comment: &str) -> TextInput<app::Message> {
     text_input("Comment", comment)
-        .on_input(|string| Message::Account(MessageAccount::ChangeComment(string)))
+        .on_input(|string| app::Message::Account(Message::ChangeComment(string)))
 }
 
-fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, Message> {
+fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, app::Message> {
     let mut add = button("Add");
     match (amount, balance) {
-        (Some(_amount), None) => add = add.on_press(Message::Account(MessageAccount::SubmitTx)),
+        (Some(_amount), None) => add = add.on_press(app::Message::Account(Message::SubmitTx)),
         (None, Some(_balance)) => {
-            add = add.on_press(Message::Account(MessageAccount::SubmitBalance));
+            add = add.on_press(app::Message::Account(Message::SubmitBalance));
         }
         (None, None) | (Some(_), Some(_)) => {}
     }
     add
 }
 
-fn back_exit_view<'a>() -> Row<'a, Message> {
+fn back_exit_view<'a>() -> Row<'a, app::Message> {
     row![
-        button("Back").on_press(Message::Back),
-        button("Exit").on_press(Message::Exit),
+        button("Back").on_press(app::Message::Back),
+        button("Exit").on_press(app::Message::Exit),
     ]
     .spacing(ROW_SPACING)
 }
@@ -582,7 +581,7 @@ impl Display for ParseDateError {
 impl Error for ParseDateError {}
 
 #[derive(Clone, Debug)]
-pub enum MessageAccount {
+pub enum Message {
     ChangeBalance(String),
     ChangeComment(String),
     ChangeDate(String),

@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use super::{account::MessageAccount, file_picker, money::Currency};
+use super::{account, file_picker, money::Currency};
 
 #[derive(Clone, Debug)]
 pub enum Message {
-    Account(MessageAccount),
+    Account(account::Message),
     Back,
     ChangeAccountName(String),
     ChangeProjectMonths(String),
