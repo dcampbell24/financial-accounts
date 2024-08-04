@@ -1,7 +1,7 @@
 pub mod transaction;
 pub mod transactions;
 
-use std::{error::Error, fmt::Display, mem::take, string::ToString};
+use std::{error::Error, fmt::Display, mem::take, path::PathBuf, string::ToString};
 
 use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
 use iced::{
@@ -23,6 +23,7 @@ use self::transaction::TransactionMonthlyToSubmit;
 
 use super::{
     button_cell,
+    import_boa::import_boa,
     money::{Currency, Fiat},
     number_cell,
     screen::Screen,
@@ -93,6 +94,20 @@ impl Account {
         self.txs_2nd
             .as_ref()
             .map(transactions::Transactions::balance)
+    }
+
+    pub fn import_boa(&mut self, file_path: PathBuf) {
+        let mut boa = import_boa(file_path).unwrap();
+
+        let mut tx_1st = boa.pop_front().unwrap();
+        tx_1st.amount = tx_1st.balance - self.balance_1st();
+        boa.push_front(tx_1st);
+
+        for tx in boa {
+            self.txs_1st.txs.push(tx);
+        }
+        self.txs_1st.txs.sort_by_key(|tx| tx.date);
+        self.tx = TransactionToSubmit::new();
     }
 
     pub fn list_transactions<'a, T: 'a + Clone + Display>(

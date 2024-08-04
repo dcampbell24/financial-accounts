@@ -34,8 +34,7 @@ use rust_decimal_macros::dec;
 use thousands::Separable;
 
 use crate::app::{
-    account::transaction::TransactionToSubmit, account::Account, accounts::Accounts,
-    file_picker::FilePicker, import_boa::import_boa, message::Message, screen::Screen,
+    account::Account, accounts::Accounts, file_picker::FilePicker, message::Message, screen::Screen,
 };
 
 const EDGE_PADDING: usize = 4;
@@ -319,17 +318,7 @@ impl Application for App {
             }
             Message::ImportBoa(i, file_path) => {
                 let account = &mut self.accounts[i];
-                let mut boa = import_boa(file_path).unwrap();
-
-                let mut tx_1st = boa.pop_front().unwrap();
-                tx_1st.amount = tx_1st.balance - account.balance_1st();
-                boa.push_front(tx_1st);
-
-                for tx in boa {
-                    account.txs_1st.txs.push(tx);
-                }
-                account.txs_1st.txs.sort_by_key(|tx| tx.date);
-                account.tx = TransactionToSubmit::new();
+                account.import_boa(file_path);
                 self.accounts.save(&self.file_path).unwrap();
                 self.screen = Screen::Accounts;
             }
