@@ -318,7 +318,7 @@ impl Application for App {
             }
             Message::ImportBoa(i, file_path) => {
                 let account = &mut self.accounts[i];
-                account.import_boa(file_path);
+                account.import_boa(file_path).unwrap();
                 self.accounts.save(&self.file_path).unwrap();
                 self.screen = Screen::Accounts;
             }

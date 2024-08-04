@@ -3,6 +3,7 @@ pub mod transactions;
 
 use std::{error::Error, fmt::Display, mem::take, path::PathBuf, string::ToString};
 
+use anyhow::Context;
 use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
 use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
@@ -96,10 +97,12 @@ impl Account {
             .map(transactions::Transactions::balance)
     }
 
-    pub fn import_boa(&mut self, file_path: PathBuf) {
-        let mut boa = import_boa(file_path).unwrap();
+    pub fn import_boa(&mut self, file_path: PathBuf) -> anyhow::Result<()> {
+        let mut boa = import_boa(file_path)?;
 
-        let mut tx_1st = boa.pop_front().unwrap();
+        let mut tx_1st = boa
+            .pop_front()
+            .context("There is always at least one transaction.")?;
         tx_1st.amount = tx_1st.balance - self.balance_1st();
         boa.push_front(tx_1st);
 
@@ -108,6 +111,7 @@ impl Account {
         }
         self.txs_1st.txs.sort_by_key(|tx| tx.date);
         self.tx = TransactionToSubmit::new();
+        Ok(())
     }
 
     pub fn list_transactions<'a, T: 'a + Clone + Display>(

@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, error::Error, fs, path::PathBuf};
+use std::{collections::VecDeque, fs, path::PathBuf};
 
 use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
@@ -18,7 +18,7 @@ struct BoaRecord {
     running_balance: String,
 }
 
-pub fn import_boa(file_path: PathBuf) -> Result<VecDeque<Transaction>, Box<dyn Error>> {
+pub fn import_boa(file_path: PathBuf) -> anyhow::Result<VecDeque<Transaction>> {
     let contents: String = fs::read_to_string(file_path)?
         .lines()
         .skip(6)
