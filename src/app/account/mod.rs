@@ -155,7 +155,7 @@ impl Account {
 
         let year = text_input("Year", &some_or_empty(&self.filter_date_year))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
-        let month = text_input("Month", &some_or_empty(&self.filter_date_year))
+        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
         let mut filter_button = button("Filter");
         if self.submit_filter_date().is_some() {
