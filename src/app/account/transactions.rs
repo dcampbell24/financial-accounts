@@ -6,7 +6,11 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{crypto, houses, metals, money::Currency, mutual_funds, stocks};
+use crate::app::{
+    crypto, houses, metals,
+    money::{Currency, Fiat},
+    mutual_funds, stocks,
+};
 
 use super::transaction::Transaction;
 
@@ -155,5 +159,23 @@ impl Transactions<Currency> {
             | Currency::Stock(_) => true,
             Currency::Fiat(_) | Currency::House(_) => false,
         }
+    }
+}
+
+impl Transactions<Fiat> {
+    pub fn remove_duplicates(&mut self, txs: &Transactions<Fiat>) {
+        let mut txs_new = Vec::new();
+        'outer: for tx in &self.txs {
+            for tx_2nd in &txs.txs {
+                if tx.date == tx_2nd.date
+                    && tx.amount == tx_2nd.amount
+                    && tx.comment == tx_2nd.comment
+                {
+                    continue 'outer;
+                }
+            }
+            txs_new.push(tx.clone());
+        }
+        self.txs = txs_new;
     }
 }

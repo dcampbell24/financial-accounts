@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update boa_import to the new way BoA imports work.
 - Turn on clippy::{all, nursery, pedantic, cargo} and fix most lints.
 - Add houses and make them configurable via the configuration file.
 - Add mutual funds and make them configurable via the configuration file.

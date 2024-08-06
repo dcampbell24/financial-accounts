@@ -149,7 +149,7 @@ impl App {
         let my_chart = self.accounts.all_accounts_txs_1st();
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
         let rows = self.rows();
-        let error = self.error.as_ref().map_or_else(|| row![], |error| row![text_cell(error)]);
+        let error = self.error.as_ref().map_or_else(|| row![], |error| row![text_cell_red(error)]);
 
         let col_1 = column![
             text_cell("total current month USD: "),
@@ -321,8 +321,11 @@ impl Application for App {
             }
             Message::ImportBoa(i, file_path) => {
                 let account = &mut self.accounts[i];
-                account.import_boa(file_path).unwrap();
-                self.accounts.save(&self.file_path).unwrap();
+                if let Err(err) = account.import_boa(file_path) {
+                    self.error = Some(Arc::new(err));
+                } else {
+                    self.accounts.save(&self.file_path).unwrap();
+                }
                 self.screen = Screen::Accounts;
             }
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
@@ -440,4 +443,11 @@ fn number_cell<'a>(num: Decimal) -> Row<'a, Message> {
 
 fn text_cell<'a>(s: impl ToString) -> Row<'a, Message> {
     row![text(s).size(TEXT_SIZE)].padding(PADDING)
+}
+
+fn text_cell_red<'a>(s: impl ToString) -> Row<'a, Message> {
+    row![text(s)
+        .style(theme::Text::Color(solarized::red()))
+        .size(TEXT_SIZE)]
+    .padding(PADDING)
 }

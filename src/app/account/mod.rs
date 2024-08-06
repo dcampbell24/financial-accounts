@@ -3,7 +3,6 @@ pub mod transactions;
 
 use std::{error::Error, fmt::Display, mem::take, path::PathBuf, string::ToString};
 
-use anyhow::Context;
 use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
 use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
@@ -94,17 +93,25 @@ impl Account {
 
     pub fn import_boa(&mut self, file_path: PathBuf) -> anyhow::Result<()> {
         let mut boa = import_boa(file_path)?;
+        boa.remove_duplicates(&self.txs_1st);
+        boa.txs.sort_by_key(|tx| tx.date);
 
-        let mut tx_1st = boa
-            .pop_front()
-            .context("There is always at least one transaction.")?;
-        tx_1st.amount = tx_1st.balance - self.balance_1st();
-        boa.push_front(tx_1st);
+        if let Some(tx_1st) = self.txs_1st.txs.last() {
+            if let Some(tx_add) = boa.txs.first() {
+                if tx_1st.date > tx_add.date {
+                    return Err(anyhow::Error::msg("The starting date of the first transaction you want to add is not greater than the end date of the old transactions."));
+                }
+            } else {
+                return Ok(());
+            }
+        }
 
-        for tx in boa {
+        let mut balance = self.txs_1st.balance();
+        for mut tx in boa.txs {
+            balance += tx.amount;
+            tx.balance = balance;
             self.txs_1st.txs.push(tx);
         }
-        self.txs_1st.txs.sort_by_key(|tx| tx.date);
         self.tx = transaction::ToSubmit::new();
         Ok(())
     }
