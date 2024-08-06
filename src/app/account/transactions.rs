@@ -9,10 +9,14 @@ use serde::{Deserialize, Serialize};
 use crate::app::{
     crypto, houses,
     money::{Currency, Fiat},
-    mutual_funds, stocks,
+    stocks,
 };
 
 use super::transaction::Transaction;
+
+pub trait Price {
+    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal>;
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transactions<T: Clone + Display> {
@@ -108,13 +112,13 @@ impl Transactions<Currency> {
             }
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => {
-                let gold = metal.get_price(&http_client)?;
+                let price = metal.get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
-                    balance: count * gold.price,
+                    balance: count * price,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, gold.price),
+                    comment: format!("{count} {} at {} USD", &self.currency, price),
                 })
             }
             Currency::House(address) => {
@@ -127,7 +131,7 @@ impl Transactions<Currency> {
                 })
             }
             Currency::MutualFund(fund) => {
-                let fund_price = mutual_funds::get_mutual_fund_price(&http_client, &fund.symbol)?;
+                let fund_price = fund.get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),

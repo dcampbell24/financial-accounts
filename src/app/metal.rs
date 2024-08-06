@@ -11,7 +11,7 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use super::money::Fiat;
+use super::{account::transactions::Price, money::Fiat};
 
 const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
 
@@ -28,8 +28,8 @@ impl fmt::Display for Metal {
     }
 }
 
-impl Metal {
-    pub fn get_price(&self, client: &Client) -> anyhow::Result<Price> {
+impl Price for Metal {
+    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         let pwd = env::current_dir()?;
         let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
             "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
@@ -47,8 +47,8 @@ impl Metal {
             .send()?;
         let string = response.text()?;
         // let string = _TESTING_RESPONSE;
-        let metals: Price = serde_json::from_str(&string)?;
-        Ok(metals)
+        let metals: Prices = serde_json::from_str(&string)?;
+        Ok(metals.price)
     }
 }
 
@@ -79,7 +79,7 @@ const _TESTING_RESPONSE: &str = r#"{
 }"#;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Price {
+pub struct Prices {
     #[serde(with = "ts_seconds")]
     pub timestamp: DateTime<Utc>,
     pub metal: String,
@@ -107,7 +107,7 @@ pub struct Price {
     pub price_gram_10k: Decimal,
 }
 
-impl Display for Price {
+impl Display for Prices {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         writeln!(f, "timestamp: {}", self.timestamp)?;
         writeln!(f, "metal: {}", self.metal)?;
