@@ -7,7 +7,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{
-    crypto, houses, metals,
+    crypto, houses,
     money::{Currency, Fiat},
     mutual_funds, stocks,
 };
@@ -108,7 +108,7 @@ impl Transactions<Currency> {
             }
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => {
-                let gold = metals::get_price_metal(&http_client, metal)?;
+                let gold = metal.get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),

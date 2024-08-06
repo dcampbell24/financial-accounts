@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use super::houses::Address;
+use super::{houses::Address, metal::Metal};
 
 #[derive(Debug, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Currency {
@@ -123,19 +123,6 @@ impl fmt::Display for Fiat {
             Self::Mxn => write!(f, "Mexican Peso"),
             Self::Jod => write!(f, "Jordanian Dinar"),
         }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
-pub struct Metal {
-    pub currency: Fiat,
-    pub description: String,
-    pub symbol: String,
-}
-
-impl fmt::Display for Metal {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)
     }
 }
 

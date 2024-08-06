@@ -6,7 +6,7 @@ mod file_picker;
 mod houses;
 mod import_boa;
 mod message;
-mod metals;
+mod metal;
 mod money;
 mod mutual_funds;
 mod screen;

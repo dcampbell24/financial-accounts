@@ -1,4 +1,8 @@
-use std::{env, fmt::Display, fs};
+use std::{
+    env,
+    fmt::{self, Display},
+    fs,
+};
 
 use anyhow::Context;
 use chrono::{serde::ts_seconds, DateTime, Utc};
@@ -7,7 +11,46 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use super::money::Metal;
+use super::money::Fiat;
+
+const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
+pub struct Metal {
+    pub currency: Fiat,
+    pub description: String,
+    pub symbol: String,
+}
+
+impl fmt::Display for Metal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.description)
+    }
+}
+
+impl Metal {
+    pub fn get_price(&self, client: &Client) -> anyhow::Result<Price> {
+        let pwd = env::current_dir()?;
+        let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
+            "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
+        ))?;
+        let access_token = access_token.trim();
+
+        let url = Url::parse(&format!(
+            "https://www.goldapi.io/api/{}/{}",
+            self.symbol,
+            self.currency.symbol()
+        ))?;
+        let response = client
+            .get(url)
+            .header("x-access-token", access_token)
+            .send()?;
+        let string = response.text()?;
+        // let string = _TESTING_RESPONSE;
+        let metals: Price = serde_json::from_str(&string)?;
+        Ok(metals)
+    }
+}
 
 const _TESTING_RESPONSE: &str = r#"{
     "timestamp":1719978277,
@@ -34,30 +77,6 @@ const _TESTING_RESPONSE: &str = r#"{
     "price_gram_14k":43.7137,
     "price_gram_10k":31.2241
 }"#;
-
-const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
-
-pub fn get_price_metal(client: &Client, metal: &Metal) -> anyhow::Result<Price> {
-    let pwd = env::current_dir()?;
-    let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
-        "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
-    ))?;
-    let access_token = access_token.trim();
-
-    let url = Url::parse(&format!(
-        "https://www.goldapi.io/api/{}/{}",
-        metal.symbol,
-        metal.currency.symbol()
-    ))?;
-    let response = client
-        .get(url)
-        .header("x-access-token", access_token)
-        .send()?;
-    let string = response.text()?;
-    // let string = _TESTING_RESPONSE;
-    let metals: Price = serde_json::from_str(&string)?;
-    Ok(metals)
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Price {

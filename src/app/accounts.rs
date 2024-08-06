@@ -14,7 +14,8 @@ use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
 use super::houses::Address;
-use super::money::{Currency, Fiat, Metal, MutualFund, Stock};
+use super::metal::Metal;
+use super::money::{Currency, Fiat, MutualFund, Stock};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
