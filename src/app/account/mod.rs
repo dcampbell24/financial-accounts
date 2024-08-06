@@ -135,7 +135,7 @@ impl Account {
 
         for (i, tx) in txs_struct.txs.iter().enumerate() {
             col_1 = col_1.push(number_cell(tx.amount));
-            col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d %Z ")));
+            col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d")));
             col_3 = col_3.push(number_cell(tx.balance));
             col_4 = col_4.push(text_cell(&tx.comment));
             col_5 = col_5.push(button_cell(
