@@ -29,7 +29,8 @@ pub fn get_stock_price(client: &Client, stock: &Stock) -> anyhow::Result<StockPr
         .header("Authorization", access_token)
         .send()?;
     let string = response.text()?;
-    let previous_days_stock_price: StockResult = serde_json::from_str(&string)?;
+    let previous_days_stock_price: StockResult =
+        serde_json::from_str(&string).context("You made too many requests too quickly!")?;
     Ok(previous_days_stock_price.results[0].clone())
 }
 
