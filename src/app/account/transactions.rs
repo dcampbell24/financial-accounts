@@ -52,6 +52,13 @@ impl PriceAsTransaction for Transactions<Currency> {
                 date: Utc::now(),
                 comment: house.to_string(),
             })
+        } else if let Currency::Metal(metal) = &self.currency {
+            Ok(Transaction {
+                amount: dec!(0),
+                balance: count * price,
+                date: Utc::now(),
+                comment: format!("{count} {} at {price} {}", &self.currency, metal.currency),
+            })
         } else {
             Ok(Transaction {
                 amount: dec!(0),

@@ -42,17 +42,17 @@
     metals: [
         (
             currency: Usd,
-            description: "Gold Troy Oz in USD",
+            description: "Gold Troy Oz",
             symbol: "XAU",
         ),
         (
             currency: Usd,
-            description: "Silver Troy Oz in USD",
+            description: "Silver Troy Oz",
             symbol: "XAG",
         ),
         (
             currency: Eur,
-            description: "Silver Troy Oz in Euros",
+            description: "Silver Troy Oz",
             symbol: "XAG",
         ),
     ],
