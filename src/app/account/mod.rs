@@ -12,7 +12,7 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use transactions::Transactions;
+use transactions::{PriceAsTransaction, Transactions};
 
 use crate::app::{self, account::transaction::Transaction, EDGE_PADDING, PADDING};
 
@@ -277,8 +277,8 @@ impl Account {
         })
     }
 
-    pub fn submit_ohlc(&self) -> anyhow::Result<Transaction> {
-        let mut tx = self.txs_2nd.as_ref().unwrap().get_ohlc()?;
+    pub fn submit_price_as_transaction(&self) -> anyhow::Result<Transaction> {
+        let mut tx = self.txs_2nd.as_ref().unwrap().get_price_as_transaction()?;
         tx.amount = tx.balance - self.balance_1st();
         Ok(tx)
     }

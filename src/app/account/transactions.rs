@@ -33,19 +33,33 @@ impl Price for Transactions<Currency> {
 }
 
 pub trait PriceAsTransaction: Price {
-    fn get_price_as_transaction(&self, client: &Client) -> anyhow::Result<Transaction>;
+    fn get_price_as_transaction(&self) -> anyhow::Result<Transaction>;
 }
 
 impl PriceAsTransaction for Transactions<Currency> {
-    fn get_price_as_transaction(&self, client: &Client) -> anyhow::Result<Transaction> {
-        let price = self.get_price(client)?;
+    fn get_price_as_transaction(&self) -> anyhow::Result<Transaction> {
+        let client = Client::builder()
+        .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
+        .build()?;
+
+        let price = self.get_price(&client)?;
         let count = self.count();
-        Ok(Transaction {
-            amount: dec!(0),
-            balance: count * price,
-            date: Utc::now(),
-            comment: format!("{count} {} at {price} USD", &self.currency),
-        })
+
+        if let Currency::House(house) = &self.currency {
+            Ok(Transaction {
+                amount: price,
+                balance: price,
+                date: Utc::now(),
+                comment: house.to_string(),
+            })
+        } else {
+            Ok(Transaction {
+                amount: dec!(0),
+                balance: count * price,
+                date: Utc::now(),
+                comment: format!("{count} {} at {price} USD", &self.currency),
+            })
+        }
     }
 }
 
@@ -105,85 +119,6 @@ impl<T: Clone + Display> Transactions<T> {
 }
 
 impl Transactions<Currency> {
-    pub fn get_ohlc(&self) -> anyhow::Result<Transaction> {
-        let http_client = Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
-        .build()?;
-
-        match &self.currency {
-            Currency::Btc => {
-                let btc = crypto::BtcOhlc::get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * btc,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, btc),
-                })
-            }
-            Currency::Eth => {
-                let eth = crypto::EthOhlc::get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * eth,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, eth),
-                })
-            }
-            Currency::Gno => {
-                let gno = crypto::GnoOhlc::get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * gno,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, gno),
-                })
-            }
-            Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
-            Currency::Metal(metal) => {
-                let price = metal.get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * price,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, price),
-                })
-            }
-            Currency::House(house) => {
-                let house_price = house.get_price(&http_client)?;
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: house_price,
-                    date: Utc::now(),
-                    comment: house.to_string(),
-                })
-            }
-            Currency::MutualFund(fund) => {
-                let fund_price = fund.get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * fund_price,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, fund_price),
-                })
-            }
-            Currency::Stock(stock) => {
-                let stock_price = stock.get_price(&http_client)?;
-                let count = self.count();
-                Ok(Transaction {
-                    amount: dec!(0),
-                    balance: count * stock_price,
-                    date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, stock_price),
-                })
-            }
-        }
-    }
-
     pub const fn has_txs_2nd(&self) -> bool {
         match self.currency {
             Currency::Btc

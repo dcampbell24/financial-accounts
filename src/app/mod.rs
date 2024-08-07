@@ -308,7 +308,7 @@ impl Application for App {
             Message::GetOhlc(i) => {
                 let account = &mut self.accounts[i];
 
-                match account.submit_ohlc() {
+                match account.submit_price_as_transaction() {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.txs.sort_by_key(|tx| tx.date);
