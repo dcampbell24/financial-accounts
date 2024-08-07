@@ -72,9 +72,9 @@ impl Price for House {
         let cookie_store = std::sync::Arc::new(cookie_store);
 
         let client = Client::builder()
-    .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
-    .cookie_provider(std::sync::Arc::clone(&cookie_store))
-    .build()?;
+            .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
+            .cookie_provider(std::sync::Arc::clone(&cookie_store))
+            .build()?;
 
         let resp = client
             .get(format!(
