@@ -5,11 +5,7 @@
 //  clippy::nursery,
     clippy::cargo,
 )]
-#![allow(
-    clippy::similar_names,
-    clippy::struct_field_names,
-    clippy::multiple_crate_versions
-)]
+#![allow(clippy::similar_names, clippy::multiple_crate_versions)]
 
 /// The financial-accounts application.
 pub mod app;
