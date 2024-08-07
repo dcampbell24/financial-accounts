@@ -85,10 +85,10 @@ impl App {
         let mut col_7 = column![text_cell(""), text_cell("")];
         let mut col_8 = column![text_cell(""), text_cell("")];
         let mut col_9 = column![text_cell(""), text_cell("")];
-        let mut col_10 = column![text_cell(""), text_cell("")];
-        let mut col_11 = column![text_cell(""), text_cell("")];
-        let mut col_12 = column![text_cell(""), text_cell("")];
-        let mut col_13 = column![text_cell(""), text_cell("")];
+        let mut col_a = column![text_cell(""), text_cell("")];
+        let mut col_b = column![text_cell(""), text_cell("")];
+        let mut col_c = column![text_cell(""), text_cell("")];
+        let mut col_d = column![text_cell(""), text_cell("")];
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut current_month = account.sum_current_month();
@@ -128,20 +128,20 @@ impl App {
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_10 = col_10.push(button_cell(update_name));
+            col_a = col_a.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
                 import_boa = import_boa.on_press(Message::ImportBoaScreen(i));
             }
-            col_11 = col_11.push(button_cell(import_boa));
+            col_b = col_b.push(button_cell(import_boa));
             let mut get_ohlc = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
             }
-            col_12 = col_12.push(button_cell(get_ohlc));
-            col_13 = col_13.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_c = col_c.push(button_cell(get_ohlc));
+            col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_10, col_11, col_12, col_13]
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
 
     #[rustfmt::skip]
