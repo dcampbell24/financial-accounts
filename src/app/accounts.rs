@@ -13,10 +13,11 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
-use super::houses::Address;
+use super::houses::House;
 use super::metal::Metal;
-use super::money::{Currency, Fiat, Stock};
+use super::money::{Currency, Fiat};
 use super::mutual_fund::MutualFund;
+use super::stocks::Stock;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -24,7 +25,7 @@ pub struct Accounts {
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
     pub fiats: Vec<Fiat>,
-    pub houses: Vec<Address>,
+    pub houses: Vec<House>,
     pub metals: Vec<Metal>,
     pub mutual_funds: Vec<MutualFund>,
     pub stocks: Vec<Stock>,

@@ -48,11 +48,12 @@ macro_rules! impl_get_ohlc {
         }
 
         impl $ty {
-            pub fn get(client: &Client) -> anyhow::Result<Ohlc> {
+            pub fn get_price(client: &Client) -> anyhow::Result<Decimal> {
                 let name = $request.to_string();
                 let string = get_ohlc_untyped(client, &name)?;
                 let response: Response<$ty> = serde_json::from_str(&string)?;
-                response.to_ohlc(name)
+                let ohlc = response.to_ohlc(name)?;
+                Ok(ohlc.close)
             }
         }
 

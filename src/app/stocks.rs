@@ -1,4 +1,8 @@
-use std::{env, fmt::Display, fs};
+use std::{
+    env,
+    fmt::{self, Display},
+    fs,
+};
 
 use anyhow::Context;
 use chrono::{serde::ts_milliseconds, DateTime, Utc};
@@ -7,31 +11,46 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use super::money::Stock;
+use super::account::transactions::Price;
 
 const LOCATION_ACCESS_TOKEN: &str = "./polygon.io.txt";
 
-pub fn get_stock_price(client: &Client, stock: &Stock) -> anyhow::Result<StockPrice> {
-    let pwd = env::current_dir()?;
-    let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
-        "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
-    ))?;
-    let access_token = access_token.trim();
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
+pub struct Stock {
+    // currency: USD
+    pub description: String,
+    pub symbol: String,
+}
 
-    let url = format!(
-        "https://api.polygon.io/v2/aggs/ticker/{}/prev",
-        &stock.symbol
-    );
-    let url = Url::parse(&url)?;
+impl Price for Stock {
+    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
+        let pwd = env::current_dir()?;
+        let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
+            "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
+        ))?;
+        let access_token = access_token.trim();
 
-    let response = client
-        .get(url)
-        .header("Authorization", access_token)
-        .send()?;
-    let string = response.text()?;
-    let previous_days_stock_price: StockResult =
-        serde_json::from_str(&string).context("You made too many requests too quickly!")?;
-    Ok(previous_days_stock_price.results[0].clone())
+        let url = format!(
+            "https://api.polygon.io/v2/aggs/ticker/{}/prev",
+            &self.symbol
+        );
+        let url = Url::parse(&url)?;
+
+        let response = client
+            .get(url)
+            .header("Authorization", access_token)
+            .send()?;
+        let string = response.text()?;
+        let previous_days_stock_price: StockResult =
+            serde_json::from_str(&string).context("You made too many requests too quickly!")?;
+        Ok(previous_days_stock_price.results[0].close)
+    }
+}
+
+impl fmt::Display for Stock {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.description)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

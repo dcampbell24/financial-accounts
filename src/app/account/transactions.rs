@@ -7,15 +7,46 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{
-    crypto, houses,
+    crypto,
     money::{Currency, Fiat},
-    stocks,
 };
 
 use super::transaction::Transaction;
 
 pub trait Price {
     fn get_price(&self, client: &Client) -> anyhow::Result<Decimal>;
+}
+
+impl Price for Transactions<Currency> {
+    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
+        match &self.currency {
+            Currency::Btc => crypto::BtcOhlc::get_price(client),
+            Currency::Eth => crypto::EthOhlc::get_price(client),
+            Currency::Gno => crypto::GnoOhlc::get_price(client),
+            Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
+            Currency::Metal(metal) => metal.get_price(client),
+            Currency::House(house) => house.get_price(client),
+            Currency::MutualFund(fund) => fund.get_price(client),
+            Currency::Stock(stock) => stock.get_price(client),
+        }
+    }
+}
+
+pub trait PriceAsTransaction: Price {
+    fn get_price_as_transaction(&self, client: &Client) -> anyhow::Result<Transaction>;
+}
+
+impl PriceAsTransaction for Transactions<Currency> {
+    fn get_price_as_transaction(&self, client: &Client) -> anyhow::Result<Transaction> {
+        let price = self.get_price(client)?;
+        let count = self.count();
+        Ok(Transaction {
+            amount: dec!(0),
+            balance: count * price,
+            date: Utc::now(),
+            comment: format!("{count} {} at {price} USD", &self.currency),
+        })
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -81,33 +112,33 @@ impl Transactions<Currency> {
 
         match &self.currency {
             Currency::Btc => {
-                let btc = crypto::BtcOhlc::get(&http_client)?;
+                let btc = crypto::BtcOhlc::get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
-                    balance: count * btc.close,
+                    balance: count * btc,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, btc.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, btc),
                 })
             }
             Currency::Eth => {
-                let eth = crypto::EthOhlc::get(&http_client)?;
+                let eth = crypto::EthOhlc::get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
-                    balance: count * eth.close,
+                    balance: count * eth,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, eth.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, eth),
                 })
             }
             Currency::Gno => {
-                let gno = crypto::GnoOhlc::get(&http_client)?;
+                let gno = crypto::GnoOhlc::get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
-                    balance: count * gno.close,
+                    balance: count * gno,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, gno.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, gno),
                 })
             }
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
@@ -121,13 +152,13 @@ impl Transactions<Currency> {
                     comment: format!("{count} {} at {} USD", &self.currency, price),
                 })
             }
-            Currency::House(address) => {
-                let house_price = houses::get_house_price(address)?;
+            Currency::House(house) => {
+                let house_price = house.get_price(&http_client)?;
                 Ok(Transaction {
                     amount: dec!(0),
                     balance: house_price,
                     date: Utc::now(),
-                    comment: address.to_string(),
+                    comment: house.to_string(),
                 })
             }
             Currency::MutualFund(fund) => {
@@ -141,13 +172,13 @@ impl Transactions<Currency> {
                 })
             }
             Currency::Stock(stock) => {
-                let stock_price = stocks::get_stock_price(&http_client, stock)?;
+                let stock_price = stock.get_price(&http_client)?;
                 let count = self.count();
                 Ok(Transaction {
                     amount: dec!(0),
-                    balance: count * stock_price.close,
+                    balance: count * stock_price,
                     date: Utc::now(),
-                    comment: format!("{count} {} at {} USD", &self.currency, stock_price.close),
+                    comment: format!("{count} {} at {} USD", &self.currency, stock_price),
                 })
             }
         }
