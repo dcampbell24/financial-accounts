@@ -14,8 +14,11 @@ pub mod solarized;
 mod stocks;
 mod zillow_cookies;
 
-use std::{cmp::Ordering, path::PathBuf, sync::Arc};
+use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
+use account::{transaction::Transaction, transactions::Transactions};
+use chrono::Utc;
+use file_picker::FilePickerSelect;
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
@@ -25,12 +28,14 @@ use iced::{
         combo_box::{ComboBox, State},
         row, text, text_input, Button, Row, Scrollable,
     },
-    window, Alignment, Application, Command, Element, Event, Length, Theme,
+    window, Alignment, Application, Element, Event, Length, Theme,
 };
 use money::Currency;
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
+use serde::Deserialize;
+use stocks::Stock;
 use thousands::Separable;
 
 use crate::app::{
@@ -71,6 +76,71 @@ impl App {
             screen,
             error: None,
         }
+    }
+
+    fn import_investor_360(&mut self) -> anyhow::Result<()> {
+        // Todo: choose the file.
+        let file = PathBuf::from_str("~/Documents/boa/investor360-holdings.xls")?;
+
+        // Fixme: Check if the file already exists.
+        std::process::Command::new("libreoffice")
+            .arg("--convert-to")
+            .arg("csv")
+            .arg(&file)
+            .status()?;
+
+        // Fixme: You may need to install libreoffice.
+
+        let file = file.file_stem().unwrap();
+        let mut file = PathBuf::from_str(file.to_str().unwrap())?;
+        file.set_extension("csv");
+
+        for investor_360_record in csv::Reader::from_path(&file)?.deserialize() {
+            let investor_360_record: Investor360 = investor_360_record?;
+
+            // Skip some junk records.
+            if investor_360_record.symbol.is_empty() {
+                continue;
+            }
+
+            let tx = Transaction {
+                amount: dec!(0),
+                balance: investor_360_record.quantity.parse::<Decimal>()?,
+                comment: "".to_string(),
+                date: Utc::now(),
+            };
+
+            let name = format!("Investor 360: {}", &investor_360_record.symbol);
+            let mut name_matches = false;
+            for account in &mut self.accounts.inner {
+                if account.name == name {
+                    account.txs_2nd.as_mut().unwrap().txs.push(tx.clone());
+                    name_matches = true;
+                    break;
+                }
+            }
+
+            if !name_matches {
+                let mut txs = Vec::new();
+                txs.push(tx);
+
+                let stock = Stock {
+                    description: investor_360_record.description,
+                    symbol: investor_360_record.symbol,
+                };
+                let currency = Currency::Stock(stock);
+                let transactions = Transactions {
+                    currency: currency.clone(),
+                    txs,
+                };
+                let mut account = Account::new(name, currency);
+                account.txs_2nd = Some(transactions);
+                self.accounts.inner.push(account);
+            }
+        }
+
+        fs::remove_file(&file)?;
+        Ok(())
     }
 
     #[rustfmt::skip]
@@ -236,7 +306,7 @@ impl Application for App {
     type Executor = executor::Default;
     type Flags = ();
 
-    fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
+    fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
         match FilePicker::load_or_new_file() {
             Some((accounts, path_buf)) => (
                 Self::new(accounts, path_buf, Screen::Accounts),
@@ -257,7 +327,7 @@ impl Application for App {
         String::from("Financial Accounts")
     }
 
-    fn update(&mut self, message: Message) -> Command<Message> {
+    fn update(&mut self, message: Message) -> iced::Command<Message> {
         let selected_account = self.selected_account();
         self.error = None;
 
@@ -356,12 +426,15 @@ impl Application for App {
                 return window::close(window::Id::MAIN);
             }
         }
-        Command::none()
+        iced::Command::none()
     }
 
     fn view(&self) -> Element<Message> {
         match self.screen {
-            Screen::NewOrLoadFile => self.file_picker.view(None).into(),
+            Screen::NewOrLoadFile => self
+                .file_picker
+                .view(&FilePickerSelect::NewOrLoadFile)
+                .into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => {
                 let account = &self.accounts[i];
@@ -385,7 +458,10 @@ impl Application for App {
                     .into()
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
-            Screen::ImportBoa(i) => self.file_picker.view(Some(i)).into(),
+            Screen::ImportBoa(i) => self
+                .file_picker
+                .view(&FilePickerSelect::ImportBoa(i))
+                .into(),
         }
     }
 
@@ -450,4 +526,20 @@ fn text_cell_red<'a>(s: impl ToString) -> Row<'a, Message> {
         .style(theme::Text::Color(solarized::red()))
         .size(TEXT_SIZE)]
     .padding(PADDING)
+}
+
+#[derive(Debug, Deserialize)]
+struct Investor360 {
+    #[serde(rename = "Description")]
+    description: String,
+    #[serde(rename = "Symbol")]
+    symbol: String,
+    #[serde(rename = "Quantity")]
+    quantity: String,
+    #[serde(rename = "Price ($)")]
+    _price: String,
+    #[serde(rename = "Value ($)")]
+    _value: String,
+    #[serde(rename = "Assets (%)")]
+    _assets: String,
 }

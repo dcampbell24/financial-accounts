@@ -37,6 +37,13 @@ pub struct FilePicker {
     show_hidden_files: bool,
 }
 
+#[derive(Clone, Debug)]
+pub enum FilePickerSelect {
+    NewOrLoadFile,
+    ImportBoa(usize),
+    ImportInvestor360,
+}
+
 impl FilePicker {
     pub fn load_or_new_file() -> Option<(Accounts, PathBuf)> {
         let args = Args::parse();
@@ -111,7 +118,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self, account: Option<usize>) -> Scrollable<app::Message> {
+    pub fn view(&self, select: &FilePickerSelect) -> Scrollable<app::Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(text_cell(&self.error));
@@ -125,20 +132,27 @@ impl FilePicker {
 
         col = col.push(text_cell(self.current.to_str_errorless()));
 
-        if account.is_none() {
-            let input = text_input("filename", &self.filename)
-                .on_input(|string| app::Message::FilePicker(Message::ChangeFileName(string)))
-                .on_submit(app::Message::FilePicker(Message::NewFile(PathBuf::from(
-                    &self.filename,
-                ))));
-            col = col
-                .push(row![input, text(".ron"), text(" ".repeat(EDGE_PADDING))].padding(PADDING));
+        match select {
+            FilePickerSelect::NewOrLoadFile => {
+                let input = text_input("filename", &self.filename)
+                    .on_input(|string| app::Message::FilePicker(Message::ChangeFileName(string)))
+                    .on_submit(app::Message::FilePicker(Message::NewFile(PathBuf::from(
+                        &self.filename,
+                    ))));
+                col = col.push(
+                    row![input, text(".ron"), text(" ".repeat(EDGE_PADDING))].padding(PADDING),
+                );
 
-            let is_ron = Regex::new(".ron$").unwrap();
-            col = col.push(self.files(&is_ron, account).unwrap());
-        } else {
-            let is_csv = Regex::new(".csv$").unwrap();
-            col = col.push(self.files(&is_csv, account).unwrap());
+                let is_ron = Regex::new(".ron$").unwrap();
+                col = col.push(self.files(&is_ron, select).unwrap());
+            }
+            FilePickerSelect::ImportBoa(_) => {
+                let is_csv = Regex::new(".csv$").unwrap();
+                col = col.push(self.files(&is_csv, select).unwrap());
+            }
+            FilePickerSelect::ImportInvestor360 => {
+                // Todo
+            }
         }
 
         col = col.push(button_cell(button("Exit").on_press(app::Message::Exit)));
@@ -148,7 +162,7 @@ impl FilePicker {
     fn files(
         &self,
         file_regex: &Regex,
-        account: Option<usize>,
+        select: &FilePickerSelect,
     ) -> Result<Column<app::Message>, Box<dyn Error>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
@@ -173,15 +187,18 @@ impl FilePicker {
                     if file_regex.is_match(file_name.as_encoded_bytes()) {
                         let mut button = button(text(file_name_str))
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
-                        match account {
-                            Some(account) => {
+                        match select {
+                            &FilePickerSelect::ImportBoa(account) => {
                                 button =
                                     button.on_press(app::Message::ImportBoa(account, file_path));
                             }
-                            None => {
+                            &FilePickerSelect::NewOrLoadFile => {
                                 button = button.on_press(app::Message::FilePicker(
                                     Message::LoadFile(file_path),
                                 ));
+                            }
+                            &FilePickerSelect::ImportInvestor360 => {
+                                // Todo
                             }
                         }
                         col = col.push(button_cell(button));
@@ -207,15 +224,18 @@ impl FilePicker {
 
                             let mut button = button(text(&s))
                                 .style(iced::theme::Button::Custom(Box::new(GreenButton)));
-                            match account {
-                                Some(account) => {
+                            match select {
+                                &FilePickerSelect::ImportBoa(account) => {
                                     button = button
                                         .on_press(app::Message::ImportBoa(account, file_path));
                                 }
-                                None => {
+                                &FilePickerSelect::NewOrLoadFile => {
                                     button = button.on_press(app::Message::FilePicker(
                                         Message::LoadFile(file_path),
                                     ));
+                                }
+                                &FilePickerSelect::ImportInvestor360 => {
+                                    // todo
                                 }
                             }
                             col = col.push(button_cell(button));
