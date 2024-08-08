@@ -38,7 +38,7 @@ pub struct FilePicker {
 }
 
 #[derive(Clone, Debug)]
-pub enum FilePickerSelect {
+pub enum Select {
     NewOrLoadFile,
     ImportBoa(usize),
     ImportInvestor360,
@@ -118,7 +118,7 @@ impl FilePicker {
         self.error = String::new();
     }
 
-    pub fn view(&self, select: &FilePickerSelect) -> Scrollable<app::Message> {
+    pub fn view(&self, select: &Select) -> Scrollable<app::Message> {
         let mut col = Column::new();
         if !self.error.is_empty() {
             col = col.push(text_cell(&self.error));
@@ -133,7 +133,7 @@ impl FilePicker {
         col = col.push(text_cell(self.current.to_str_errorless()));
 
         match select {
-            FilePickerSelect::NewOrLoadFile => {
+            Select::NewOrLoadFile => {
                 let input = text_input("filename", &self.filename)
                     .on_input(|string| app::Message::FilePicker(Message::ChangeFileName(string)))
                     .on_submit(app::Message::FilePicker(Message::NewFile(PathBuf::from(
@@ -146,11 +146,11 @@ impl FilePicker {
                 let is_ron = Regex::new(".ron$").unwrap();
                 col = col.push(self.files(&is_ron, select).unwrap());
             }
-            FilePickerSelect::ImportBoa(_) => {
+            Select::ImportBoa(_) => {
                 let is_csv = Regex::new(".csv$").unwrap();
                 col = col.push(self.files(&is_csv, select).unwrap());
             }
-            FilePickerSelect::ImportInvestor360 => {
+            Select::ImportInvestor360 => {
                 // Todo
             }
         }
@@ -162,7 +162,7 @@ impl FilePicker {
     fn files(
         &self,
         file_regex: &Regex,
-        select: &FilePickerSelect,
+        select: &Select,
     ) -> Result<Column<app::Message>, Box<dyn Error>> {
         let mut col = Column::new();
         let mut dirs = Vec::new();
@@ -187,17 +187,17 @@ impl FilePicker {
                     if file_regex.is_match(file_name.as_encoded_bytes()) {
                         let mut button = button(text(file_name_str))
                             .style(iced::theme::Button::Custom(Box::new(GreenButton)));
-                        match select {
-                            &FilePickerSelect::ImportBoa(account) => {
+                        match *select {
+                            Select::ImportBoa(account) => {
                                 button =
                                     button.on_press(app::Message::ImportBoa(account, file_path));
                             }
-                            &FilePickerSelect::NewOrLoadFile => {
+                            Select::NewOrLoadFile => {
                                 button = button.on_press(app::Message::FilePicker(
                                     Message::LoadFile(file_path),
                                 ));
                             }
-                            &FilePickerSelect::ImportInvestor360 => {
+                            Select::ImportInvestor360 => {
                                 // Todo
                             }
                         }
@@ -224,17 +224,17 @@ impl FilePicker {
 
                             let mut button = button(text(&s))
                                 .style(iced::theme::Button::Custom(Box::new(GreenButton)));
-                            match select {
-                                &FilePickerSelect::ImportBoa(account) => {
+                            match *select {
+                                Select::ImportBoa(account) => {
                                     button = button
                                         .on_press(app::Message::ImportBoa(account, file_path));
                                 }
-                                &FilePickerSelect::NewOrLoadFile => {
+                                Select::NewOrLoadFile => {
                                     button = button.on_press(app::Message::FilePicker(
                                         Message::LoadFile(file_path),
                                     ));
                                 }
-                                &FilePickerSelect::ImportInvestor360 => {
+                                Select::ImportInvestor360 => {
                                     // todo
                                 }
                             }

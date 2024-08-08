@@ -18,7 +18,7 @@ use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use chrono::Utc;
-use file_picker::FilePickerSelect;
+use file_picker::Select;
 use iced::{
     event, executor,
     keyboard::{self, Key, Modifiers},
@@ -106,7 +106,7 @@ impl App {
             let tx = Transaction {
                 amount: dec!(0),
                 balance: investor_360_record.quantity.parse::<Decimal>()?,
-                comment: "".to_string(),
+                comment: String::new(),
                 date: Utc::now(),
             };
 
@@ -121,9 +121,7 @@ impl App {
             }
 
             if !name_matches {
-                let mut txs = Vec::new();
-                txs.push(tx);
-
+                let txs = vec![tx];
                 let stock = Stock {
                     description: investor_360_record.description,
                     symbol: investor_360_record.symbol,
@@ -431,10 +429,7 @@ impl Application for App {
 
     fn view(&self) -> Element<Message> {
         match self.screen {
-            Screen::NewOrLoadFile => self
-                .file_picker
-                .view(&FilePickerSelect::NewOrLoadFile)
-                .into(),
+            Screen::NewOrLoadFile => self.file_picker.view(&Select::NewOrLoadFile).into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => {
                 let account = &self.accounts[i];
@@ -458,10 +453,7 @@ impl Application for App {
                     .into()
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
-            Screen::ImportBoa(i) => self
-                .file_picker
-                .view(&FilePickerSelect::ImportBoa(i))
-                .into(),
+            Screen::ImportBoa(i) => self.file_picker.view(&Select::ImportBoa(i)).into(),
         }
     }
 
