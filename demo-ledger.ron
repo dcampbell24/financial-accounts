@@ -56,14 +56,6 @@
             symbol: "XAG",
         ),
     ],
-    // Supports everything on finance.yahoo.com .
-    // All mutual funds are in Usd.
-    mutual_funds: [
-        (
-            description: "Invesco Charter A",
-            symbol: "CHTRX",
-        ),
-    ],
     // Supports all the stocks on polygon.io .
     // All stocks are in Usd.
     stocks: [
