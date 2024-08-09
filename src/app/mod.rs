@@ -17,6 +17,7 @@ mod zillow_cookies;
 use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
+use anyhow::Context;
 use chrono::Utc;
 use file_picker::Select;
 use iced::{
@@ -90,12 +91,14 @@ impl App {
             )));
         }
 
-        // Fixme: You may need to install libreoffice.
         std::process::Command::new("libreoffice")
             .arg("--convert-to")
             .arg("csv")
             .arg(file_xls)
-            .status()?;
+            .status()
+            .context(
+                r#"Couldn't execute "libreoffice --convert-to csv", you must install libreoffice."#,
+            )?;
 
         for investor_360_record in csv::Reader::from_path(&file_csv)?.deserialize() {
             let investor_360_record: Investor360 = investor_360_record?;
