@@ -13,6 +13,8 @@ pub enum Message {
     GetOhlc(usize),
     ImportBoa(usize, PathBuf),
     ImportBoaScreen(usize),
+    ImportInvestor360(PathBuf),
+    ImportInvestor360Screen,
     UpdateAccount(usize),
     UpdateCurrency(Currency),
     SelectAccount(usize),

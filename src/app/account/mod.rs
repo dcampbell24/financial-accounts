@@ -486,6 +486,7 @@ impl Account {
                 }
                 Screen::Accounts
                 | Screen::ImportBoa(_)
+                | Screen::ImportInvestor360
                 | Screen::Monthly(_)
                 | Screen::NewOrLoadFile => {
                     panic!("You can't submit a balance here!");
@@ -514,7 +515,10 @@ impl Account {
                 Screen::Monthly(_) => {
                     self.submit_tx_monthly();
                 }
-                Screen::Accounts | Screen::ImportBoa(_) | Screen::NewOrLoadFile => {
+                Screen::Accounts
+                | Screen::ImportBoa(_)
+                | Screen::ImportInvestor360
+                | Screen::NewOrLoadFile => {
                     panic!("You can't submit a transaction here!");
                 }
             },
@@ -569,7 +573,8 @@ const fn list_monthly(screen: &Screen) -> bool {
         | Screen::Accounts
         | Screen::Account(_)
         | Screen::AccountSecondary(_)
-        | Screen::ImportBoa(_) => false,
+        | Screen::ImportBoa(_)
+        | Screen::ImportInvestor360 => false,
         Screen::Monthly(_) => true,
     }
 }

@@ -40,6 +40,7 @@ impl Price for Stock {
             .get(url)
             .header("Authorization", access_token)
             .send()?;
+        // Fixme: What if what you requested wasn't found?
         let string = response.text()?;
         let previous_days_stock_price: StockResult =
             serde_json::from_str(&string).context("You made too many requests too quickly!")?;

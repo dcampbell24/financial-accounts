@@ -78,24 +78,26 @@ impl App {
         }
     }
 
-    fn import_investor_360(&mut self) -> anyhow::Result<()> {
-        // Todo: choose the file.
-        let file = PathBuf::from_str("~/Documents/boa/investor360-holdings.xls")?;
+    fn import_investor_360(&mut self, file_xls: &PathBuf) -> anyhow::Result<()> {
+        let file_csv = file_xls.file_stem().unwrap();
+        let mut file_csv = PathBuf::from_str(file_csv.to_str().unwrap())?;
+        file_csv.set_extension("csv");
 
-        // Fixme: Check if the file already exists.
+        if fs::exists(&file_csv)? {
+            return Err(anyhow::Error::msg(format!(
+                "\"{:?}\" already exists!",
+                &file_csv
+            )));
+        }
+
+        // Fixme: You may need to install libreoffice.
         std::process::Command::new("libreoffice")
             .arg("--convert-to")
             .arg("csv")
-            .arg(&file)
+            .arg(file_xls)
             .status()?;
 
-        // Fixme: You may need to install libreoffice.
-
-        let file = file.file_stem().unwrap();
-        let mut file = PathBuf::from_str(file.to_str().unwrap())?;
-        file.set_extension("csv");
-
-        for investor_360_record in csv::Reader::from_path(&file)?.deserialize() {
+        for investor_360_record in csv::Reader::from_path(&file_csv)?.deserialize() {
             let investor_360_record: Investor360 = investor_360_record?;
 
             // Skip some junk records.
@@ -103,9 +105,10 @@ impl App {
                 continue;
             }
 
-            let tx = Transaction {
+            let balance = investor_360_record.quantity.parse::<Decimal>()?;
+            let mut tx = Transaction {
                 amount: dec!(0),
-                balance: investor_360_record.quantity.parse::<Decimal>()?,
+                balance,
                 comment: String::new(),
                 date: Utc::now(),
             };
@@ -114,6 +117,15 @@ impl App {
             let mut name_matches = false;
             for account in &mut self.accounts.inner {
                 if account.name == name {
+                    tx.amount = balance
+                        - account
+                            .txs_2nd
+                            .as_ref()
+                            .unwrap()
+                            .txs
+                            .last()
+                            .unwrap()
+                            .balance;
                     account.txs_2nd.as_mut().unwrap().txs.push(tx.clone());
                     name_matches = true;
                     break;
@@ -121,11 +133,13 @@ impl App {
             }
 
             if !name_matches {
+                tx.amount = balance;
                 let txs = vec![tx];
                 let stock = Stock {
                     description: investor_360_record.description,
                     symbol: investor_360_record.symbol,
                 };
+                // Fixme: There aren't all stocks.
                 let currency = Currency::Stock(stock);
                 let transactions = Transactions {
                     currency: currency.clone(),
@@ -137,7 +151,7 @@ impl App {
             }
         }
 
-        fs::remove_file(&file)?;
+        fs::remove_file(&file_csv)?;
         Ok(())
     }
 
@@ -280,7 +294,10 @@ impl App {
                 text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
                 text(" ".repeat(EDGE_PADDING)),
             ].padding(PADDING).spacing(ROW_SPACING),
-            button_cell(button("Exit").on_press(Message::Exit)),
+            row![
+                button_cell(button("Exit").on_press(Message::Exit)),
+                button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360Screen)),
+            ].padding(PADDING).spacing(ROW_SPACING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -289,7 +306,7 @@ impl App {
 
     const fn selected_account(&self) -> Option<usize> {
         match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts => None,
+            Screen::NewOrLoadFile | Screen::Accounts | Screen::ImportInvestor360 => None,
             Screen::Account(account)
             | Screen::AccountSecondary(account)
             | Screen::Monthly(account)
@@ -347,8 +364,8 @@ impl Application for App {
             }
             Message::Delete(i) => {
                 match self.screen {
-                    Screen::NewOrLoadFile => {
-                        panic!("Screen::NewOrLoadFile can't be reached here");
+                    Screen::NewOrLoadFile | Screen::ImportBoa(_) | Screen::ImportInvestor360 => {
+                        panic!("This screen can't be reached here.");
                     }
                     Screen::Accounts => {
                         self.accounts.inner.remove(i);
@@ -358,9 +375,6 @@ impl Application for App {
                     }
                     Screen::AccountSecondary(j) => {
                         self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
-                    }
-                    Screen::ImportBoa(_j) => {
-                        panic!("Screen::ImportBoa can't be reached here");
                     }
                     Screen::Monthly(j) => {
                         self.accounts[j].txs_monthly.remove(i);
@@ -397,6 +411,15 @@ impl Application for App {
                 self.screen = Screen::Accounts;
             }
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
+            Message::ImportInvestor360(file_path) => {
+                if let Err(err) = self.import_investor_360(&file_path) {
+                    self.error = Some(Arc::new(err));
+                } else {
+                    self.accounts.save(&self.file_path).unwrap();
+                }
+                self.screen = Screen::Accounts;
+            }
+            Message::ImportInvestor360Screen => self.screen = Screen::ImportInvestor360,
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = self.account_name.trim().to_string();
                 self.accounts
@@ -454,6 +477,7 @@ impl Application for App {
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
             Screen::ImportBoa(i) => self.file_picker.view(&Select::ImportBoa(i)).into(),
+            Screen::ImportInvestor360 => self.file_picker.view(&Select::ImportInvestor360).into(),
         }
     }
 

@@ -5,5 +5,6 @@ pub enum Screen {
     Account(usize),
     AccountSecondary(usize),
     ImportBoa(usize),
+    ImportInvestor360,
     Monthly(usize),
 }

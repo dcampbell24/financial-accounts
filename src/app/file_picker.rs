@@ -151,7 +151,8 @@ impl FilePicker {
                 col = col.push(self.files(&is_csv, select).unwrap());
             }
             Select::ImportInvestor360 => {
-                // Todo
+                let is_xls = Regex::new(".xls$").unwrap();
+                col = col.push(self.files(&is_xls, select).unwrap());
             }
         }
 
@@ -198,7 +199,8 @@ impl FilePicker {
                                 ));
                             }
                             Select::ImportInvestor360 => {
-                                // Todo
+                                button =
+                                    button.on_press(app::Message::ImportInvestor360(file_path));
                             }
                         }
                         col = col.push(button_cell(button));
@@ -235,7 +237,8 @@ impl FilePicker {
                                     ));
                                 }
                                 Select::ImportInvestor360 => {
-                                    // todo
+                                    button =
+                                        button.on_press(app::Message::ImportInvestor360(file_path));
                                 }
                             }
                             col = col.push(button_cell(button));
