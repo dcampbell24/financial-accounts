@@ -91,6 +91,12 @@ impl Account {
             .map(transactions::Transactions::balance)
     }
 
+    fn clear_date(&mut self) {
+        self.filter_date_year = None;
+        self.filter_date_month = None;
+        self.filter_date = None;
+    }
+
     pub fn import_boa(&mut self, file_path: PathBuf) -> anyhow::Result<()> {
         let mut boa = import_boa(file_path)?;
         boa.remove_duplicates(&self.txs_1st);
@@ -462,11 +468,7 @@ impl Account {
                     set_amount(&mut self.tx.amount, &tx);
                 }
             }
-            Message::ClearDate => {
-                self.filter_date_year = None;
-                self.filter_date_month = None;
-                self.filter_date = None;
-            }
+            Message::ClearDate => self.clear_date(),
             Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
                     if let Ok(tx) = self.display_error(self.submit_balance_1st()) {
