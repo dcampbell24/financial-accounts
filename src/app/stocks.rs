@@ -40,11 +40,18 @@ impl Price for Stock {
             .get(url)
             .header("Authorization", access_token)
             .send()?;
-        // Fixme: What if what you requested wasn't found?
+
         let string = response.text()?;
         let previous_days_stock_price: StockResult =
             serde_json::from_str(&string).context("You made too many requests too quickly!")?;
-        Ok(previous_days_stock_price.results[0].close)
+
+        match previous_days_stock_price.results {
+            Some(results) => Ok(results[0].close),
+            None => Err(anyhow::Error::msg(format!(
+                "The symbol {} is not supported by polygon.io .",
+                &self.symbol
+            ))),
+        }
     }
 }
 
@@ -62,10 +69,10 @@ pub struct StockResult {
     #[serde(rename = "resultsCount")]
     pub results_count: u64,
     pub adjusted: bool,
-    pub results: Vec<StockPrice>,
+    pub results: Option<Vec<StockPrice>>,
     pub status: String,
     pub request_id: String,
-    pub count: u64,
+    pub count: Option<u64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
