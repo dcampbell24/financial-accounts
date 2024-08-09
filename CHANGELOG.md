@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Breaking change: rename mutual_funds to stocks_plus.
 - Add import_investor_360().
 - Update boa_import to the new way BoA imports work.
 - Turn on clippy::{all, nursery, pedantic, cargo} and fix most lints.
