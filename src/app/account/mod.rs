@@ -100,7 +100,7 @@ impl Account {
     pub fn import_boa(&mut self, file_path: PathBuf) -> anyhow::Result<()> {
         let mut boa = import_boa(file_path)?;
         boa.remove_duplicates(&self.txs_1st);
-        boa.txs.sort_by_key(|tx| tx.date);
+        boa.sort();
 
         if let Some(tx_1st) = self.txs_1st.txs.last() {
             if let Some(tx_add) = boa.txs.first() {
@@ -473,7 +473,7 @@ impl Account {
                 Screen::Account(_) => {
                     if let Ok(tx) = self.display_error(self.submit_balance_1st()) {
                         self.txs_1st.txs.push(tx);
-                        self.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        self.txs_1st.sort();
                         self.tx = transaction::ToSubmit::new();
                         return true;
                     }
@@ -481,7 +481,7 @@ impl Account {
                 Screen::AccountSecondary(_) => {
                     if let Ok(tx) = self.display_error(self.submit_balance_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
-                        self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
+                        self.txs_2nd.as_mut().unwrap().sort();
                         self.tx = transaction::ToSubmit::new();
                         return true;
                     }
@@ -501,7 +501,7 @@ impl Account {
                 Screen::Account(_) => {
                     if let Ok(tx) = self.display_error(self.submit_tx_1st()) {
                         self.txs_1st.txs.push(tx);
-                        self.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        self.txs_1st.sort();
                         self.tx = transaction::ToSubmit::new();
                         return true;
                     }
@@ -509,7 +509,7 @@ impl Account {
                 Screen::AccountSecondary(_) => {
                     if let Ok(tx) = self.display_error(self.submit_tx_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
-                        self.txs_2nd.as_mut().unwrap().txs.sort_by_key(|tx| tx.date);
+                        self.txs_2nd.as_mut().unwrap().sort();
                         self.tx = transaction::ToSubmit::new();
                         return true;
                     }

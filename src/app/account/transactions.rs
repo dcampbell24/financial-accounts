@@ -120,6 +120,10 @@ impl<T: Clone + Display> Transactions<T> {
         self.txs.iter().map(|tx| tx.date).min()
     }
 
+    pub fn sort(&mut self) {
+        self.txs.sort_by_key(|tx| tx.date);
+    }
+
     pub fn total(&self) -> Decimal {
         self.txs.iter().map(|d| d.amount).sum()
     }

@@ -337,9 +337,7 @@ impl App {
             self.account_name.trim().to_string(),
             self.currency.clone().unwrap(),
         ));
-        self.accounts
-            .inner
-            .sort_by_key(|account| account.name.clone());
+        self.accounts.sort();
         self.accounts.save(&self.file_path).unwrap();
     }
 }
@@ -422,7 +420,7 @@ impl Application for App {
                 match account.submit_price_as_transaction() {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
-                        account.txs_1st.txs.sort_by_key(|tx| tx.date);
+                        account.txs_1st.sort();
                         self.accounts.save(&self.file_path).unwrap();
                     }
                     Err(error) => {
@@ -444,6 +442,7 @@ impl Application for App {
                 if let Err(err) = self.import_investor_360(&file_path) {
                     self.error = Some(Arc::new(err));
                 } else {
+                    self.accounts.sort();
                     self.accounts.save(&self.file_path).unwrap();
                 }
                 self.screen = Screen::Accounts;
@@ -451,9 +450,7 @@ impl Application for App {
             Message::ImportInvestor360Screen => self.screen = Screen::ImportInvestor360,
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = self.account_name.trim().to_string();
-                self.accounts
-                    .inner
-                    .sort_by_key(|account| account.name.clone());
+                self.accounts.sort();
                 self.accounts.save(&self.file_path).unwrap();
             }
             Message::UpdateCurrency(currency) => {

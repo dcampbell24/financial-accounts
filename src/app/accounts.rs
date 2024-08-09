@@ -31,6 +31,10 @@ pub struct Accounts {
 }
 
 impl Accounts {
+    pub fn sort(&mut self) {
+        self.inner.sort_by_key(|account| account.name.clone());
+    }
+
     pub fn all_accounts_txs_1st(&self) -> Transactions<Fiat> {
         let mut txs = Vec::new();
         for account in &self.inner {
@@ -41,7 +45,6 @@ impl Accounts {
             }
         }
 
-        txs.sort_by_key(|tx| tx.date);
         let mut balance = dec!(0);
         for tx in &mut txs {
             balance += tx.amount;
@@ -51,6 +54,7 @@ impl Accounts {
         // Fixme: what to do when transactions are not in USD?
         let mut transactions = Transactions::new(Fiat::Usd);
         transactions.txs = txs;
+        transactions.sort();
         transactions
     }
 
@@ -71,7 +75,7 @@ impl Accounts {
                         date: day_1,
                     });
                 }
-                account.txs_1st.txs.sort_by_key(|tx| tx.date);
+                account.txs_1st.sort();
             }
         }
         self.checked_up_to = now;
