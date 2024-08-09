@@ -108,7 +108,7 @@ impl App {
                 continue;
             }
 
-            let balance = investor_360_record.quantity.parse::<Decimal>()?;
+            let balance = investor_360_record.quantity.unwrap();
             let mut tx = Transaction {
                 amount: dec!(0),
                 balance,
@@ -556,11 +556,11 @@ struct Investor360 {
     #[serde(rename = "Symbol")]
     symbol: String,
     #[serde(rename = "Quantity")]
-    quantity: String,
+    quantity: Option<Decimal>,
     #[serde(rename = "Price ($)")]
-    _price: String,
+    _price: Option<Decimal>,
     #[serde(rename = "Value ($)")]
-    _value: String,
+    _value: Option<Decimal>,
     #[serde(rename = "Assets (%)")]
-    _assets: String,
+    _assets: Option<Decimal>,
 }
