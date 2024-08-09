@@ -313,6 +313,17 @@ impl App {
             | Screen::ImportBoa(account) => Some(account),
         }
     }
+
+    fn submit_account(&mut self) {
+        self.accounts.inner.push(Account::new(
+            self.account_name.trim().to_string(),
+            self.currency.clone().unwrap(),
+        ));
+        self.accounts
+            .inner
+            .sort_by_key(|account| account.name.clone());
+        self.accounts.save(&self.file_path).unwrap();
+    }
 }
 
 impl Application for App {
@@ -433,16 +444,7 @@ impl Application for App {
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
-            Message::SubmitAccount => {
-                self.accounts.inner.push(Account::new(
-                    self.account_name.trim().to_string(),
-                    self.currency.clone().unwrap(),
-                ));
-                self.accounts
-                    .inner
-                    .sort_by_key(|account| account.name.clone());
-                self.accounts.save(&self.file_path).unwrap();
-            }
+            Message::SubmitAccount => self.submit_account(),
             Message::Exit => {
                 return window::close(window::Id::MAIN);
             }
