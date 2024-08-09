@@ -26,8 +26,8 @@ impl Price for Transactions<Currency> {
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => metal.get_price(client),
             Currency::House(house) => house.get_price(client),
-            Currency::MutualFund(fund) => fund.get_price(client),
             Currency::Stock(stock) => stock.get_price(client),
+            Currency::StockPlus(stock_plus) => stock_plus.get_price(client),
         }
     }
 }
@@ -132,8 +132,8 @@ impl Transactions<Currency> {
             | Currency::Eth
             | Currency::Gno
             | Currency::Metal(_)
-            | Currency::MutualFund(_)
-            | Currency::Stock(_) => true,
+            | Currency::Stock(_)
+            | Currency::StockPlus(_) => true,
             Currency::Fiat(_) | Currency::House(_) => false,
         }
     }

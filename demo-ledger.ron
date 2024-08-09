@@ -96,4 +96,13 @@
             symbol: "WBS",
         ),
     ],
+    // Supports everything on finance.yahoo.com .
+    // All equities are in Usd.
+    stocks_plus: [
+        (
+            // Mutual Fund:
+            description: "Invesco Charter A",
+            symbol: "CHTRX",
+        ),
+    ],
 )

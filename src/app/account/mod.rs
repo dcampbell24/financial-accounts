@@ -55,8 +55,8 @@ impl Account {
             | Currency::Eth
             | Currency::Gno
             | Currency::House(_)
-            | Currency::MutualFund(_)
-            | Currency::Stock(_) => (
+            | Currency::Stock(_)
+            | Currency::StockPlus(_) => (
                 Transactions::new(Fiat::Usd),
                 Some(Transactions::new(currency)),
             ),

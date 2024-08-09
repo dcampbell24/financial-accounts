@@ -8,7 +8,6 @@ mod import_boa;
 mod message;
 mod metal;
 mod money;
-mod mutual_fund;
 mod screen;
 pub mod solarized;
 mod stocks;
