@@ -35,7 +35,7 @@ use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::Deserialize;
-use stocks::Stock;
+use stocks::StockPlus;
 use thousands::Separable;
 
 use crate::app::{
@@ -137,12 +137,11 @@ impl App {
             if !name_matches {
                 tx.amount = balance;
                 let txs = vec![tx];
-                let stock = Stock {
+                let stock = StockPlus {
                     description: investor_360_record.description,
                     symbol: investor_360_record.symbol,
                 };
-                // Fixme: There aren't all stocks.
-                let currency = Currency::Stock(stock);
+                let currency = Currency::StockPlus(stock);
                 let transactions = Transactions {
                     currency: currency.clone(),
                     txs,
