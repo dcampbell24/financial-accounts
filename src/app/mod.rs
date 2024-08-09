@@ -30,7 +30,7 @@ use iced::{
     },
     window, Alignment, Application, Element, Event, Length, Theme,
 };
-use money::Currency;
+use money::{Currency, Fiat};
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -119,16 +119,21 @@ impl App {
             let mut name_matches = false;
             for account in &mut self.accounts.inner {
                 if account.name == name {
-                    tx.amount = balance
-                        - account
-                            .txs_2nd
-                            .as_ref()
-                            .unwrap()
-                            .txs
-                            .last()
-                            .unwrap()
-                            .balance;
-                    account.txs_2nd.as_mut().unwrap().txs.push(tx.clone());
+                    if investor_360_record.price.unwrap() == dec!(1) {
+                        tx.amount = balance - account.txs_1st.txs.last().unwrap().balance;
+                        account.txs_1st.txs.push(tx.clone());
+                    } else {
+                        tx.amount = balance
+                            - account
+                                .txs_2nd
+                                .as_ref()
+                                .unwrap()
+                                .txs
+                                .last()
+                                .unwrap()
+                                .balance;
+                        account.txs_2nd.as_mut().unwrap().txs.push(tx.clone());
+                    }
                     name_matches = true;
                     break;
                 }
@@ -137,18 +142,30 @@ impl App {
             if !name_matches {
                 tx.amount = balance;
                 let txs = vec![tx];
-                let stock = StockPlus {
-                    description: investor_360_record.description,
-                    symbol: investor_360_record.symbol,
-                };
-                let currency = Currency::StockPlus(stock);
-                let transactions = Transactions {
-                    currency: currency.clone(),
-                    txs,
-                };
-                let mut account = Account::new(name, currency);
-                account.txs_2nd = Some(transactions);
-                self.accounts.inner.push(account);
+
+                if investor_360_record.price.unwrap() == dec!(1) {
+                    let currency = Fiat::Usd;
+                    let transactions = Transactions {
+                        currency: currency.clone(),
+                        txs,
+                    };
+                    let mut account = Account::new(name, Currency::Fiat(currency));
+                    account.txs_1st = transactions;
+                    self.accounts.inner.push(account);
+                } else {
+                    let stock = StockPlus {
+                        description: investor_360_record.description,
+                        symbol: investor_360_record.symbol,
+                    };
+                    let currency = Currency::StockPlus(stock);
+                    let transactions = Transactions {
+                        currency: currency.clone(),
+                        txs,
+                    };
+                    let mut account = Account::new(name, currency);
+                    account.txs_2nd = Some(transactions);
+                    self.accounts.inner.push(account);
+                }
             }
         }
 
@@ -556,7 +573,7 @@ struct Investor360 {
     #[serde(rename = "Quantity")]
     quantity: Option<Decimal>,
     #[serde(rename = "Price ($)")]
-    _price: Option<Decimal>,
+    price: Option<Decimal>,
     #[serde(rename = "Value ($)")]
     _value: Option<Decimal>,
     #[serde(rename = "Assets (%)")]
