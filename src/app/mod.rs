@@ -111,7 +111,7 @@ impl App {
             let mut tx = Transaction {
                 amount: dec!(0),
                 balance,
-                comment: String::new(),
+                comment: investor_360_record.description.clone(),
                 date: Utc::now(),
             };
 
