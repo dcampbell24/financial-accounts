@@ -44,6 +44,7 @@ use crate::app::{
 
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
+const COLUMN_SPACING: f32 = 0.3;
 const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
 
@@ -182,13 +183,13 @@ impl App {
         let mut col_4 = column![text_cell(" Last Year "), text_cell("")].align_items(Alignment::End);
         let mut col_5 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
         let mut col_6 = column![text_cell(" Quantity "), text_cell("")].align_items(Alignment::End);
-        let mut col_7 = column![text_cell(""), text_cell("")];
-        let mut col_8 = column![text_cell(""), text_cell("")];
-        let mut col_9 = column![text_cell(""), text_cell("")];
-        let mut col_a = column![text_cell(""), text_cell("")];
-        let mut col_b = column![text_cell(""), text_cell("")];
-        let mut col_c = column![text_cell(""), text_cell("")];
-        let mut col_d = column![text_cell(""), text_cell("")];
+        let mut col_7 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut current_month = account.sum_current_month();
