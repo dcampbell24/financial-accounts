@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Breaking change: get rid of Stock in favor of StockPlus.
 - Breaking change: rename mutual_funds to stocks_plus.
 - Add import_investor_360().
 - Update boa_import to the new way BoA imports work.

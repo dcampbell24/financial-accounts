@@ -16,7 +16,7 @@ use super::account::transactions::Transactions;
 use super::houses::House;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
-use super::stocks::{Stock, StockPlus};
+use super::stocks::StockPlus;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -26,7 +26,6 @@ pub struct Accounts {
     pub fiats: Vec<Fiat>,
     pub houses: Vec<House>,
     pub metals: Vec<Metal>,
-    pub stocks: Vec<Stock>,
     pub stocks_plus: Vec<StockPlus>,
 }
 
@@ -114,9 +113,6 @@ impl Accounts {
         for metal in &self.metals {
             currencies.push(Currency::Metal(metal.clone()));
         }
-        for stock in &self.stocks {
-            currencies.push(Currency::Stock(stock.clone()));
-        }
         for stock_plus in &self.stocks_plus {
             currencies.push(Currency::StockPlus(stock_plus.clone()));
         }
@@ -130,7 +126,6 @@ impl Accounts {
             fiats: Vec::new(),
             houses: Vec::new(),
             metals: Vec::new(),
-            stocks: Vec::new(),
             stocks_plus: Vec::new(),
         }
     }

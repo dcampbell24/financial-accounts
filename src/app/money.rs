@@ -2,11 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use super::{
-    houses::House,
-    metal::Metal,
-    stocks::{Stock, StockPlus},
-};
+use super::{houses::House, metal::Metal, stocks::StockPlus};
 
 #[derive(Debug, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Currency {
@@ -16,7 +12,6 @@ pub enum Currency {
     Fiat(Fiat),
     House(House),
     Metal(Metal),
-    Stock(Stock),
     StockPlus(StockPlus),
 }
 
@@ -29,7 +24,6 @@ impl fmt::Display for Currency {
             Self::Fiat(fiat) => write!(f, "{fiat}"),
             Self::House(address) => write!(f, "House: {address}"),
             Self::Metal(metal) => write!(f, "Metal: {metal}"),
-            Self::Stock(stock) => write!(f, "Stock: {stock}"),
             Self::StockPlus(stock_plus) => write!(f, "Stock Plus: {stock_plus}"),
         }
     }

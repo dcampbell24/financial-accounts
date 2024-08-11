@@ -56,9 +56,14 @@
             symbol: "XAG",
         ),
     ],
-    // Supports all the stocks on polygon.io .
-    // All stocks are in Usd.
-    stocks: [
+    // Supports everything on finance.yahoo.com .
+    // All equities are in Usd.
+    stocks_plus: [
+        (
+            // Mutual Fund:
+            description: "Invesco Charter A",
+            symbol: "CHTRX",
+        ),
         (
             description: "CHEVRON CORP",
             symbol: "CVX",
@@ -86,15 +91,6 @@
         (
             description: "WEBSTER FINL CP PV $0.01",
             symbol: "WBS",
-        ),
-    ],
-    // Supports everything on finance.yahoo.com .
-    // All equities are in Usd.
-    stocks_plus: [
-        (
-            // Mutual Fund:
-            description: "Invesco Charter A",
-            symbol: "CHTRX",
         ),
     ],
 )
