@@ -81,6 +81,28 @@ impl Accounts {
         self.checked_up_to = now;
     }
 
+    #[must_use]
+    pub fn get_all_prices(&mut self) -> Vec<anyhow::Error> {
+        let mut errors = Vec::new();
+        for account in &mut self.inner {
+            if account.txs_2nd.is_some() {
+                match account.submit_price_as_transaction() {
+                    Ok(tx) => {
+                        account.txs_1st.txs.push(tx);
+                        account.txs_1st.sort();
+                    }
+                    Err(error) => {
+                        errors.push(error);
+                    }
+                }
+            }
+        }
+        errors
+    }
+
+    // self.accounts.save(&self.file_path).unwrap();
+    // self.error = Some(Arc::new(error));
+
     pub fn get_currencies(&self) -> Vec<Currency> {
         let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
         for fiat in &self.fiats {

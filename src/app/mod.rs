@@ -26,7 +26,7 @@ use iced::{
     widget::{
         button, column,
         combo_box::{ComboBox, State},
-        row, text, text_input, Button, Row, Scrollable,
+        row, text, text_input, Button, Column, Row, Scrollable,
     },
     window, Alignment, Application, Element, Event, Length, Theme,
 };
@@ -59,7 +59,7 @@ pub struct App {
     currency_selector: State<Currency>,
     project_months: Option<u16>,
     screen: Screen,
-    error: Option<Arc<anyhow::Error>>,
+    errors: Option<Arc<Vec<anyhow::Error>>>,
 }
 
 impl App {
@@ -75,7 +75,7 @@ impl App {
             currency_selector: State::new(currencies),
             project_months: None,
             screen,
-            error: None,
+            errors: None,
         }
     }
 
@@ -235,11 +235,11 @@ impl App {
                 import_boa = import_boa.on_press(Message::ImportBoaScreen(i));
             }
             col_b = col_b.push(button_cell(import_boa));
-            let mut get_ohlc = button("Get Price");
+            let mut get_price = button("Get Price");
             if account.txs_2nd.is_some() {
-                get_ohlc = get_ohlc.on_press(Message::GetOhlc(i));
+                get_price = get_price.on_press(Message::GetPrice(i));
             }
-            col_c = col_c.push(button_cell(get_ohlc));
+            col_c = col_c.push(button_cell(get_price));
             col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
@@ -250,7 +250,13 @@ impl App {
         let my_chart = self.accounts.all_accounts_txs_1st();
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
         let rows = self.rows();
-        let error = self.error.as_ref().map_or_else(|| row![], |error| row![text_cell_red(error)]);
+
+        let mut column_errors = Column::new();
+        if let Some(errors) = &self.errors {
+            for error in errors.iter() {
+                column_errors = column_errors.push(text_cell_red(error));
+            }
+        }
 
         let col_1 = column![
             text_cell("total current month USD: "),
@@ -295,7 +301,7 @@ impl App {
         let cols = column![
             chart,
             rows,
-            error,
+            column_errors,
             text_cell(""),
             totals,
             text_cell(""),
@@ -316,6 +322,7 @@ impl App {
             row![
                 button_cell(button("Exit").on_press(Message::Exit)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360Screen)),
+                button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
             ].padding(PADDING).spacing(ROW_SPACING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -372,7 +379,7 @@ impl Application for App {
 
     fn update(&mut self, message: Message) -> iced::Command<Message> {
         let selected_account = self.selected_account();
-        self.error = None;
+        self.errors = None;
 
         match message {
             Message::Account(message) => {
@@ -415,7 +422,7 @@ impl Application for App {
                     *self = app;
                 }
             }
-            Message::GetOhlc(i) => {
+            Message::GetPrice(i) => {
                 let account = &mut self.accounts[i];
 
                 match account.submit_price_as_transaction() {
@@ -425,14 +432,21 @@ impl Application for App {
                         self.accounts.save(&self.file_path).unwrap();
                     }
                     Err(error) => {
-                        self.error = Some(Arc::new(error));
+                        self.errors = Some(Arc::new(vec![error]));
                     }
                 }
+            }
+            Message::GetPriceAll => {
+                let errors = self.accounts.get_all_prices();
+                if !errors.is_empty() {
+                    self.errors = Some(Arc::new(errors));
+                }
+                self.accounts.save(&self.file_path).unwrap();
             }
             Message::ImportBoa(i, file_path) => {
                 let account = &mut self.accounts[i];
                 if let Err(err) = account.import_boa(file_path) {
-                    self.error = Some(Arc::new(err));
+                    self.errors = Some(Arc::new(vec![err]));
                 } else {
                     self.accounts.save(&self.file_path).unwrap();
                 }
@@ -441,7 +455,7 @@ impl Application for App {
             Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
             Message::ImportInvestor360(file_path) => {
                 if let Err(err) = self.import_investor_360(&file_path) {
-                    self.error = Some(Arc::new(err));
+                    self.errors = Some(Arc::new(vec![err]));
                 } else {
                     self.accounts.sort();
                     self.accounts.save(&self.file_path).unwrap();
