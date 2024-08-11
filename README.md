@@ -13,12 +13,6 @@ token (free for 100 requests per month). The token is stored in a file named
 "goldapi.io.txt" stored in the same directory as the program
 is run from or your home directory if you installed the application.
 
-To get the price of stocks I use a service from polygon.io and it requires a
-token (free for 5 API Calls / Minute). The token is stored in a file named
-"polygon.io.txt" and is preceded by the string "Bearer ". It is stored in the
-same directory as the program is run from or your home directory if you
-installed the application.
-
 You can import Bank of America transactions via Import BoA.
 
 Via Tx 2nd you can get the price of metals, mutual funds, stocks, Bitcoin,
