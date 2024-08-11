@@ -1,5 +1,6 @@
 use std::fmt;
 
+use anyhow::Context;
 use html5ever::{
     parse_document,
     tendril::TendrilSink,
@@ -72,7 +73,9 @@ impl Price for StockPlus {
             children_2nd = Vec::new();
         }
 
-        let price: Decimal = price.parse()?;
+        let price: Decimal = price
+            .parse()
+            .context(format!("Invalid Equity: {}", self.symbol))?;
         Ok(price)
     }
 }
