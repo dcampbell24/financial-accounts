@@ -165,11 +165,11 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_current_month_usd(&self) -> Decimal {
+    pub fn total_for_last_week_usd(&self) -> Decimal {
         let mut total = dec!(0);
         for account in &self.inner {
             if account.txs_1st.currency == Fiat::Usd {
-                let sum = account.sum_current_month();
+                let sum = account.sum_last_week();
                 total += sum;
             }
         }
@@ -181,17 +181,6 @@ impl Accounts {
         for account in &self.inner {
             if account.txs_1st.currency == Fiat::Usd {
                 let sum = account.sum_last_month();
-                total += sum;
-            }
-        }
-        total
-    }
-
-    pub fn total_for_current_year_usd(&self) -> Decimal {
-        let mut total = dec!(0);
-        for account in &self.inner {
-            if account.txs_1st.currency == Fiat::Usd {
-                let sum = account.sum_current_year();
                 total += sum;
             }
         }

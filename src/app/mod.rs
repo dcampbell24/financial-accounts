@@ -177,24 +177,22 @@ impl App {
     #[rustfmt::skip]
     fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
-        let mut col_1 = column![text_cell(" Current Month "), text_cell("")].align_items(Alignment::End);
-        let mut col_2 = column![text_cell(" Last Month "), text_cell("")].align_items(Alignment::End);
-        let mut col_3 = column![text_cell(" Current Year "), text_cell("")].align_items(Alignment::End);
-        let mut col_4 = column![text_cell(" Last Year "), text_cell("")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell(" Quantity "), text_cell("")].align_items(Alignment::End);
+        let mut col_1 = column![text_cell(" Week "), text_cell("")].align_items(Alignment::End);
+        let mut col_2 = column![text_cell(" Month "), text_cell("")].align_items(Alignment::End);
+        let mut col_3 = column![text_cell(" Year "), text_cell("")].align_items(Alignment::End);
+        let mut col_4 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
+        let mut col_5 = column![text_cell(" Quantity "), text_cell("")].align_items(Alignment::End);
+        let mut col_6 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_7 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            let mut current_month = account.sum_current_month();
+            let mut last_week = account.sum_last_week();
             let mut last_month = account.sum_last_month();
-            let mut current_year = account.sum_current_year();
             let mut last_year = account.sum_last_year();
             let mut balance_1st = account.balance_1st();
 
@@ -203,46 +201,44 @@ impl App {
                 number_cell(balance)
             });
 
-            current_month.rescale(2);
+            last_week.rescale(2);
             last_month.rescale(2);
-            current_year.rescale(2);
             last_year.rescale(2);
             balance_1st.rescale(2);
 
             col_0 = col_0.push(text_cell(&account.name));
-            col_1 = col_1.push(number_cell(current_month));
+            col_1 = col_1.push(number_cell(last_week));
             col_2 = col_2.push(number_cell(last_month));
-            col_3 = col_3.push(number_cell(current_year));
-            col_4 = col_4.push(number_cell(last_year));
-            col_5 = col_5.push(number_cell(balance_1st));
-            col_6 = col_6.push(balance_2nd);
-            col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
+            col_3 = col_3.push(number_cell(last_year));
+            col_4 = col_4.push(number_cell(balance_1st));
+            col_5 = col_5.push(balance_2nd);
+            col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd {
                 if account.has_txs_2nd() {
                     txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
                 }
             }
-            col_8 = col_8.push(button_cell(txs_2nd));
-            col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
+            col_7 = col_7.push(button_cell(txs_2nd));
+            col_8 = col_8.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_a = col_a.push(button_cell(update_name));
+            col_9 = col_9.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
                 import_boa = import_boa.on_press(Message::ImportBoaScreen(i));
             }
-            col_b = col_b.push(button_cell(import_boa));
+            col_a = col_a.push(button_cell(import_boa));
             let mut get_price = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_price = get_price.on_press(Message::GetPrice(i));
             }
-            col_c = col_c.push(button_cell(get_price));
-            col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_b = col_b.push(button_cell(get_price));
+            col_c = col_c.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c]
     }
 
     #[rustfmt::skip]
@@ -259,29 +255,25 @@ impl App {
         }
 
         let col_1 = column![
-            text_cell("total current month USD: "),
+            text_cell("total last week USD: "),
             text_cell("total last month USD: "),
-            text_cell("total current year USD: "),
             text_cell("total last year USD: "),
             text_cell("balance USD: "),
         ];
 
-        let mut total_for_current_month_usd = self.accounts.total_for_current_month_usd();
+        let mut total_for_last_week_usd = self.accounts.total_for_last_week_usd();
         let mut total_for_last_month_usd = self.accounts.total_for_last_month_usd();
-        let mut total_for_current_year_usd = self.accounts.total_for_current_year_usd();
         let mut total_for_last_year_usd = self.accounts.total_for_last_year_usd();
         let mut balance = self.accounts.balance_usd();
 
-        total_for_current_month_usd.rescale(2);
+        total_for_last_week_usd.rescale(2);
         total_for_last_month_usd.rescale(2);
-        total_for_current_year_usd.rescale(2);
         total_for_last_year_usd.rescale(2);
         balance.rescale(2);
 
         let col_2 = column![
-            number_cell(total_for_current_month_usd),
+            number_cell(total_for_last_week_usd),
             number_cell(total_for_last_month_usd),
-            number_cell(total_for_current_year_usd),
             number_cell(total_for_last_year_usd),
             number_cell(balance),
             text_cell(""),

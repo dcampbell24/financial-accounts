@@ -3,7 +3,7 @@ pub mod transactions;
 
 use std::{error::Error, fmt::Display, mem::take, path::PathBuf, string::ToString};
 
-use chrono::{DateTime, Datelike, NaiveDate, ParseError, TimeZone, Utc};
+use chrono::{DateTime, NaiveDate, ParseError, TimeDelta, TimeZone, Utc};
 use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
@@ -360,14 +360,12 @@ impl Account {
         self.txs_monthly.iter().map(|d| d.amount).sum()
     }
 
-    pub fn sum_current_month(&self) -> Decimal {
-        let now = Utc::now();
-        let date = Utc
-            .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
-            .unwrap();
+    pub fn sum_last_week(&self) -> Decimal {
+        let last_week = Utc::now() - TimeDelta::weeks(1);
         let mut amount = dec!(0);
+
         for tx in &self.txs_1st.txs {
-            if tx.date >= date {
+            if tx.date >= last_week {
                 amount += tx.amount;
             }
         }
@@ -375,32 +373,11 @@ impl Account {
     }
 
     pub fn sum_last_month(&self) -> Decimal {
-        let now = Utc::now();
-        let mut year = now.year();
-        let mut month = now.month() - 1;
-        if month == 0 {
-            year -= 1;
-            month = 12;
-        }
-        let month_start = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
-        let month_end = Utc
-            .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
-            .unwrap();
+        let last_month = Utc::now() - TimeDelta::days(30);
         let mut amount = dec!(0);
-        for tx in &self.txs_1st.txs {
-            if tx.date >= month_start && tx.date < month_end {
-                amount += tx.amount;
-            }
-        }
-        amount
-    }
 
-    pub fn sum_current_year(&self) -> Decimal {
-        let now = Utc::now();
-        let date = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
-        let mut amount = dec!(0);
         for tx in &self.txs_1st.txs {
-            if tx.date >= date {
+            if tx.date >= last_month {
                 amount += tx.amount;
             }
         }
@@ -408,12 +385,11 @@ impl Account {
     }
 
     pub fn sum_last_year(&self) -> Decimal {
-        let now = Utc::now();
-        let year_start = Utc.with_ymd_and_hms(now.year() - 1, 1, 1, 0, 0, 0).unwrap();
-        let year_end = Utc.with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0).unwrap();
+        let last_year = Utc::now() - TimeDelta::weeks(52);
         let mut amount = dec!(0);
+
         for tx in &self.txs_1st.txs {
-            if tx.date >= year_start && tx.date < year_end {
+            if tx.date >= last_year {
                 amount += tx.amount;
             }
         }
