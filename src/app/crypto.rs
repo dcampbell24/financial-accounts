@@ -1,7 +1,7 @@
 use std::{error::Error, fmt::Display, str::FromStr};
 
 use chrono::{DateTime, Utc};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use super::money::{Currency, Fiat};
 
 const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
 
-pub fn get_ohlc_untyped(client: &Client, name: &str) -> anyhow::Result<String> {
+pub async fn get_ohlc_untyped(client: &Client, name: &str) -> anyhow::Result<String> {
     let url = Url::parse_with_params(
         URL_KRAKEN_OHLC,
         &[
@@ -21,8 +21,8 @@ pub fn get_ohlc_untyped(client: &Client, name: &str) -> anyhow::Result<String> {
         ],
     )?;
 
-    let response = client.get(url).send()?;
-    let string = response.text()?;
+    let response = client.get(url).send().await?;
+    let string = response.text().await?;
     Ok(string)
 }
 
@@ -48,9 +48,9 @@ macro_rules! impl_get_ohlc {
         }
 
         impl $ty {
-            pub fn get_price(client: &Client) -> anyhow::Result<Decimal> {
+            pub async fn get_price(client: &Client) -> anyhow::Result<Decimal> {
                 let name = $request.to_string();
-                let string = get_ohlc_untyped(client, &name)?;
+                let string = get_ohlc_untyped(client, &name).await?;
                 let response: Response<$ty> = serde_json::from_str(&string)?;
                 let ohlc = response.to_ohlc(name)?;
                 Ok(ohlc.close)

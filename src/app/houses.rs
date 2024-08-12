@@ -3,7 +3,7 @@ use std::fmt;
 use chrono::{TimeZone, Utc};
 use html5ever::tendril::TendrilSink;
 use markup5ever_rcdom::{NodeData, RcDom};
-use reqwest::blocking::Client;
+use reqwest::Client;
 
 use html5ever::tree_builder::{TreeBuilderOpts, TreeSink};
 use html5ever::{parse_document, ParseOpts};
@@ -45,7 +45,7 @@ impl fmt::Display for House {
 }
 
 impl Price for House {
-    fn get_price(&self, _client: &Client) -> anyhow::Result<Decimal> {
+    async fn get_price(&self, _client: &Client) -> anyhow::Result<Decimal> {
         let cookie_store = {
             if let Ok(file) =
                 std::fs::File::open("zillow-cookies.json").map(std::io::BufReader::new)
@@ -81,9 +81,10 @@ impl Price for House {
                 "https://www.zillow.com/homes/{}",
                 self.zillow_search_string()
             ))
-            .send()?;
+            .send()
+            .await?;
 
-        let text = resp.text()?;
+        let text = resp.text().await?;
 
         let mut writer =
             std::fs::File::create("zillow-cookies.json").map(std::io::BufWriter::new)?;

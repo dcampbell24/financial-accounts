@@ -282,8 +282,13 @@ impl Account {
         })
     }
 
-    pub fn submit_price_as_transaction(&self) -> anyhow::Result<Transaction> {
-        let mut tx = self.txs_2nd.as_ref().unwrap().get_price_as_transaction()?;
+    pub async fn submit_price_as_transaction(&self) -> anyhow::Result<Transaction> {
+        let mut tx = self
+            .txs_2nd
+            .as_ref()
+            .unwrap()
+            .get_price_as_transaction()
+            .await?;
         tx.amount = tx.balance - self.balance_1st();
         Ok(tx)
     }

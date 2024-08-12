@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use chrono::{DateTime, Months, Utc};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -14,34 +14,34 @@ use crate::app::{
 use super::transaction::Transaction;
 
 pub trait Price {
-    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal>;
+    async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal>;
 }
 
 impl Price for Transactions<Currency> {
-    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
+    async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         match &self.currency {
-            Currency::Btc => crypto::BtcOhlc::get_price(client),
-            Currency::Eth => crypto::EthOhlc::get_price(client),
-            Currency::Gno => crypto::GnoOhlc::get_price(client),
+            Currency::Btc => crypto::BtcOhlc::get_price(client).await,
+            Currency::Eth => crypto::EthOhlc::get_price(client).await,
+            Currency::Gno => crypto::GnoOhlc::get_price(client).await,
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
-            Currency::Metal(metal) => metal.get_price(client),
-            Currency::House(house) => house.get_price(client),
-            Currency::StockPlus(stock_plus) => stock_plus.get_price(client),
+            Currency::Metal(metal) => metal.get_price(client).await,
+            Currency::House(house) => house.get_price(client).await,
+            Currency::StockPlus(stock_plus) => stock_plus.get_price(client).await,
         }
     }
 }
 
 pub trait PriceAsTransaction: Price {
-    fn get_price_as_transaction(&self) -> anyhow::Result<Transaction>;
+    async fn get_price_as_transaction(&self) -> anyhow::Result<Transaction>;
 }
 
 impl PriceAsTransaction for Transactions<Currency> {
-    fn get_price_as_transaction(&self) -> anyhow::Result<Transaction> {
+    async fn get_price_as_transaction(&self) -> anyhow::Result<Transaction> {
         let client = Client::builder()
         .user_agent("Mozilla/5.0 (compatible; financial-accounts/0.2-dev; +https://github.com/dcampbell24/financial-accounts)")
         .build()?;
 
-        let price = self.get_price(&client)?;
+        let price = self.get_price(&client).await?;
         let count = self.count();
 
         if let Currency::House(house) = &self.currency {

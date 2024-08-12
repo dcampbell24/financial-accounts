@@ -8,7 +8,7 @@ use html5ever::{
     ParseOpts,
 };
 use markup5ever_rcdom::{NodeData, RcDom};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -22,12 +22,13 @@ pub struct StockPlus {
 }
 
 impl Price for StockPlus {
-    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
+    async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         let resp = client
             .get(format!("https://finance.yahoo.com/quote/{}/", self.symbol))
-            .send()?;
+            .send()
+            .await?;
 
-        let text = resp.text()?;
+        let text = resp.text().await?;
 
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {

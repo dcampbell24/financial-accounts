@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Context;
 use chrono::{serde::ts_seconds, DateTime, Utc};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -29,7 +29,7 @@ impl fmt::Display for Metal {
 }
 
 impl Price for Metal {
-    fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
+    async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         let pwd = env::current_dir()?;
         let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
             "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
@@ -44,8 +44,9 @@ impl Price for Metal {
         let response = client
             .get(url)
             .header("x-access-token", access_token)
-            .send()?;
-        let string = response.text()?;
+            .send()
+            .await?;
+        let string = response.text().await?;
         // let string = _TESTING_RESPONSE;
         let metals: Prices = serde_json::from_str(&string)?;
         Ok(metals.price)

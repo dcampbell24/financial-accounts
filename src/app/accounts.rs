@@ -81,11 +81,11 @@ impl Accounts {
     }
 
     #[must_use]
-    pub fn get_all_prices(&mut self) -> Vec<anyhow::Error> {
+    pub async fn get_all_prices(&mut self) -> Vec<anyhow::Error> {
         let mut errors = Vec::new();
         for account in &mut self.inner {
             if account.txs_2nd.is_some() {
-                match account.submit_price_as_transaction() {
+                match account.submit_price_as_transaction().await {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.sort();

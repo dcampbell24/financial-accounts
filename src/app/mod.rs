@@ -425,7 +425,7 @@ impl Application for App {
             Message::GetPrice(i) => {
                 let account = &mut self.accounts[i];
 
-                match account.submit_price_as_transaction() {
+                match futures::executor::block_on(account.submit_price_as_transaction()) {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.sort();
@@ -437,7 +437,7 @@ impl Application for App {
                 }
             }
             Message::GetPriceAll => {
-                let errors = self.accounts.get_all_prices();
+                let errors = futures::executor::block_on(self.accounts.get_all_prices());
                 if !errors.is_empty() {
                     self.errors = Some(Arc::new(errors));
                 }
