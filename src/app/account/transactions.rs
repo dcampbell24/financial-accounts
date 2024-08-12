@@ -25,7 +25,6 @@ impl Price for Transactions<Currency> {
             Currency::Gno => crypto::GnoOhlc::get_price(client).await,
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => metal.get_price(client).await,
-            Currency::House(house) => house.get_price(client).await,
             Currency::StockPlus(stock_plus) => stock_plus.get_price(client).await,
         }
     }
@@ -44,14 +43,7 @@ impl PriceAsTransaction for Transactions<Currency> {
         let price = self.get_price(&client).await?;
         let count = self.count();
 
-        if let Currency::House(house) = &self.currency {
-            Ok(Transaction {
-                amount: price,
-                balance: price,
-                date: Utc::now(),
-                comment: house.to_string(),
-            })
-        } else if let Currency::Metal(metal) = &self.currency {
+        if let Currency::Metal(metal) = &self.currency {
             Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
@@ -136,7 +128,7 @@ impl Transactions<Currency> {
             | Currency::Gno
             | Currency::Metal(_)
             | Currency::StockPlus(_) => true,
-            Currency::Fiat(_) | Currency::House(_) => false,
+            Currency::Fiat(_) => false,
         }
     }
 }

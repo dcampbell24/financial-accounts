@@ -13,7 +13,6 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
-use super::houses::House;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
@@ -24,7 +23,6 @@ pub struct Accounts {
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
     pub fiats: Vec<Fiat>,
-    pub houses: Vec<House>,
     pub metals: Vec<Metal>,
     pub stocks_plus: Vec<StockPlus>,
 }
@@ -113,9 +111,6 @@ impl Accounts {
         for fiat in &self.fiats {
             currencies.push(Currency::Fiat(fiat.clone()));
         }
-        for address in &self.houses {
-            currencies.push(Currency::House(address.clone()));
-        }
         for metal in &self.metals {
             currencies.push(Currency::Metal(metal.clone()));
         }
@@ -130,7 +125,6 @@ impl Accounts {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
             fiats: Vec::new(),
-            houses: Vec::new(),
             metals: Vec::new(),
             stocks_plus: Vec::new(),
         }

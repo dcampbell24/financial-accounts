@@ -34,12 +34,3 @@ currencies are shown.
 
 I may allow for cypto currencies in the same way I do stocks and metals, but I
 haven't figured out the best way to support it yet.
-
-## Zillow
-
-Zillow doesn't like bots scraping it's site, so in order to scrape the site
-(and get the price of a house) you have to go to the page of the address you
-want _in Firefox_ and do a captcha. Then the application will grab your cookies
-from a _default_ profile and use them. Next the application creates a file
-named "zillow-cookies.json" in the directory you ran the application from and
-reads your cookies from that file in the future.

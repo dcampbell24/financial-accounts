@@ -3,7 +3,6 @@ mod accounts;
 mod chart;
 mod crypto;
 mod file_picker;
-mod houses;
 mod import_boa;
 mod message;
 mod metal;
@@ -11,7 +10,6 @@ mod money;
 mod screen;
 pub mod solarized;
 mod stocks;
-mod zillow_cookies;
 
 use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 

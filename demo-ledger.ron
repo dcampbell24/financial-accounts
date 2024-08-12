@@ -28,16 +28,6 @@
         // Mxn,
         // Jod,
     ],
-    // Supports all the addresses on www.zillow.com .
-    houses: [
-        // (
-        //     street_address: "",
-        //     city: "",
-        //     state: "",
-        //     zip_code: "",
-        //     zp_id: "",
-        // ),
-    ],
     // Supports all the metals on www.goldapi.io .
     metals: [
         (

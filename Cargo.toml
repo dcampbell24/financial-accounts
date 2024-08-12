@@ -17,7 +17,6 @@ anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
-cookie_store = "0.21"
 csv = "1"
 futures = "0.3"
 home = "0.5"
@@ -28,9 +27,7 @@ plotters = "0.3"
 plotters-iced = "0.10"
 regex = "1"
 reqwest = { version = "0.12", features = ["cookies"] }
-reqwest_cookie_store = "0.8"
 ron = "0.8"
-rusqlite = { version = "0.32", features = ["bundled"] }
 rust_decimal = "1"
 rust_decimal_macros = "1"
 serde = { version = "1", features = ["derive"] }
