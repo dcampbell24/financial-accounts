@@ -83,15 +83,17 @@ impl Accounts {
     #[must_use]
     pub async fn get_all_prices(&mut self) -> Vec<anyhow::Error> {
         let mut tasks = Vec::new();
-        for account in &mut self.inner {
+        let mut indexes = Vec::new();
+        for (index, account) in &mut self.inner.iter().enumerate() {
             if account.txs_2nd.is_some() {
+                indexes.push(index);
                 tasks.push(account.submit_price_as_transaction());
             }
         }
 
         let results = futures::future::join_all(tasks).await;
         let mut errors = Vec::new();
-        for (index, result) in results.into_iter().enumerate() {
+        for (index, result) in indexes.into_iter().zip(results) {
             let account = &mut self.inner[index];
             match result {
                 Ok(tx) => {
