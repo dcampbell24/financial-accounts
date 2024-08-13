@@ -80,6 +80,14 @@ impl App {
         }
     }
 
+    fn change_project_months(&mut self, months: &str) {
+        if months.is_empty() {
+            self.project_months = None;
+        } else if let Ok(months) = months.parse() {
+            self.project_months = Some(months);
+        }
+    }
+
     fn import_investor_360(&mut self, file_xls: &PathBuf) -> anyhow::Result<()> {
         let file_csv = file_xls.file_stem().unwrap();
         let mut file_csv = PathBuf::from_str(file_csv.to_str().unwrap())?;
@@ -385,14 +393,7 @@ impl Application for App {
             }
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
-            Message::ChangeProjectMonths(months) => {
-                if months.is_empty() {
-                    self.project_months = None;
-                }
-                if let Ok(months) = months.parse() {
-                    self.project_months = Some(months);
-                }
-            }
+            Message::ChangeProjectMonths(months) => self.change_project_months(&months),
             Message::ChartWeek => self.duration = Duration::Week,
             Message::ChartMonth => self.duration = Duration::Month,
             Message::ChartYear => self.duration = Duration::Year,
