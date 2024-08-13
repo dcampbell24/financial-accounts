@@ -4,19 +4,18 @@ use plotters::{
     series::AreaSeries,
     style::{Color, FontTransform, IntoFont, ShapeStyle},
 };
-use plotters_iced::Chart;
 use rust_decimal::prelude::ToPrimitive;
 
 use crate::app::message::Message;
 
 use super::{account::transactions::Transactions, solarized, Duration};
 
-pub struct TransactionsChart<T: Clone + Display> {
+pub struct Chart<T: Clone + Display> {
     pub txs: Transactions<T>,
     pub duration: Duration,
 }
 
-impl<T: Clone + Display> Chart<Message> for TransactionsChart<T> {
+impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
     type State = ();
 
     fn build_chart<DB: plotters::prelude::DrawingBackend>(

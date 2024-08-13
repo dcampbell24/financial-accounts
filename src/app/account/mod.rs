@@ -18,7 +18,7 @@ use crate::app::{self, account::transaction::Transaction, EDGE_PADDING, PADDING}
 
 use super::{
     button_cell,
-    chart::TransactionsChart,
+    chart::Chart,
     import_boa::import_boa,
     money::{Currency, Fiat},
     number_cell,
@@ -126,7 +126,7 @@ impl Account {
     ) -> Scrollable<app::Message> {
         txs_struct.filter_month(self.filter_date);
 
-        let chart = TransactionsChart {
+        let chart = Chart {
             txs: txs_struct.clone(),
             duration: Duration::All,
         };

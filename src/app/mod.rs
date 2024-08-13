@@ -15,7 +15,7 @@ use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use anyhow::Context;
-use chart::TransactionsChart;
+use chart::Chart;
 use chrono::Utc;
 use file_picker::Select;
 use iced::{
@@ -244,11 +244,11 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let my_chart = TransactionsChart {
+        let chart = Chart {
             txs: self.accounts.all_accounts_txs_1st(),
             duration: self.duration.clone(),
         };
-        let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
+        let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
         let rows = self.rows();
 
         let mut column_errors = Column::new();
