@@ -18,11 +18,12 @@ use crate::app::{self, account::transaction::Transaction, EDGE_PADDING, PADDING}
 
 use super::{
     button_cell,
+    chart::TransactionsChart,
     import_boa::import_boa,
     money::{Currency, Fiat},
     number_cell,
     screen::Screen,
-    set_amount, some_or_empty, text_cell, ROW_SPACING,
+    set_amount, some_or_empty, text_cell, Duration, ROW_SPACING,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -125,8 +126,12 @@ impl Account {
     ) -> Scrollable<app::Message> {
         txs_struct.filter_month(self.filter_date);
 
+        let chart = TransactionsChart {
+            txs: txs_struct.clone(),
+            duration: Duration::All,
+        };
         let chart: ChartWidget<'a, _, _, _, _> =
-            ChartWidget::new(txs_struct.clone()).height(Length::Fixed(400.0));
+            ChartWidget::new(chart).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell(" Date ")];
@@ -381,7 +386,7 @@ impl Account {
     }
 
     pub fn sum_last_year(&self) -> Decimal {
-        let last_year = Utc::now() - TimeDelta::weeks(52);
+        let last_year = Utc::now() - TimeDelta::days(365);
         let mut amount = dec!(0);
 
         for tx in &self.txs_1st.txs {

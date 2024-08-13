@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use chrono::{DateTime, Months, Utc};
+use chrono::{DateTime, Months, TimeDelta, Utc};
 use reqwest::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -92,6 +92,54 @@ impl<T: Clone + Display> Transactions<T> {
                 }
             }
             self.txs = filtered_tx;
+        }
+    }
+
+    pub fn last_week(&self) -> Transactions<T> {
+        let last_week = Utc::now() - TimeDelta::weeks(1);
+        let mut txs = Vec::new();
+
+        for tx in &self.txs {
+            if tx.date >= last_week {
+                txs.push(tx.clone());
+            }
+        }
+
+        Transactions {
+            txs,
+            currency: self.currency.clone(),
+        }
+    }
+
+    pub fn last_month(&self) -> Transactions<T> {
+        let last_week = Utc::now() - TimeDelta::days(30);
+        let mut txs = Vec::new();
+
+        for tx in &self.txs {
+            if tx.date >= last_week {
+                txs.push(tx.clone());
+            }
+        }
+
+        Transactions {
+            txs,
+            currency: self.currency.clone(),
+        }
+    }
+
+    pub fn last_year(&self) -> Transactions<T> {
+        let last_week = Utc::now() - TimeDelta::days(365);
+        let mut txs = Vec::new();
+
+        for tx in &self.txs {
+            if tx.date >= last_week {
+                txs.push(tx.clone());
+            }
+        }
+
+        Transactions {
+            txs,
+            currency: self.currency.clone(),
         }
     }
 

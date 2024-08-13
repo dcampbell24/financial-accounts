@@ -6,6 +6,10 @@ use super::{account, file_picker, money::Currency};
 pub enum Message {
     Account(account::Message),
     Back,
+    ChartWeek,
+    ChartMonth,
+    ChartYear,
+    ChartAll,
     ChangeAccountName(String),
     ChangeProjectMonths(String),
     Delete(usize),

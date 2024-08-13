@@ -9,9 +9,14 @@ use rust_decimal::prelude::ToPrimitive;
 
 use crate::app::message::Message;
 
-use super::{account::transactions::Transactions, solarized};
+use super::{account::transactions::Transactions, solarized, Duration};
 
-impl<T: Clone + Display> Chart<Message> for Transactions<T> {
+pub struct TransactionsChart<T: Clone + Display> {
+    pub txs: Transactions<T>,
+    pub duration: Duration,
+}
+
+impl<T: Clone + Display> Chart<Message> for TransactionsChart<T> {
     type State = ();
 
     fn build_chart<DB: plotters::prelude::DrawingBackend>(
@@ -19,11 +24,18 @@ impl<T: Clone + Display> Chart<Message> for Transactions<T> {
         _state: &Self::State,
         mut chart: plotters::prelude::ChartBuilder<DB>,
     ) {
+        let txs = match self.duration {
+            Duration::Week => self.txs.last_week(),
+            Duration::Month => self.txs.last_month(),
+            Duration::Year => self.txs.last_year(),
+            Duration::All => self.txs.clone(),
+        };
+
         if let (Some(Some(min_balance)), Some(Some(max_balance)), Some(min_date), Some(max_date)) = (
-            self.min_balance().map(|min| min.to_f64()),
-            self.max_balance().map(|max| max.to_f64()),
-            self.min_date(),
-            self.max_date(),
+            txs.min_balance().map(|min| min.to_f64()),
+            txs.max_balance().map(|max| max.to_f64()),
+            txs.min_date(),
+            txs.max_date(),
         ) {
             let mut chart = chart
                 .x_label_area_size(28)
@@ -58,7 +70,7 @@ impl<T: Clone + Display> Chart<Message> for Transactions<T> {
             chart
                 .draw_series(
                     AreaSeries::new(
-                        self.txs
+                        txs.txs
                             .iter()
                             .map(|tx| (tx.date, tx.balance.to_f64().unwrap())),
                         0.0,

@@ -15,6 +15,7 @@ use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use anyhow::Context;
+use chart::TransactionsChart;
 use chrono::Utc;
 use file_picker::Select;
 use iced::{
@@ -55,6 +56,7 @@ pub struct App {
     account_name: String,
     currency: Option<Currency>,
     currency_selector: State<Currency>,
+    duration: Duration,
     project_months: Option<u16>,
     screen: Screen,
     errors: Option<Arc<Vec<anyhow::Error>>>,
@@ -71,6 +73,7 @@ impl App {
             account_name: String::new(),
             currency: None,
             currency_selector: State::new(currencies),
+            duration: Duration::All,
             project_months: None,
             screen,
             errors: None,
@@ -175,11 +178,11 @@ impl App {
     #[rustfmt::skip]
     fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
-        let mut col_1 = column![text_cell(" Week "), text_cell("")].align_items(Alignment::End);
-        let mut col_2 = column![text_cell(" Month "), text_cell("")].align_items(Alignment::End);
-        let mut col_3 = column![text_cell(" Year "), text_cell("")].align_items(Alignment::End);
-        let mut col_4 = column![text_cell(" Balance "), text_cell("")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell(" Quantity "), text_cell("")].align_items(Alignment::End);
+        let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_items(Alignment::End);
+        let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_items(Alignment::End);
+        let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_items(Alignment::End);
+        let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_items(Alignment::End);
+        let mut col_5 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
         let mut col_6 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_7 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
@@ -241,7 +244,10 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let my_chart = self.accounts.all_accounts_txs_1st();
+        let my_chart = TransactionsChart {
+            txs: self.accounts.all_accounts_txs_1st(),
+            duration: self.duration.clone(),
+        };
         let chart = ChartWidget::new(my_chart).height(Length::Fixed(400.0));
         let rows = self.rows();
 
@@ -387,6 +393,10 @@ impl Application for App {
                     self.project_months = Some(months);
                 }
             }
+            Message::ChartWeek => self.duration = Duration::Week,
+            Message::ChartMonth => self.duration = Duration::Month,
+            Message::ChartYear => self.duration = Duration::Year,
+            Message::ChartAll => self.duration = Duration::All,
             Message::Delete(i) => {
                 match self.screen {
                     Screen::NewOrLoadFile | Screen::ImportBoa(_) | Screen::ImportInvestor360 => {
@@ -564,6 +574,14 @@ fn text_cell_red<'a>(s: impl ToString) -> Row<'a, Message> {
         .style(theme::Text::Color(solarized::red()))
         .size(TEXT_SIZE)]
     .padding(PADDING)
+}
+
+#[derive(Clone, Debug)]
+enum Duration {
+    Week,
+    Month,
+    Year,
+    All,
 }
 
 #[derive(Debug, Deserialize)]
