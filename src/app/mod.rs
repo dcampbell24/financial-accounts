@@ -334,13 +334,17 @@ impl App {
         Scrollable::new(cols)
     }
 
-    const fn selected_account(&self) -> Option<usize> {
-        match self.screen {
+    fn select_account(&mut self, message: account::Message) {
+        if let Some(account) = match self.screen {
             Screen::NewOrLoadFile | Screen::Accounts | Screen::ImportInvestor360 => None,
             Screen::Account(account)
             | Screen::AccountSecondary(account)
             | Screen::Monthly(account)
             | Screen::ImportBoa(account) => Some(account),
+        } {
+            if self.accounts[account].update(&self.screen, message) {
+                self.accounts.save(&self.file_path).unwrap();
+            }
         }
     }
 
@@ -382,15 +386,10 @@ impl Application for App {
     }
 
     fn update(&mut self, message: Message) -> iced::Command<Message> {
-        let selected_account = self.selected_account();
         self.errors = None;
 
         match message {
-            Message::Account(message) => {
-                if self.accounts[selected_account.unwrap()].update(&self.screen, message) {
-                    self.accounts.save(&self.file_path).unwrap();
-                }
-            }
+            Message::Account(message) => self.select_account(message),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
             Message::ChangeProjectMonths(months) => self.change_project_months(&months),
