@@ -36,6 +36,7 @@ use thousands::Separable;
 
 use crate::app::{account::Account, accounts::Accounts, message::Message, screen::Screen};
 
+const TITLE_FILE_PICKER: &str = "Financial Accounts";
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
 const COLUMN_SPACING: f32 = 0.3;
@@ -71,6 +72,7 @@ impl App {
             File::New(PathBuf::from(arg))
         } else {
             let file_path = rfd::FileDialog::new()
+                .set_title(TITLE_FILE_PICKER)
                 .add_filter("ron", &["ron"])
                 .pick_file()
                 .context("You must choose a file name for your configuration file.")
@@ -466,6 +468,7 @@ impl Application for App {
                 let account = &mut self.accounts[i];
 
                 if let Some(file_path) = rfd::FileDialog::new()
+                    .set_title(TITLE_FILE_PICKER)
                     .add_filter("csv", &["csv"])
                     .pick_file()
                 {
@@ -479,6 +482,7 @@ impl Application for App {
             }
             Message::ImportInvestor360 => {
                 if let Some(file_path) = rfd::FileDialog::new()
+                    .set_title(TITLE_FILE_PICKER)
                     .add_filter("xls", &["xls"])
                     .pick_file()
                 {
