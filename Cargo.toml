@@ -52,4 +52,5 @@ assets = [
     ["icons/financial-accounts_128x128.png", "usr/share/icons/hicolor/128x128/apps/financial-accounts.png", "644"],
 ]
 changelog = "changelog.Debian"
+depends = "$auto, xdg-desktop-portal-kde (>= 5.27.5-2) | xdg-desktop-portal-gtk (>= 1.14.1-1) | xdg-desktop-portal-gnome (>= 43.1-2)"
 section = "misc"
