@@ -1,6 +1,4 @@
-use std::path::PathBuf;
-
-use super::{account, file_picker, money::Currency};
+use super::{account, money::Currency};
 
 #[derive(Clone, Debug)]
 pub enum Message {
@@ -13,13 +11,10 @@ pub enum Message {
     ChangeAccountName(String),
     ChangeProjectMonths(String),
     Delete(usize),
-    FilePicker(file_picker::Message),
     GetPrice(usize),
     GetPriceAll,
-    ImportBoa(usize, PathBuf),
-    ImportBoaScreen(usize),
-    ImportInvestor360(PathBuf),
-    ImportInvestor360Screen,
+    ImportBoa(usize),
+    ImportInvestor360,
     UpdateAccount(usize),
     UpdateCurrency(Currency),
     SelectAccount(usize),

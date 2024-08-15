@@ -467,11 +467,7 @@ impl Account {
                         return true;
                     }
                 }
-                Screen::Accounts
-                | Screen::ImportBoa(_)
-                | Screen::ImportInvestor360
-                | Screen::Monthly(_)
-                | Screen::NewOrLoadFile => {
+                Screen::Accounts | Screen::Monthly(_) => {
                     panic!("You can't submit a balance here!");
                 }
             },
@@ -495,15 +491,8 @@ impl Account {
                         return true;
                     }
                 }
-                Screen::Monthly(_) => {
-                    self.submit_tx_monthly();
-                }
-                Screen::Accounts
-                | Screen::ImportBoa(_)
-                | Screen::ImportInvestor360
-                | Screen::NewOrLoadFile => {
-                    panic!("You can't submit a transaction here!");
-                }
+                Screen::Monthly(_) => self.submit_tx_monthly(),
+                Screen::Accounts => panic!("You can't submit a transaction here!"),
             },
         }
         false
@@ -552,12 +541,7 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
 
 const fn list_monthly(screen: &Screen) -> bool {
     match screen {
-        Screen::NewOrLoadFile
-        | Screen::Accounts
-        | Screen::Account(_)
-        | Screen::AccountSecondary(_)
-        | Screen::ImportBoa(_)
-        | Screen::ImportInvestor360 => false,
+        Screen::Accounts | Screen::Account(_) | Screen::AccountSecondary(_) => false,
         Screen::Monthly(_) => true,
     }
 }

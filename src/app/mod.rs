@@ -2,7 +2,6 @@ mod account;
 mod accounts;
 mod chart;
 mod crypto;
-mod file_picker;
 mod import_boa;
 mod message;
 mod metal;
@@ -17,17 +16,15 @@ use account::{transaction::Transaction, transactions::Transactions};
 use anyhow::Context;
 use chart::Chart;
 use chrono::Utc;
-use file_picker::Select;
+use clap::{arg, command, Parser};
 use iced::{
-    event, executor,
-    keyboard::{self, Key, Modifiers},
-    theme,
+    executor, theme,
     widget::{
         button, column,
         combo_box::{ComboBox, State},
         row, text, text_input, Button, Column, Row, Scrollable,
     },
-    window, Alignment, Application, Element, Event, Length, Theme,
+    window, Alignment, Application, Element, Length, Theme,
 };
 use money::{Currency, Fiat};
 use plotters_iced::ChartWidget;
@@ -37,9 +34,7 @@ use serde::Deserialize;
 use stocks::StockPlus;
 use thousands::Separable;
 
-use crate::app::{
-    account::Account, accounts::Accounts, file_picker::FilePicker, message::Message, screen::Screen,
-};
+use crate::app::{account::Account, accounts::Accounts, message::Message, screen::Screen};
 
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
@@ -52,7 +47,6 @@ const TEXT_SIZE: u16 = 24;
 pub struct App {
     accounts: Accounts,
     file_path: PathBuf,
-    file_picker: FilePicker,
     account_name: String,
     currency: Option<Currency>,
     currency_selector: State<Currency>,
@@ -62,20 +56,42 @@ pub struct App {
     errors: Option<Arc<Vec<anyhow::Error>>>,
 }
 
+enum File {
+    Load(PathBuf),
+    New(PathBuf),
+}
+
 impl App {
-    fn new(accounts: Accounts, file_path: PathBuf, screen: Screen) -> Self {
+    fn new_or_load_file() -> File {
+        let args = Args::parse();
+
+        if let Some(arg) = args.load {
+            File::Load(PathBuf::from(arg))
+        } else if let Some(arg) = args.new {
+            File::New(PathBuf::from(arg))
+        } else {
+            let file_path = rfd::FileDialog::new()
+                .add_filter("ron", &["ron"])
+                .pick_file()
+                .context("You must choose a file name for your configuration file.")
+                .unwrap();
+
+            File::Load(file_path)
+        }
+    }
+
+    fn new(accounts: Accounts, file_path: PathBuf) -> Self {
         let currencies = accounts.get_currencies();
 
         Self {
             accounts,
             file_path,
-            file_picker: FilePicker::new(),
             account_name: String::new(),
             currency: None,
             currency_selector: State::new(currencies),
             duration: Duration::All,
             project_months: None,
-            screen,
+            screen: Screen::Accounts,
             errors: None,
         }
     }
@@ -237,7 +253,7 @@ impl App {
             col_9 = col_9.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
-                import_boa = import_boa.on_press(Message::ImportBoaScreen(i));
+                import_boa = import_boa.on_press(Message::ImportBoa(i));
             }
             col_a = col_a.push(button_cell(import_boa));
             let mut get_price = button("Get Price");
@@ -325,7 +341,7 @@ impl App {
             ].padding(PADDING).spacing(ROW_SPACING),
             row![
                 button_cell(button("Exit").on_press(Message::Exit)),
-                button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360Screen)),
+                button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
             ].padding(PADDING).spacing(ROW_SPACING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
@@ -336,11 +352,10 @@ impl App {
 
     fn select_account(&mut self, message: account::Message) {
         if let Some(account) = match self.screen {
-            Screen::NewOrLoadFile | Screen::Accounts | Screen::ImportInvestor360 => None,
+            Screen::Accounts => None,
             Screen::Account(account)
             | Screen::AccountSecondary(account)
-            | Screen::Monthly(account)
-            | Screen::ImportBoa(account) => Some(account),
+            | Screen::Monthly(account) => Some(account),
         } {
             if self.accounts[account].update(&self.screen, message) {
                 self.accounts.save(&self.file_path).unwrap();
@@ -365,15 +380,27 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
-        match FilePicker::load_or_new_file() {
-            Some((accounts, path_buf)) => (
-                Self::new(accounts, path_buf, Screen::Accounts),
-                window::maximize(window::Id::MAIN, true),
-            ),
-            None => (
-                Self::new(Accounts::new(), PathBuf::new(), Screen::NewOrLoadFile),
-                window::maximize(window::Id::MAIN, true),
-            ),
+        match App::new_or_load_file() {
+            File::Load(file_path) => {
+                let mut accounts = Accounts::load(&file_path)
+                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path, err));
+                accounts.check_monthly();
+                accounts.save(&file_path).unwrap();
+                (
+                    Self::new(accounts, file_path),
+                    window::maximize(window::Id::MAIN, true),
+                )
+            }
+            File::New(file_path) => {
+                let accounts = Accounts::new();
+                accounts
+                    .save_first(&file_path)
+                    .unwrap_or_else(|err| panic!("error creating {:?}: {}", &file_path, err));
+                (
+                    Self::new(accounts, file_path),
+                    window::maximize(window::Id::MAIN, true),
+                )
+            }
         }
     }
 
@@ -399,9 +426,6 @@ impl Application for App {
             Message::ChartAll => self.duration = Duration::All,
             Message::Delete(i) => {
                 match self.screen {
-                    Screen::NewOrLoadFile | Screen::ImportBoa(_) | Screen::ImportInvestor360 => {
-                        panic!("This screen can't be reached here.");
-                    }
                     Screen::Accounts => {
                         self.accounts.inner.remove(i);
                     }
@@ -416,11 +440,6 @@ impl Application for App {
                     }
                 };
                 self.accounts.save(&self.file_path).unwrap();
-            }
-            Message::FilePicker(message) => {
-                if let Some(app) = self.file_picker.update(message) {
-                    *self = app;
-                }
             }
             Message::GetPrice(i) => {
                 let account = &mut self.accounts[i];
@@ -443,26 +462,34 @@ impl Application for App {
                 }
                 self.accounts.save(&self.file_path).unwrap();
             }
-            Message::ImportBoa(i, file_path) => {
+            Message::ImportBoa(i) => {
                 let account = &mut self.accounts[i];
-                if let Err(err) = account.import_boa(file_path) {
-                    self.errors = Some(Arc::new(vec![err]));
-                } else {
-                    self.accounts.save(&self.file_path).unwrap();
+
+                if let Some(file_path) = rfd::FileDialog::new()
+                    .add_filter("csv", &["csv"])
+                    .pick_file()
+                {
+                    if let Err(err) = account.import_boa(file_path) {
+                        self.errors = Some(Arc::new(vec![err]));
+                    } else {
+                        self.accounts.save(&self.file_path).unwrap();
+                    }
+                    self.screen = Screen::Accounts;
                 }
-                self.screen = Screen::Accounts;
             }
-            Message::ImportBoaScreen(i) => self.screen = Screen::ImportBoa(i),
-            Message::ImportInvestor360(file_path) => {
-                if let Err(err) = self.import_investor_360(&file_path) {
-                    self.errors = Some(Arc::new(vec![err]));
-                } else {
-                    self.accounts.sort();
-                    self.accounts.save(&self.file_path).unwrap();
+            Message::ImportInvestor360 => {
+                if let Some(file_path) = rfd::FileDialog::new()
+                    .add_filter("xls", &["xls"])
+                    .pick_file()
+                {
+                    if let Err(err) = self.import_investor_360(&file_path) {
+                        self.errors = Some(Arc::new(vec![err]));
+                    } else {
+                        self.accounts.sort();
+                        self.accounts.save(&self.file_path).unwrap();
+                    }
                 }
-                self.screen = Screen::Accounts;
             }
-            Message::ImportInvestor360Screen => self.screen = Screen::ImportInvestor360,
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = self.account_name.trim().to_string();
                 self.accounts.sort();
@@ -484,7 +511,6 @@ impl Application for App {
 
     fn view(&self) -> Element<Message> {
         match self.screen {
-            Screen::NewOrLoadFile => self.file_picker.view(&Select::NewOrLoadFile).into(),
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => {
                 let account = &self.accounts[i];
@@ -508,29 +534,20 @@ impl Application for App {
                     .into()
             }
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
-            Screen::ImportBoa(i) => self.file_picker.view(&Select::ImportBoa(i)).into(),
-            Screen::ImportInvestor360 => self.file_picker.view(&Select::ImportInvestor360).into(),
         }
     }
+}
 
-    fn subscription(&self) -> iced::Subscription<Self::Message> {
-        event::listen_with(|event, _status| {
-            let mut subscription = None;
-            if let Event::Keyboard(keyboard::Event::KeyPressed {
-                key,
-                location: _location,
-                modifiers,
-                text: _text,
-            }) = event
-            {
-                if key == Key::Character("h".into()) && modifiers == Modifiers::CTRL {
-                    subscription =
-                        Some(Message::FilePicker(file_picker::Message::HiddenFilesToggle));
-                }
-            }
-            subscription
-        })
-    }
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// Load FILE
+    #[arg(long, value_name = "FILE", exclusive = true)]
+    load: Option<String>,
+
+    /// Create a new FILE
+    #[arg(long, value_name = "FILE", exclusive = true)]
+    new: Option<String>,
 }
 
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
