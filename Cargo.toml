@@ -26,7 +26,7 @@ markup5ever_rcdom = "0.3"
 plotters = "0.3"
 plotters-iced = "0.10"
 regex = "1"
-reqwest = { version = "0.12", features = ["cookies"] }
+reqwest = "0.12"
 rfd = { version = "0.14", default-features = false, features = ["xdg-portal", "tokio"] }
 ron = "0.8"
 rust_decimal = "1"
