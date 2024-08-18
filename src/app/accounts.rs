@@ -1,10 +1,10 @@
+use anyhow::Context;
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
 use ron::ser::PrettyConfig;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
@@ -192,7 +192,7 @@ impl Accounts {
         total
     }
 
-    pub fn save_first(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
+    pub fn save_first(&self, file_path: &PathBuf) -> anyhow::Result<()> {
         let pretty_config = PrettyConfig::new();
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
         let mut file = OpenOptions::new()
@@ -203,15 +203,16 @@ impl Accounts {
         Ok(())
     }
 
-    pub fn save(&self, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
+    pub fn save(&self, file_path: Option<&PathBuf>) -> anyhow::Result<()> {
         let pretty_config = PrettyConfig::new();
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
+        let file_path = file_path.context("Cannot save because file path is empty!")?;
         let mut file = File::create(file_path)?;
         file.write_all(j.as_bytes())?;
         Ok(())
     }
 
-    pub fn load(file_path: &PathBuf) -> Result<Self, Box<dyn Error>> {
+    pub fn load(file_path: &PathBuf) -> anyhow::Result<Self> {
         let mut buf = String::new();
         let mut file = File::open(file_path)?;
         file.read_to_string(&mut buf)?;

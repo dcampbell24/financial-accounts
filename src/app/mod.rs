@@ -10,7 +10,7 @@ mod screen;
 pub mod solarized;
 mod stocks;
 
-use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
+use std::{borrow::BorrowMut, cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use anyhow::Context;
@@ -47,7 +47,7 @@ const TEXT_SIZE: u16 = 24;
 #[derive(Clone, Debug)]
 pub struct App {
     accounts: Accounts,
-    file_path: PathBuf,
+    file_path: Option<PathBuf>,
     account_name: String,
     currency: Option<Currency>,
     currency_selector: State<Currency>,
@@ -60,10 +60,11 @@ pub struct App {
 enum File {
     Load(PathBuf),
     New(PathBuf),
+    None,
 }
 
 impl App {
-    fn new_or_load_file() -> File {
+    fn get_configuration_file() -> File {
         let args = Args::parse();
 
         if let Some(arg) = args.load {
@@ -71,18 +72,39 @@ impl App {
         } else if let Some(arg) = args.new {
             File::New(PathBuf::from(arg))
         } else {
-            let file_path = rfd::FileDialog::new()
-                .set_title(TITLE_FILE_PICKER)
-                .add_filter("ron", &["ron"])
-                .pick_file()
-                .context("You must choose a file name for your configuration file.")
-                .unwrap();
-
-            File::Load(file_path)
+            File::None
         }
     }
 
-    fn new(accounts: Accounts, file_path: PathBuf) -> Self {
+    fn load_file() -> anyhow::Result<PathBuf> {
+        rfd::FileDialog::new()
+            .set_title(TITLE_FILE_PICKER)
+            .add_filter("ron", &["ron"])
+            .pick_file()
+            .context("You must choose a file name for your configuration file.")
+    }
+
+    fn save_file() -> anyhow::Result<PathBuf> {
+        rfd::FileDialog::new()
+            .set_title(TITLE_FILE_PICKER)
+            .add_filter("ron", &["ron"])
+            .save_file()
+            .context("You must choose a file name for your configuration file.")
+    }
+
+    fn save(&mut self) {
+        self.accounts
+            .save(self.file_path.as_ref())
+            .unwrap_or_else(|error| match self.errors.borrow_mut() {
+                Some(ref mut errors) => {
+                    let errors = Arc::get_mut(errors).unwrap();
+                    errors.push(error);
+                }
+                None => self.errors = Some(Arc::new(vec![error])),
+            });
+    }
+
+    fn new(accounts: Accounts, file_path: Option<PathBuf>) -> Self {
         let currencies = accounts.get_currencies();
 
         Self {
@@ -343,8 +365,11 @@ impl App {
             ].padding(PADDING).spacing(ROW_SPACING),
             row![
                 button_cell(button("Exit").on_press(Message::Exit)),
+                button_cell(button("Load").on_press(Message::FileLoad)),
+                button_cell(button("Save As").on_press(Message::FileSaveAs)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
+                button_cell(button("Check Monthly").on_press(Message::CheckMonthly)),
             ].padding(PADDING).spacing(ROW_SPACING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -360,7 +385,7 @@ impl App {
             | Screen::Monthly(account) => Some(account),
         } {
             if self.accounts[account].update(&self.screen, message) {
-                self.accounts.save(&self.file_path).unwrap();
+                self.accounts.save(self.file_path.as_ref()).unwrap();
             }
         }
     }
@@ -371,7 +396,7 @@ impl App {
             self.currency.clone().unwrap(),
         ));
         self.accounts.sort();
-        self.accounts.save(&self.file_path).unwrap();
+        self.save();
     }
 }
 
@@ -382,14 +407,12 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
-        match App::new_or_load_file() {
+        match App::get_configuration_file() {
             File::Load(file_path) => {
-                let mut accounts = Accounts::load(&file_path)
+                let accounts = Accounts::load(&file_path)
                     .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path, err));
-                accounts.check_monthly();
-                accounts.save(&file_path).unwrap();
                 (
-                    Self::new(accounts, file_path),
+                    Self::new(accounts, Some(file_path)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
@@ -399,10 +422,14 @@ impl Application for App {
                     .save_first(&file_path)
                     .unwrap_or_else(|err| panic!("error creating {:?}: {}", &file_path, err));
                 (
-                    Self::new(accounts, file_path),
+                    Self::new(accounts, Some(file_path)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
+            File::None => (
+                Self::new(Accounts::new(), None),
+                window::maximize(window::Id::MAIN, true),
+            ),
         }
     }
 
@@ -426,6 +453,13 @@ impl Application for App {
             Message::ChartMonth => self.duration = Duration::Month,
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
+            Message::CheckMonthly => {
+                self.accounts.check_monthly();
+                match self.accounts.save(self.file_path.as_ref()) {
+                    Ok(()) => {}
+                    Err(error) => self.errors = Some(Arc::new(vec![error])),
+                }
+            }
             Message::Delete(i) => {
                 match self.screen {
                     Screen::Accounts => {
@@ -441,8 +475,25 @@ impl Application for App {
                         self.accounts[j].txs_monthly.remove(i);
                     }
                 };
-                self.accounts.save(&self.file_path).unwrap();
+                self.accounts.save(self.file_path.as_ref()).unwrap();
             }
+            Message::FileLoad => match App::load_file() {
+                Ok(file_path) => match Accounts::load(&file_path) {
+                    Ok(accounts) => {
+                        self.accounts = accounts;
+                        self.file_path = Some(file_path);
+                    }
+                    Err(error) => self.errors = Some(Arc::new(vec![error])),
+                },
+                Err(error) => self.errors = Some(Arc::new(vec![error])),
+            },
+            Message::FileSaveAs => match App::save_file() {
+                Ok(file_path) => match self.accounts.save(Some(&file_path)) {
+                    Ok(()) => self.file_path = Some(file_path),
+                    Err(error) => self.errors = Some(Arc::new(vec![error])),
+                },
+                Err(error) => self.errors = Some(Arc::new(vec![error])),
+            },
             Message::GetPrice(i) => {
                 let account = &mut self.accounts[i];
 
@@ -450,7 +501,7 @@ impl Application for App {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.sort();
-                        self.accounts.save(&self.file_path).unwrap();
+                        self.accounts.save(self.file_path.as_ref()).unwrap();
                     }
                     Err(error) => {
                         self.errors = Some(Arc::new(vec![error]));
@@ -462,7 +513,7 @@ impl Application for App {
                 if !errors.is_empty() {
                     self.errors = Some(Arc::new(errors));
                 }
-                self.accounts.save(&self.file_path).unwrap();
+                self.accounts.save(self.file_path.as_ref()).unwrap();
             }
             Message::ImportBoa(i) => {
                 let account = &mut self.accounts[i];
@@ -475,7 +526,7 @@ impl Application for App {
                     if let Err(err) = account.import_boa(file_path) {
                         self.errors = Some(Arc::new(vec![err]));
                     } else {
-                        self.accounts.save(&self.file_path).unwrap();
+                        self.accounts.save(self.file_path.as_ref()).unwrap();
                     }
                     self.screen = Screen::Accounts;
                 }
@@ -490,14 +541,14 @@ impl Application for App {
                         self.errors = Some(Arc::new(vec![err]));
                     } else {
                         self.accounts.sort();
-                        self.accounts.save(&self.file_path).unwrap();
+                        self.accounts.save(self.file_path.as_ref()).unwrap();
                     }
                 }
             }
             Message::UpdateAccount(i) => {
                 self.accounts[i].name = self.account_name.trim().to_string();
                 self.accounts.sort();
-                self.accounts.save(&self.file_path).unwrap();
+                self.accounts.save(self.file_path.as_ref()).unwrap();
             }
             Message::UpdateCurrency(currency) => {
                 self.currency = Some(currency);
