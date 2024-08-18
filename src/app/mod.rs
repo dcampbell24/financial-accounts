@@ -76,20 +76,39 @@ impl App {
         }
     }
 
-    fn load_file() -> anyhow::Result<PathBuf> {
-        rfd::FileDialog::new()
+    fn load_file(&mut self) {
+        let result = rfd::FileDialog::new()
             .set_title(TITLE_FILE_PICKER)
             .add_filter("ron", &["ron"])
             .pick_file()
-            .context("You must choose a file name for your configuration file.")
+            .context("You must choose a file name for your configuration file.");
+
+        match result {
+            Ok(file_path) => match Accounts::load(&file_path) {
+                Ok(accounts) => {
+                    self.accounts = accounts;
+                    self.file_path = Some(file_path);
+                }
+                Err(error) => self.errors = Some(Arc::new(vec![error])),
+            },
+            Err(error) => self.errors = Some(Arc::new(vec![error])),
+        }
     }
 
-    fn save_file() -> anyhow::Result<PathBuf> {
-        rfd::FileDialog::new()
+    fn save_file(&mut self) {
+        let result = rfd::FileDialog::new()
             .set_title(TITLE_FILE_PICKER)
             .add_filter("ron", &["ron"])
             .save_file()
-            .context("You must choose a file name for your configuration file.")
+            .context("You must choose a file name for your configuration file.");
+
+        match result {
+            Ok(file_path) => match self.accounts.save(Some(&file_path)) {
+                Ok(()) => self.file_path = Some(file_path),
+                Err(error) => self.errors = Some(Arc::new(vec![error])),
+            },
+            Err(error) => self.errors = Some(Arc::new(vec![error])),
+        }
     }
 
     fn save(&mut self) {
@@ -477,23 +496,8 @@ impl Application for App {
                 };
                 self.accounts.save(self.file_path.as_ref()).unwrap();
             }
-            Message::FileLoad => match App::load_file() {
-                Ok(file_path) => match Accounts::load(&file_path) {
-                    Ok(accounts) => {
-                        self.accounts = accounts;
-                        self.file_path = Some(file_path);
-                    }
-                    Err(error) => self.errors = Some(Arc::new(vec![error])),
-                },
-                Err(error) => self.errors = Some(Arc::new(vec![error])),
-            },
-            Message::FileSaveAs => match App::save_file() {
-                Ok(file_path) => match self.accounts.save(Some(&file_path)) {
-                    Ok(()) => self.file_path = Some(file_path),
-                    Err(error) => self.errors = Some(Arc::new(vec![error])),
-                },
-                Err(error) => self.errors = Some(Arc::new(vec![error])),
-            },
+            Message::FileLoad => self.load_file(),
+            Message::FileSaveAs => self.save_file(),
             Message::GetPrice(i) => {
                 let account = &mut self.accounts[i];
 
