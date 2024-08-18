@@ -147,6 +147,14 @@ impl App {
         }
     }
 
+    fn check_monthly(&mut self) {
+        self.accounts.check_monthly();
+        match self.accounts.save(self.file_path.as_ref()) {
+            Ok(()) => {}
+            Err(error) => self.errors = Some(Arc::new(vec![error])),
+        }
+    }
+
     fn import_investor_360(&mut self, file_xls: &PathBuf) -> anyhow::Result<()> {
         let file_csv = file_xls.file_stem().unwrap();
         let mut file_csv = PathBuf::from_str(file_csv.to_str().unwrap())?;
@@ -472,13 +480,7 @@ impl Application for App {
             Message::ChartMonth => self.duration = Duration::Month,
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
-            Message::CheckMonthly => {
-                self.accounts.check_monthly();
-                match self.accounts.save(self.file_path.as_ref()) {
-                    Ok(()) => {}
-                    Err(error) => self.errors = Some(Arc::new(vec![error])),
-                }
-            }
+            Message::CheckMonthly => self.check_monthly(),
             Message::Delete(i) => {
                 match self.screen {
                     Screen::Accounts => {
