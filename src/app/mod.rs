@@ -132,10 +132,9 @@ impl App {
             ),
             text_cell("Description:"),
             text_input("Description", &self.metal_description)
-                .on_input(|string| Message::UpdateMetalDescription(string)),
+                .on_input(Message::UpdateMetalDescription),
             text_cell("Symbol:"),
-            text_input("Symbol", &self.metal_symbol)
-                .on_input(|string| Message::UpdateMetalSymbol(string)),
+            text_input("Symbol", &self.metal_symbol).on_input(Message::UpdateMetalSymbol),
         ];
 
         let mut stock_plus_current = Column::new();
@@ -148,10 +147,9 @@ impl App {
             button_cell(button("Add Stock Plus").on_press(Message::AddStockPlus)),
             text_cell("Description:"),
             text_input("Description", &self.stock_plus_description)
-                .on_input(|string| Message::UpdateStockPlusDescription(string)),
+                .on_input(Message::UpdateStockPlusDescription),
             text_cell("Symbol:"),
-            text_input("Symbol", &self.stock_plus_symbol)
-                .on_input(|string| Message::UpdateStockPlusSymbol(string)),
+            text_input("Symbol", &self.stock_plus_symbol).on_input(Message::UpdateStockPlusSymbol),
         ];
 
         let mut column_errors = Column::new();
@@ -690,7 +688,7 @@ impl Application for App {
             Message::UpdateMetalDescription(description) => self.metal_description = description,
             Message::UpdateMetalSymbol(symbol) => self.metal_symbol = symbol,
             Message::UpdateStockPlusDescription(description) => {
-                self.stock_plus_description = description
+                self.stock_plus_description = description;
             }
             Message::UpdateStockPlusSymbol(symbol) => self.stock_plus_symbol = symbol,
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
