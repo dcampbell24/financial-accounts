@@ -6,6 +6,8 @@ use super::{
 #[derive(Clone, Debug)]
 pub enum Message {
     AddFiat,
+    AddMetal,
+    AddStockPlus,
     Account(account::Message),
     Back,
     ChartWeek,
@@ -26,6 +28,11 @@ pub enum Message {
     UpdateAccount(usize),
     UpdateCurrency(Currency),
     UpdateFiat(Fiat),
+    UpdateMetalCurrency(Fiat),
+    UpdateMetalDescription(String),
+    UpdateMetalSymbol(String),
+    UpdateStockPlusDescription(String),
+    UpdateStockPlusSymbol(String),
     SelectAccount(usize),
     SelectAccountSecondary(usize),
     SelectMonthly(usize),

@@ -26,6 +26,7 @@ use iced::{
     },
     window, Alignment, Application, Element, Length, Theme,
 };
+use metal::Metal;
 use money::{Currency, Fiat};
 use plotters_iced::ChartWidget;
 use rust_decimal::Decimal;
@@ -51,6 +52,12 @@ pub struct App {
     account_name: String,
     fiat: Option<Fiat>,
     fiat_selector: State<Fiat>,
+    metal_currency: Option<Fiat>,
+    metal_currency_selector: State<Fiat>,
+    metal_description: String,
+    metal_symbol: String,
+    stock_plus_description: String,
+    stock_plus_symbol: String,
     currency: Option<Currency>,
     currency_selector: State<Currency>,
     duration: Duration,
@@ -75,6 +82,27 @@ impl App {
         }
     }
 
+    fn add_metal(&mut self) {
+        if let Some(fiat) = &self.metal_currency {
+            self.accounts.metals.push(Metal {
+                currency: fiat.clone(),
+                description: self.metal_description.clone(),
+                symbol: self.metal_symbol.clone(),
+            });
+            self.currency_selector = State::new(self.accounts.get_currencies());
+            self.save();
+        }
+    }
+
+    fn add_stock_plus(&mut self) {
+        self.accounts.stocks_plus.push(StockPlus {
+            description: self.stock_plus_description.clone(),
+            symbol: self.stock_plus_symbol.clone(),
+        });
+        self.currency_selector = State::new(self.accounts.get_currencies());
+        self.save();
+    }
+
     fn config(&self) -> Scrollable<Message> {
         let mut fiats_current = Column::new();
         for fiat in &self.accounts.fiats {
@@ -88,6 +116,44 @@ impl App {
             }),
         ];
 
+        let mut metals_current = Column::new();
+        for metal in &self.accounts.metals {
+            let metal = format!("{metal:?}");
+            metals_current = metals_current.push(text_cell(metal));
+        }
+
+        let add_metal = row![
+            button_cell(button("Add Metal").on_press(Message::AddMetal)),
+            ComboBox::new(
+                &self.metal_currency_selector,
+                "fiats",
+                self.metal_currency.as_ref(),
+                |fiat| { Message::UpdateMetalCurrency(fiat) }
+            ),
+            text_cell("Description:"),
+            text_input("Description", &self.metal_description)
+                .on_input(|string| Message::UpdateMetalDescription(string)),
+            text_cell("Symbol:"),
+            text_input("Symbol", &self.metal_symbol)
+                .on_input(|string| Message::UpdateMetalSymbol(string)),
+        ];
+
+        let mut stock_plus_current = Column::new();
+        for stock_plus in &self.accounts.stocks_plus {
+            let stock_plus = format!("{stock_plus:?}");
+            stock_plus_current = stock_plus_current.push(text_cell(stock_plus));
+        }
+
+        let add_stock_plus = row![
+            button_cell(button("Add Stock Plus").on_press(Message::AddStockPlus)),
+            text_cell("Description:"),
+            text_input("Description", &self.stock_plus_description)
+                .on_input(|string| Message::UpdateStockPlusDescription(string)),
+            text_cell("Symbol:"),
+            text_input("Symbol", &self.stock_plus_symbol)
+                .on_input(|string| Message::UpdateStockPlusSymbol(string)),
+        ];
+
         let mut column_errors = Column::new();
         if let Some(errors) = &self.errors {
             for error in errors.iter() {
@@ -98,6 +164,10 @@ impl App {
         let cols = column![
             fiats_current,
             add_fiat,
+            metals_current,
+            add_metal,
+            stock_plus_current,
+            add_stock_plus,
             column_errors,
             button_cell(button("Back").on_press(Message::Back)),
         ];
@@ -174,6 +244,12 @@ impl App {
             file_path,
             account_name: String::new(),
             fiat: None,
+            metal_currency: None,
+            metal_currency_selector: State::new(Fiat::all()),
+            metal_description: String::new(),
+            metal_symbol: String::new(),
+            stock_plus_description: String::new(),
+            stock_plus_symbol: String::new(),
             currency: None,
             currency_selector: State::new(currencies),
             duration: Duration::All,
@@ -537,6 +613,8 @@ impl Application for App {
 
         match message {
             Message::AddFiat => self.add_fiat(),
+            Message::AddMetal => self.add_metal(),
+            Message::AddStockPlus => self.add_stock_plus(),
             Message::Account(message) => self.select_account(message),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
@@ -608,6 +686,13 @@ impl Application for App {
             }
             Message::UpdateCurrency(currency) => self.currency = Some(currency),
             Message::UpdateFiat(fiat) => self.fiat = Some(fiat),
+            Message::UpdateMetalCurrency(fiat) => self.metal_currency = Some(fiat),
+            Message::UpdateMetalDescription(description) => self.metal_description = description,
+            Message::UpdateMetalSymbol(symbol) => self.metal_symbol = symbol,
+            Message::UpdateStockPlusDescription(description) => {
+                self.stock_plus_description = description
+            }
+            Message::UpdateStockPlusSymbol(symbol) => self.stock_plus_symbol = symbol,
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
