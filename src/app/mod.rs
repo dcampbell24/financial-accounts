@@ -49,6 +49,8 @@ pub struct App {
     accounts: Accounts,
     file_path: Option<PathBuf>,
     account_name: String,
+    fiat: Option<Fiat>,
+    fiat_selector: State<Fiat>,
     currency: Option<Currency>,
     currency_selector: State<Currency>,
     duration: Duration,
@@ -64,6 +66,45 @@ enum File {
 }
 
 impl App {
+    fn add_fiat(&mut self) {
+        if let Some(fiat) = &self.fiat {
+            self.accounts.fiats.push(fiat.clone());
+            self.fiat_selector = State::new(Fiat::all_minus_existing(&self.accounts.fiats));
+            self.currency_selector = State::new(self.accounts.get_currencies());
+            self.save();
+        }
+    }
+
+    fn config(&self) -> Scrollable<Message> {
+        let mut fiats_current = Column::new();
+        for fiat in &self.accounts.fiats {
+            fiats_current = fiats_current.push(text_cell(fiat));
+        }
+
+        let add_fiat = row![
+            button_cell(button("Add Fiat").on_press(Message::AddFiat)),
+            ComboBox::new(&self.fiat_selector, "fiats", self.fiat.as_ref(), |fiat| {
+                Message::UpdateFiat(fiat)
+            }),
+        ];
+
+        let mut column_errors = Column::new();
+        if let Some(errors) = &self.errors {
+            for error in errors.iter() {
+                column_errors = column_errors.push(text_cell_red(error));
+            }
+        }
+
+        let cols = column![
+            fiats_current,
+            add_fiat,
+            column_errors,
+            button_cell(button("Back").on_press(Message::Back)),
+        ];
+
+        Scrollable::new(cols)
+    }
+
     fn get_configuration_file() -> File {
         let args = Args::parse();
 
@@ -127,9 +168,12 @@ impl App {
         let currencies = accounts.get_currencies();
 
         Self {
+            fiat_selector: State::new(Fiat::all_minus_existing(&accounts.fiats)),
+
             accounts,
             file_path,
             account_name: String::new(),
+            fiat: None,
             currency: None,
             currency_selector: State::new(currencies),
             duration: Duration::All,
@@ -397,6 +441,7 @@ impl App {
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
                 button_cell(button("Check Monthly").on_press(Message::CheckMonthly)),
+                button_cell(button("Configuration").on_press(Message::Configuration)),
             ].padding(PADDING).spacing(ROW_SPACING),
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
@@ -406,7 +451,7 @@ impl App {
 
     fn select_account(&mut self, message: account::Message) {
         if let Some(account) = match self.screen {
-            Screen::Accounts => None,
+            Screen::Accounts | Screen::Configuration => None,
             Screen::Account(account)
             | Screen::AccountSecondary(account)
             | Screen::Monthly(account) => Some(account),
@@ -472,6 +517,7 @@ impl Application for App {
         self.errors = None;
 
         match message {
+            Message::AddFiat => self.add_fiat(),
             Message::Account(message) => self.select_account(message),
             Message::Back => self.screen = Screen::Accounts,
             Message::ChangeAccountName(name) => self.account_name = name,
@@ -481,6 +527,7 @@ impl Application for App {
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
             Message::CheckMonthly => self.check_monthly(),
+            Message::Configuration => self.screen = Screen::Configuration,
             Message::Delete(i) => {
                 match self.screen {
                     Screen::Accounts => {
@@ -492,6 +539,7 @@ impl Application for App {
                     Screen::AccountSecondary(j) => {
                         self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
                     }
+                    Screen::Configuration => panic!("Nothing to delete!"),
                     Screen::Monthly(j) => {
                         self.accounts[j].txs_monthly.remove(i);
                     }
@@ -556,9 +604,8 @@ impl Application for App {
                 self.accounts.sort();
                 self.accounts.save(self.file_path.as_ref()).unwrap();
             }
-            Message::UpdateCurrency(currency) => {
-                self.currency = Some(currency);
-            }
+            Message::UpdateCurrency(currency) => self.currency = Some(currency),
+            Message::UpdateFiat(fiat) => self.fiat = Some(fiat),
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
             Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
@@ -594,6 +641,7 @@ impl Application for App {
                     )
                     .into()
             }
+            Screen::Configuration => self.config().into(),
             Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
         }
     }

@@ -1,7 +1,11 @@
-use super::{account, money::Currency};
+use super::{
+    account,
+    money::{Currency, Fiat},
+};
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    AddFiat,
     Account(account::Message),
     Back,
     ChartWeek,
@@ -11,6 +15,7 @@ pub enum Message {
     ChangeAccountName(String),
     ChangeProjectMonths(String),
     CheckMonthly,
+    Configuration,
     Delete(usize),
     FileLoad,
     FileSaveAs,
@@ -20,6 +25,7 @@ pub enum Message {
     ImportInvestor360,
     UpdateAccount(usize),
     UpdateCurrency(Currency),
+    UpdateFiat(Fiat),
     SelectAccount(usize),
     SelectAccountSecondary(usize),
     SelectMonthly(usize),

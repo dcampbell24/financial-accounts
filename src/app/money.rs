@@ -59,6 +59,50 @@ pub enum Fiat {
 }
 
 impl Fiat {
+    pub fn all() -> Vec<Self> {
+        vec![
+            Fiat::Usd,
+            Fiat::Aud,
+            Fiat::Gbp,
+            Fiat::Eur,
+            Fiat::Cad,
+            Fiat::Chf,
+            Fiat::Jpy,
+            Fiat::Krw,
+            Fiat::Inr,
+            Fiat::Cny,
+            Fiat::Zar,
+            Fiat::Thb,
+            Fiat::Sgd,
+            Fiat::Hkd,
+            Fiat::Czk,
+            Fiat::Pln,
+            Fiat::Myr,
+            Fiat::Rub,
+            Fiat::Aed,
+            Fiat::Kwd,
+            Fiat::Egp,
+            Fiat::Omr,
+            Fiat::Sar,
+            Fiat::Mxn,
+            Fiat::Jod,
+        ]
+    }
+
+    pub fn all_minus_existing(existing: &Vec<Self>) -> Vec<Self> {
+        let fiats = Self::all();
+        let mut fiats_new = Vec::new();
+        'next: for fiat_1 in fiats {
+            for fiat_2 in existing {
+                if fiat_1 == *fiat_2 {
+                    continue 'next;
+                }
+            }
+            fiats_new.push(fiat_1);
+        }
+        fiats_new
+    }
+
     pub fn symbol(&self) -> String {
         match self {
             Self::Usd => "USD".to_string(),

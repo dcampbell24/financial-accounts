@@ -3,5 +3,6 @@ pub enum Screen {
     Accounts,
     Account(usize),
     AccountSecondary(usize),
+    Configuration,
     Monthly(usize),
 }

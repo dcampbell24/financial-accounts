@@ -467,7 +467,7 @@ impl Account {
                         return true;
                     }
                 }
-                Screen::Accounts | Screen::Monthly(_) => {
+                Screen::Accounts | Screen::Configuration | Screen::Monthly(_) => {
                     panic!("You can't submit a balance here!");
                 }
             },
@@ -492,7 +492,9 @@ impl Account {
                     }
                 }
                 Screen::Monthly(_) => self.submit_tx_monthly(),
-                Screen::Accounts => panic!("You can't submit a transaction here!"),
+                Screen::Accounts | Screen::Configuration => {
+                    panic!("You can't submit a transaction here!")
+                }
             },
         }
         false
@@ -541,7 +543,10 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
 
 const fn list_monthly(screen: &Screen) -> bool {
     match screen {
-        Screen::Accounts | Screen::Account(_) | Screen::AccountSecondary(_) => false,
+        Screen::Accounts
+        | Screen::Account(_)
+        | Screen::AccountSecondary(_)
+        | Screen::Configuration => false,
         Screen::Monthly(_) => true,
     }
 }
