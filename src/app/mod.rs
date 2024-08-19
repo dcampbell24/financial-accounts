@@ -199,6 +199,25 @@ impl App {
         }
     }
 
+    fn delete(&mut self, i: usize) {
+        match self.screen {
+            Screen::Accounts => {
+                self.accounts.inner.remove(i);
+            }
+            Screen::Account(j) => {
+                self.accounts[j].txs_1st.txs.remove(i);
+            }
+            Screen::AccountSecondary(j) => {
+                self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
+            }
+            Screen::Configuration => panic!("Nothing to delete!"),
+            Screen::Monthly(j) => {
+                self.accounts[j].txs_monthly.remove(i);
+            }
+        };
+        self.accounts.save(self.file_path.as_ref()).unwrap();
+    }
+
     fn import_investor_360(&mut self, file_xls: &PathBuf) -> anyhow::Result<()> {
         let file_csv = file_xls.file_stem().unwrap();
         let mut file_csv = PathBuf::from_str(file_csv.to_str().unwrap())?;
@@ -528,24 +547,7 @@ impl Application for App {
             Message::ChartAll => self.duration = Duration::All,
             Message::CheckMonthly => self.check_monthly(),
             Message::Configuration => self.screen = Screen::Configuration,
-            Message::Delete(i) => {
-                match self.screen {
-                    Screen::Accounts => {
-                        self.accounts.inner.remove(i);
-                    }
-                    Screen::Account(j) => {
-                        self.accounts[j].txs_1st.txs.remove(i);
-                    }
-                    Screen::AccountSecondary(j) => {
-                        self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
-                    }
-                    Screen::Configuration => panic!("Nothing to delete!"),
-                    Screen::Monthly(j) => {
-                        self.accounts[j].txs_monthly.remove(i);
-                    }
-                };
-                self.accounts.save(self.file_path.as_ref()).unwrap();
-            }
+            Message::Delete(i) => self.delete(i),
             Message::FileLoad => self.load_file(),
             Message::FileSaveAs => self.save_file(),
             Message::GetPrice(i) => {
