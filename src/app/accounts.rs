@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
+use super::crypto2::Crypto;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
@@ -22,6 +23,7 @@ pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
+    pub crypto: Vec<Crypto>,
     pub fiats: Vec<Fiat>,
     pub metals: Vec<Metal>,
     pub stocks_plus: Vec<StockPlus>,
@@ -124,6 +126,7 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
+            crypto: Vec::new(),
             fiats: Vec::new(),
             metals: Vec::new(),
             stocks_plus: Vec::new(),

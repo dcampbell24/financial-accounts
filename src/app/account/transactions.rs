@@ -23,6 +23,7 @@ impl Price for Transactions<Currency> {
             Currency::Btc => crypto::BtcOhlc::get_price(client).await,
             Currency::Eth => crypto::EthOhlc::get_price(client).await,
             Currency::Gno => crypto::GnoOhlc::get_price(client).await,
+            Currency::Crypto(crypto) => crypto.get_price(client).await,
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => metal.get_price(client).await,
             Currency::StockPlus(stock_plus) => stock_plus.get_price(client).await,
@@ -174,6 +175,7 @@ impl Transactions<Currency> {
             Currency::Btc
             | Currency::Eth
             | Currency::Gno
+            | Currency::Crypto(_)
             | Currency::Metal(_)
             | Currency::StockPlus(_) => true,
             Currency::Fiat(_) => false,

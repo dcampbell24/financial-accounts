@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make crypto configurable.
 - Add configuration screen.
 - Add buttons: Load, Save, Check Monthly.
 - Use rfd.

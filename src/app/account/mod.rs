@@ -56,6 +56,10 @@ impl Account {
                 Transactions::new(Fiat::Usd),
                 Some(Transactions::new(currency)),
             ),
+            Currency::Crypto(crypto) => (
+                Transactions::new(crypto.currency.clone()),
+                Some(Transactions::new(currency)),
+            ),
             Currency::Metal(metal) => (
                 Transactions::new(metal.currency.clone()),
                 Some(Transactions::new(currency)),

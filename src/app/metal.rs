@@ -11,7 +11,7 @@ use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use super::{account::transactions::Price, money::Fiat};
+use super::{account::transactions::Price, Fiat};
 
 const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
 

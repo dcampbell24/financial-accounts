@@ -1,6 +1,24 @@
 (
     checked_up_to: "2024-07-23T18:25:04.957893281Z",
     accounts: [],
+    // Supports all the crypto on api.kraken.com .
+    crypto: [
+        (
+            currency: Usd,
+            description: "Bitcoin",
+            symbol: "XBT",
+        ),
+        (
+            currency: Usd,
+            description: "Ethereum",
+            symbol: "ETH",
+        ),
+        (
+            currency: Usd,
+            description: "Gnosis",
+            symbol: "GNO",
+        ),
+    ],
     fiats: [
         Usd,
         // Aud,
