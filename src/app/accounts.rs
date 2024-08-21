@@ -110,6 +110,9 @@ impl Accounts {
 
     pub fn get_currencies(&self) -> Vec<Currency> {
         let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
+        for crypto in &self.crypto {
+            currencies.push(Currency::Crypto(crypto.clone()));
+        }
         for fiat in &self.fiats {
             currencies.push(Currency::Fiat(fiat.clone()));
         }
