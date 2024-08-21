@@ -19,6 +19,7 @@
             symbol: "GNO",
         ),
     ],
+    // Supports all the fiats on www.goldapi.io .
     fiats: [
         Usd,
         // Aud,
