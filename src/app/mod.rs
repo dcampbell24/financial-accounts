@@ -17,6 +17,7 @@ use anyhow::Context;
 use chart::Chart;
 use chrono::Utc;
 use clap::{arg, command, Parser};
+use crypto::Crypto;
 use iced::{
     executor, theme,
     widget::{
@@ -50,6 +51,10 @@ pub struct App {
     accounts: Accounts,
     file_path: Option<PathBuf>,
     account_name: String,
+    crypto_currency: Option<Fiat>,
+    crypto_currency_selector: State<Fiat>,
+    crypto_description: String,
+    crypto_symbol: String,
     fiat: Option<Fiat>,
     fiat_selector: State<Fiat>,
     metal_currency: Option<Fiat>,
@@ -73,6 +78,18 @@ enum File {
 }
 
 impl App {
+    fn add_crypto(&mut self) {
+        if let Some(fiat) = &self.crypto_currency {
+            self.accounts.crypto.push(Crypto {
+                currency: fiat.clone(),
+                description: self.crypto_description.clone(),
+                symbol: self.crypto_symbol.clone(),
+            });
+            self.currency_selector = State::new(self.accounts.get_currencies());
+            self.save();
+        }
+    }
+
     fn add_fiat(&mut self) {
         if let Some(fiat) = &self.fiat {
             self.accounts.fiats.push(fiat.clone());
@@ -104,6 +121,27 @@ impl App {
     }
 
     fn config(&self) -> Scrollable<Message> {
+        let mut crypto_current = Column::new();
+        for crypto in &self.accounts.crypto {
+            let crypto = format!("{crypto:?}");
+            crypto_current = crypto_current.push(text_cell(crypto));
+        }
+
+        let add_crypto = row![
+            button_cell(button("Add Crypto").on_press(Message::AddCrypto)),
+            ComboBox::new(
+                &self.crypto_currency_selector,
+                "fiats",
+                self.crypto_currency.as_ref(),
+                |fiat| { Message::UpdateCryptoCurrency(fiat) }
+            ),
+            text_cell("Description:"),
+            text_input("Description", &self.crypto_description)
+                .on_input(Message::UpdateCryptoDescription),
+            text_cell("Symbol:"),
+            text_input("Symbol", &self.crypto_symbol).on_input(Message::UpdateCryptoSymbol),
+        ];
+
         let mut fiats_current = Column::new();
         for fiat in &self.accounts.fiats {
             fiats_current = fiats_current.push(text_cell(fiat));
@@ -160,6 +198,8 @@ impl App {
         }
 
         let cols = column![
+            crypto_current,
+            add_crypto,
             fiats_current,
             add_fiat,
             metals_current,
@@ -241,6 +281,10 @@ impl App {
             accounts,
             file_path,
             account_name: String::new(),
+            crypto_currency: None,
+            crypto_currency_selector: State::new(Fiat::all()),
+            crypto_description: String::new(),
+            crypto_symbol: String::new(),
             fiat: None,
             metal_currency: None,
             metal_currency_selector: State::new(Fiat::all()),
@@ -610,6 +654,7 @@ impl Application for App {
         self.errors = None;
 
         match message {
+            Message::AddCrypto => self.add_crypto(),
             Message::AddFiat => self.add_fiat(),
             Message::AddMetal => self.add_metal(),
             Message::AddStockPlus => self.add_stock_plus(),
@@ -683,6 +728,9 @@ impl Application for App {
                 self.accounts.save(self.file_path.as_ref()).unwrap();
             }
             Message::UpdateCurrency(currency) => self.currency = Some(currency),
+            Message::UpdateCryptoCurrency(fiat) => self.crypto_currency = Some(fiat),
+            Message::UpdateCryptoDescription(description) => self.crypto_description = description,
+            Message::UpdateCryptoSymbol(symbol) => self.crypto_symbol = symbol,
             Message::UpdateFiat(fiat) => self.fiat = Some(fiat),
             Message::UpdateMetalCurrency(fiat) => self.metal_currency = Some(fiat),
             Message::UpdateMetalDescription(description) => self.metal_description = description,

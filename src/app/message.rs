@@ -5,6 +5,7 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    AddCrypto,
     AddFiat,
     AddMetal,
     AddStockPlus,
@@ -27,6 +28,9 @@ pub enum Message {
     ImportInvestor360,
     UpdateAccount(usize),
     UpdateCurrency(Currency),
+    UpdateCryptoCurrency(Fiat),
+    UpdateCryptoDescription(String),
+    UpdateCryptoSymbol(String),
     UpdateFiat(Fiat),
     UpdateMetalCurrency(Fiat),
     UpdateMetalDescription(String),
