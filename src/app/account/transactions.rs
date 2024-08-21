@@ -6,10 +6,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{
-    crypto,
-    money::{Currency, Fiat},
-};
+use crate::app::{money::Currency, Fiat};
 
 use super::transaction::Transaction;
 
@@ -20,9 +17,6 @@ pub trait Price {
 impl Price for Transactions<Currency> {
     async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         match &self.currency {
-            Currency::Btc => crypto::BtcOhlc::get_price(client).await,
-            Currency::Eth => crypto::EthOhlc::get_price(client).await,
-            Currency::Gno => crypto::GnoOhlc::get_price(client).await,
             Currency::Crypto(crypto) => crypto.get_price(client).await,
             Currency::Fiat(_) => panic!("You can't hold a fiat currency as a secondary currency!"),
             Currency::Metal(metal) => metal.get_price(client).await,
@@ -172,12 +166,7 @@ impl<T: Clone + Display> Transactions<T> {
 impl Transactions<Currency> {
     pub const fn has_txs_2nd(&self) -> bool {
         match self.currency {
-            Currency::Btc
-            | Currency::Eth
-            | Currency::Gno
-            | Currency::Crypto(_)
-            | Currency::Metal(_)
-            | Currency::StockPlus(_) => true,
+            Currency::Crypto(_) | Currency::Metal(_) | Currency::StockPlus(_) => true,
             Currency::Fiat(_) => false,
         }
     }

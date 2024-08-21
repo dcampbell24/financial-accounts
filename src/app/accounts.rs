@@ -13,7 +13,7 @@ use std::path::PathBuf;
 use crate::app::account::{transaction::Transaction, Account};
 
 use super::account::transactions::Transactions;
-use super::crypto2::Crypto;
+use super::crypto::Crypto;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
@@ -109,7 +109,7 @@ impl Accounts {
     }
 
     pub fn get_currencies(&self) -> Vec<Currency> {
-        let mut currencies = vec![Currency::Btc, Currency::Eth, Currency::Gno];
+        let mut currencies = Vec::new();
         for crypto in &self.crypto {
             currencies.push(Currency::Crypto(crypto.clone()));
         }

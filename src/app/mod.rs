@@ -2,7 +2,6 @@ mod account;
 mod accounts;
 mod chart;
 mod crypto;
-mod crypto2;
 mod import_boa;
 mod message;
 mod metal;

@@ -15,11 +15,12 @@ is run from or your home directory if you installed the application.
 
 You can import Bank of America transactions via Import BoA.
 
-Via Tx 2nd you can get the price of metals, mutual funds, stocks, Bitcoin,
-Ethereum, and Gnosis. Tx 2nd becomes active when you select one of these
-currencies. Tx is the currency Tx 2nd is traded in. When you select "Get Price"
-Tx is populated with the quantity of Tx 2nd you hold times the current price
-(sometimes a day old price).
+You can import Investor 360 via Import Investor 360.
+
+Via Tx 2nd you can get the price of metals, stocks plus, and crypto. Tx 2nd
+becomes active when you select one of these currencies. Tx is the currency
+Tx 2nd is traded in. When you select "Get Price" Tx is populated with the
+quantity of Tx 2nd you hold times the current price.
 
 Via Monthly Tx it supports making predictions into the future for what will
 happen to your finances. It also automatically submits these transactions at
@@ -27,10 +28,6 @@ the beginning of each month.
 
 On Tx and 2nd Tx you can limit transactions displayed by month.
 
-Because there are many metals and stocks to choose from and many possible
-fiat currencies, you select which ones you want in your config file. An
-example of a config is shown in demo-ledger.ron. All the allowed fiat
-currencies are shown.
-
-I may allow for cypto currencies in the same way I do stocks and metals, but I
-haven't figured out the best way to support it yet.
+Because there are many crypto, fiat, metals and stocks to choose from, you
+select which ones you want in your config file. An example of a config is
+shown in demo-ledger.ron. All the allowed fiat currencies are shown.

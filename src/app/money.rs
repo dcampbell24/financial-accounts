@@ -2,13 +2,10 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use super::{crypto2::Crypto, metal::Metal, stocks::StockPlus};
+use super::{crypto::Crypto, metal::Metal, stocks::StockPlus};
 
 #[derive(Debug, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Currency {
-    Btc,
-    Eth,
-    Gno,
     Crypto(Crypto),
     Fiat(Fiat),
     Metal(Metal),
@@ -18,9 +15,6 @@ pub enum Currency {
 impl fmt::Display for Currency {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Btc => write!(f, "BTC"),
-            Self::Eth => write!(f, "ETH"),
-            Self::Gno => write!(f, "GNO"),
             Self::Crypto(crypto) => write!(f, "Crypto: {crypto}"),
             Self::Fiat(fiat) => write!(f, "{fiat}"),
             Self::Metal(metal) => write!(f, "Metal: {metal}"),
