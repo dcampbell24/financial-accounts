@@ -23,7 +23,7 @@ use iced::{
     widget::{
         button, column,
         combo_box::{ComboBox, State},
-        row, text, text_input, Button, Column, Row, Scrollable,
+        row, text, text_input, Button, Checkbox, Column, Row, Scrollable,
     },
     window, Alignment, Application, Element, Length, Theme,
 };
@@ -41,6 +41,7 @@ use crate::app::{account::Account, accounts::Accounts, message::Message, screen:
 const TITLE_FILE_PICKER: &str = "Financial Accounts";
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
+const CHECKBOX_SPACING: f32 = 12.5;
 const COLUMN_SPACING: f32 = 0.3;
 const ROW_SPACING: u16 = 4;
 const TEXT_SIZE: u16 = 24;
@@ -439,13 +440,14 @@ impl App {
         let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_items(Alignment::End);
         let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_items(Alignment::End);
         let mut col_5 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_6 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
         let mut col_7 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut last_week = account.sum_last_week();
@@ -469,33 +471,34 @@ impl App {
             col_3 = col_3.push(number_cell(last_year));
             col_4 = col_4.push(number_cell(balance_1st));
             col_5 = col_5.push(balance_2nd);
-            col_6 = col_6.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
+            col_6 = col_6.push(Checkbox::new("", self.accounts[i].group).on_toggle(move |b| Message::Checkbox((i, b))));
+            col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd {
                 if account.has_txs_2nd() {
                     txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
                 }
             }
-            col_7 = col_7.push(button_cell(txs_2nd));
-            col_8 = col_8.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
+            col_8 = col_8.push(button_cell(txs_2nd));
+            col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccount(i));
             }
-            col_9 = col_9.push(button_cell(update_name));
+            col_a = col_a.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
                 import_boa = import_boa.on_press(Message::ImportBoa(i));
             }
-            col_a = col_a.push(button_cell(import_boa));
+            col_b = col_b.push(button_cell(import_boa));
             let mut get_price = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_price = get_price.on_press(Message::GetPrice(i));
             }
-            col_b = col_b.push(button_cell(get_price));
-            col_c = col_c.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_c = col_c.push(button_cell(get_price));
+            col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
-        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c]
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
 
     #[rustfmt::skip]
@@ -666,6 +669,7 @@ impl Application for App {
             Message::ChartMonth => self.duration = Duration::Month,
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
+            Message::Checkbox((i, b)) => self.accounts[i].group = b,
             Message::CheckMonthly => self.check_monthly(),
             Message::Configuration => self.screen = Screen::Configuration,
             Message::Delete(i) => self.delete(i),

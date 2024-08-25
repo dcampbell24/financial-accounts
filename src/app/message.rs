@@ -17,6 +17,7 @@ pub enum Message {
     ChartAll,
     ChangeAccountName(String),
     ChangeProjectMonths(String),
+    Checkbox((usize, bool)),
     CheckMonthly,
     Configuration,
     Delete(usize),
