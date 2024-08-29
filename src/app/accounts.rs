@@ -44,6 +44,8 @@ impl Accounts {
             }
         }
 
+        txs.sort_by_key(|tx| tx.date);
+
         let mut balance = dec!(0);
         for tx in &mut txs {
             balance += tx.amount;
