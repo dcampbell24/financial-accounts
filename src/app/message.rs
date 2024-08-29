@@ -7,6 +7,7 @@ use super::{
 pub enum Message {
     AddCrypto,
     AddFiat,
+    AddGroup,
     AddMetal,
     AddStockPlus,
     Account(account::Message),

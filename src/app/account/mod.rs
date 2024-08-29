@@ -29,7 +29,7 @@ use super::{
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Account {
     #[serde(skip)]
-    pub group: bool,
+    pub check_box: bool,
     pub name: String,
     #[serde(skip)]
     pub tx: transaction::ToSubmit,
@@ -70,7 +70,7 @@ impl Account {
         };
 
         Self {
-            group: false,
+            check_box: false,
             name,
             tx: transaction::ToSubmit::new(),
             tx_monthly: transaction::MonthlyToSubmit::new(),

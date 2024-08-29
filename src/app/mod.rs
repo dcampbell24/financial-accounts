@@ -13,6 +13,7 @@ mod stocks;
 use std::{borrow::BorrowMut, cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
+use accounts::Group;
 use anyhow::Context;
 use chart::Chart;
 use chrono::Utc;
@@ -98,6 +99,28 @@ impl App {
             self.currency_selector = State::new(self.accounts.get_currencies());
             self.save();
         }
+    }
+
+    fn add_group(&mut self) {
+        let members = (0..)
+            .zip(self.accounts.inner.iter())
+            .filter_map(
+                |(index, account)| {
+                    if account.check_box {
+                        Some(index)
+                    } else {
+                        None
+                    }
+                },
+            )
+            .collect();
+
+        let group = Group {
+            name: self.account_name.clone(),
+            members,
+        };
+
+        self.accounts.groups.push(group);
     }
 
     fn add_metal(&mut self) {
@@ -471,7 +494,7 @@ impl App {
             col_3 = col_3.push(number_cell(last_year));
             col_4 = col_4.push(number_cell(balance_1st));
             col_5 = col_5.push(balance_2nd);
-            col_6 = col_6.push(Checkbox::new("", self.accounts[i].group).on_toggle(move |b| Message::Checkbox((i, b))));
+            col_6 = col_6.push(Checkbox::new("", self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
             col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd {
@@ -558,6 +581,9 @@ impl App {
             rows,
             column_errors,
             text_cell(""),
+            self.list_groups(),
+            text_cell(""),
+            text_cell(""),
             totals,
             text_cell(""),
             row![
@@ -587,6 +613,20 @@ impl App {
         ];
 
         Scrollable::new(cols)
+    }
+
+    fn list_groups(&self) -> Column<Message> {
+        let mut groups = Column::new();
+        for group in &self.accounts.groups {
+            let mut g = row![text(group.name.clone())];
+            let mut sum = dec!(0);
+            for index in &group.members {
+                sum += self.accounts.inner[*index].balance_1st();
+            }
+            g = g.push(number_cell(sum));
+            groups = groups.push(g);
+        }
+        groups
     }
 
     fn select_account(&mut self, message: account::Message) {
@@ -659,6 +699,7 @@ impl Application for App {
         match message {
             Message::AddCrypto => self.add_crypto(),
             Message::AddFiat => self.add_fiat(),
+            Message::AddGroup => self.add_group(),
             Message::AddMetal => self.add_metal(),
             Message::AddStockPlus => self.add_stock_plus(),
             Message::Account(message) => self.select_account(message),
@@ -669,7 +710,7 @@ impl Application for App {
             Message::ChartMonth => self.duration = Duration::Month,
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
-            Message::Checkbox((i, b)) => self.accounts[i].group = b,
+            Message::Checkbox((i, b)) => self.accounts[i].check_box = b,
             Message::CheckMonthly => self.check_monthly(),
             Message::Configuration => self.screen = Screen::Configuration,
             Message::Delete(i) => self.delete(i),

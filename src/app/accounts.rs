@@ -23,6 +23,7 @@ pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
+    pub groups: Vec<Group>,
     pub crypto: Vec<Crypto>,
     pub fiats: Vec<Fiat>,
     pub metals: Vec<Metal>,
@@ -126,6 +127,7 @@ impl Accounts {
         Self {
             checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
+            groups: Vec::new(),
             crypto: Vec::new(),
             fiats: Vec::new(),
             metals: Vec::new(),
@@ -236,4 +238,10 @@ impl IndexMut<usize> for Accounts {
     fn index_mut(&mut self, i: usize) -> &mut Self::Output {
         &mut self.inner[i]
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Group {
+    pub name: String,
+    pub members: Vec<usize>,
 }
