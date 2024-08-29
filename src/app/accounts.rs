@@ -34,26 +34,23 @@ impl Accounts {
         self.inner.sort_by_key(|account| account.name.clone());
     }
 
+    // Fixme: what to do when transactions are not in USD?
     pub fn all_accounts_txs_1st(&self) -> Transactions<Fiat> {
-        let mut txs = Vec::new();
+        let mut transactions = Transactions::new(Fiat::Usd);
         for account in &self.inner {
             if account.txs_1st.currency == Fiat::Usd {
                 for tx in &account.txs_1st.txs {
-                    txs.push(tx.clone());
+                    transactions.txs.push(tx.clone());
                 }
             }
         }
+        transactions.sort();
 
         let mut balance = dec!(0);
-        for tx in &mut txs {
+        for tx in &mut transactions.txs {
             balance += tx.amount;
             tx.balance = balance;
         }
-
-        // Fixme: what to do when transactions are not in USD?
-        let mut transactions = Transactions::new(Fiat::Usd);
-        transactions.txs = txs;
-        transactions.sort();
         transactions
     }
 
