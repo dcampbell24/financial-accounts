@@ -553,7 +553,7 @@ impl App {
             }
             sum.rescale(2);
             col_4 = col_4.push(number_cell(sum));
-            col_d = col_d.push(button("Delete").on_press(Message::DeleteGroup(index)))
+            col_d = col_d.push(button("Delete").on_press(Message::DeleteGroup(index)));
         }
 
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
