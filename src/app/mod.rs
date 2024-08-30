@@ -44,7 +44,7 @@ const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
 const CHECKBOX_SPACING: f32 = 12.5;
 const COLUMN_SPACING: f32 = 0.3;
-const ROW_SPACING: u16 = 4;
+const ROW_SPACING: u16 = 5;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
@@ -593,7 +593,7 @@ impl App {
 
         let cols = column![
             chart,
-            rows,
+            rows.spacing(ROW_SPACING),
             column_errors,
             text_cell(""),
             row![
