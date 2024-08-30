@@ -547,12 +547,26 @@ impl App {
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
             col_0 = col_0.push(text_cell(&group.name));
-            let mut sum = dec!(0);
+            let mut week = dec!(0);
+            let mut month = dec!(0);
+            let mut year = dec!(0);
+            let mut balance = dec!(0);
             for index in &group.members {
-                sum += self.accounts.inner[*index].balance_1st();
+                week += self.accounts.inner[*index].sum_last_week();
+                month += self.accounts.inner[*index].sum_last_month();
+                year += self.accounts.inner[*index].sum_last_year();
+                balance += self.accounts.inner[*index].balance_1st();
             }
-            sum.rescale(2);
-            col_4 = col_4.push(number_cell(sum));
+
+            week.rescale(2);
+            month.rescale(2);
+            year.rescale(2);
+            balance.rescale(2);
+
+            col_1 = col_1.push(number_cell(week));
+            col_2 = col_2.push(number_cell(month));
+            col_3 = col_3.push(number_cell(year));
+            col_4 = col_4.push(number_cell(balance));
             col_d = col_d.push(button("Delete").on_press(Message::DeleteGroup(index)));
         }
 
