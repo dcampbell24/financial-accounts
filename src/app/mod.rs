@@ -121,6 +121,7 @@ impl App {
         };
 
         self.accounts.groups.push(group);
+        self.save();
     }
 
     fn add_metal(&mut self) {
@@ -357,7 +358,12 @@ impl App {
                 self.accounts[j].txs_monthly.remove(i);
             }
         };
-        self.accounts.save(self.file_path.as_ref()).unwrap();
+        self.save();
+    }
+
+    fn delete_group(&mut self, i: usize) {
+        self.accounts.groups.remove(i);
+        self.save();
     }
 
     fn import_investor_360(&mut self, file_xls: &PathBuf) -> anyhow::Result<()> {
@@ -521,6 +527,35 @@ impl App {
             col_c = col_c.push(button_cell(get_price));
             col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
+
+        let mut total_for_last_week_usd = self.accounts.total_for_last_week_usd();
+        let mut total_for_last_month_usd = self.accounts.total_for_last_month_usd();
+        let mut total_for_last_year_usd = self.accounts.total_for_last_year_usd();
+        let mut balance = self.accounts.balance_usd();
+
+        total_for_last_week_usd.rescale(2);
+        total_for_last_month_usd.rescale(2);
+        total_for_last_year_usd.rescale(2);
+        balance.rescale(2);
+
+        col_0 = col_0.push(text_cell("Total"));
+        col_1 = col_1.push(number_cell(total_for_last_week_usd));
+        col_2 = col_2.push(number_cell(total_for_last_month_usd));
+        col_3 = col_3.push(number_cell(total_for_last_year_usd));
+        col_4 = col_4.push(number_cell(balance));
+        col_d = col_d.push(text_cell(""));
+
+        for (index, group) in self.accounts.groups.iter().enumerate() {
+            col_0 = col_0.push(text_cell(&group.name));
+            let mut sum = dec!(0);
+            for index in &group.members {
+                sum += self.accounts.inner[*index].balance_1st();
+            }
+            sum.rescale(2);
+            col_4 = col_4.push(number_cell(sum));
+            col_d = col_d.push(button("Delete").on_press(Message::DeleteGroup(index)))
+        }
+
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
 
@@ -540,32 +575,6 @@ impl App {
             }
         }
 
-        let col_1 = column![
-            text_cell("total last week USD: "),
-            text_cell("total last month USD: "),
-            text_cell("total last year USD: "),
-            text_cell("balance USD: "),
-        ];
-
-        let mut total_for_last_week_usd = self.accounts.total_for_last_week_usd();
-        let mut total_for_last_month_usd = self.accounts.total_for_last_month_usd();
-        let mut total_for_last_year_usd = self.accounts.total_for_last_year_usd();
-        let mut balance = self.accounts.balance_usd();
-
-        total_for_last_week_usd.rescale(2);
-        total_for_last_month_usd.rescale(2);
-        total_for_last_year_usd.rescale(2);
-        balance.rescale(2);
-
-        let col_2 = column![
-            number_cell(total_for_last_week_usd),
-            number_cell(total_for_last_month_usd),
-            number_cell(total_for_last_year_usd),
-            number_cell(balance),
-            text_cell(""),
-        ].align_items(Alignment::End);
-        let totals = row![col_1, col_2];
-
         let name = text_input("Name", &self.account_name)
             .on_input(Message::ChangeAccountName);
 
@@ -576,21 +585,23 @@ impl App {
         if !self.account_name.is_empty() && self.currency.is_some() {
             add = add.on_press(Message::SubmitAccount);
         }
+
+        let mut add_group = button("Add Group");
+        if !self.account_name.is_empty() {
+            add_group = add_group.on_press(Message::AddGroup);
+        }
+
         let cols = column![
             chart,
             rows,
             column_errors,
-            text_cell(""),
-            self.list_groups(),
-            text_cell(""),
-            text_cell(""),
-            totals,
             text_cell(""),
             row![
                 text("Account").size(TEXT_SIZE),
                 name,
                 ComboBox::new(&self.currency_selector, "currency", self.currency.as_ref(), |currency|  { Message::UpdateCurrency(currency) }),
                 add,
+                add_group,
                 text(" ".repeat(EDGE_PADDING)),
 
             ].padding(PADDING).spacing(ROW_SPACING),
@@ -613,20 +624,6 @@ impl App {
         ];
 
         Scrollable::new(cols)
-    }
-
-    fn list_groups(&self) -> Column<Message> {
-        let mut groups = Column::new();
-        for group in &self.accounts.groups {
-            let mut g = row![text(group.name.clone())];
-            let mut sum = dec!(0);
-            for index in &group.members {
-                sum += self.accounts.inner[*index].balance_1st();
-            }
-            g = g.push(number_cell(sum));
-            groups = groups.push(g);
-        }
-        groups
     }
 
     fn select_account(&mut self, message: account::Message) {
@@ -714,6 +711,7 @@ impl Application for App {
             Message::CheckMonthly => self.check_monthly(),
             Message::Configuration => self.screen = Screen::Configuration,
             Message::Delete(i) => self.delete(i),
+            Message::DeleteGroup(i) => self.delete_group(i),
             Message::FileLoad => self.load_file(),
             Message::FileSaveAs => self.save_file(),
             Message::GetPrice(i) => {

@@ -22,6 +22,7 @@ pub enum Message {
     CheckMonthly,
     Configuration,
     Delete(usize),
+    DeleteGroup(usize),
     FileLoad,
     FileSaveAs,
     GetPrice(usize),
