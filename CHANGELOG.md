@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Breaking Change: add groups.
 - Breaking Change: get rid of the old crypto.
 - Make crypto configurable.
 - Add configuration screen.
