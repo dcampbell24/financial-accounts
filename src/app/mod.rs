@@ -345,10 +345,7 @@ impl App {
 
     fn check_monthly(&mut self) {
         self.accounts.check_monthly();
-        match self.accounts.save(self.file_path.as_ref()) {
-            Ok(()) => {}
-            Err(error) => self.errors = Some(Arc::new(vec![error])),
-        }
+        self.save();
     }
 
     fn delete(&mut self, i: usize) {
@@ -660,7 +657,7 @@ impl App {
             | Screen::Monthly(account) => Some(account),
         } {
             if self.accounts[account].update(&self.screen, message) {
-                self.accounts.save(self.file_path.as_ref()).unwrap();
+                self.save();
             }
         }
     }
@@ -796,7 +793,7 @@ impl Application for App {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.sort();
-                        self.accounts.save(self.file_path.as_ref()).unwrap();
+                        self.save()
                     }
                     Err(error) => {
                         self.errors = Some(Arc::new(vec![error]));
@@ -808,7 +805,7 @@ impl Application for App {
                 if !errors.is_empty() {
                     self.errors = Some(Arc::new(errors));
                 }
-                self.accounts.save(self.file_path.as_ref()).unwrap();
+                self.save()
             }
             Message::ImportBoa(i) => {
                 let account = &mut self.accounts[i];
@@ -821,7 +818,7 @@ impl Application for App {
                     if let Err(err) = account.import_boa(file_path) {
                         self.errors = Some(Arc::new(vec![err]));
                     } else {
-                        self.accounts.save(self.file_path.as_ref()).unwrap();
+                        self.save();
                     }
                     self.screen = Screen::Accounts;
                 }
@@ -836,7 +833,7 @@ impl Application for App {
                         self.errors = Some(Arc::new(vec![err]));
                     } else {
                         self.accounts.sort();
-                        self.accounts.save(self.file_path.as_ref()).unwrap();
+                        self.save();
                     }
                 }
             }
