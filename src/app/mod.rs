@@ -793,7 +793,7 @@ impl Application for App {
                     Ok(tx) => {
                         account.txs_1st.txs.push(tx);
                         account.txs_1st.sort();
-                        self.save()
+                        self.save();
                     }
                     Err(error) => {
                         self.errors = Some(Arc::new(vec![error]));
@@ -805,7 +805,7 @@ impl Application for App {
                 if !errors.is_empty() {
                     self.errors = Some(Arc::new(errors));
                 }
-                self.save()
+                self.save();
             }
             Message::ImportBoa(i) => {
                 let account = &mut self.accounts[i];
