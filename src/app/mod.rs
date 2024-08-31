@@ -334,6 +334,15 @@ impl App {
         }
     }
 
+    fn check_account_name(&mut self, name: &str) -> anyhow::Result<()> {
+        for account in &self.accounts.inner {
+            if name == account.name {
+                return Err(anyhow::Error::msg("Duplicate name!"));
+            }
+        }
+        Ok(())
+    }
+
     fn check_monthly(&mut self) {
         self.accounts.check_monthly();
         match self.accounts.save(self.file_path.as_ref()) {
@@ -346,6 +355,9 @@ impl App {
         match self.screen {
             Screen::Accounts => {
                 self.accounts.inner.remove(i);
+                for group in &mut self.accounts.groups {
+                    group.remove(i);
+                }
             }
             Screen::Account(j) => {
                 self.accounts[j].txs_1st.txs.remove(i);
@@ -512,7 +524,7 @@ impl App {
             col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
-                update_name = update_name.on_press(Message::UpdateAccount(i));
+                update_name = update_name.on_press(Message::UpdateAccountName(i));
             }
             col_a = col_a.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
@@ -653,12 +665,61 @@ impl App {
         }
     }
 
+    fn insert_new_account(&mut self, new_account: Account) {
+        if self.accounts.inner.is_empty() {
+            self.accounts.inner.push(new_account);
+            return;
+        }
+
+        for (i, account) in self.accounts.inner.iter().enumerate() {
+            if account.name > new_account.name {
+                self.accounts.inner.insert(i, new_account);
+                for group in &mut self.accounts.groups {
+                    for index in &mut group.members {
+                        if *index > i {
+                            *index += 1;
+                        }
+                    }
+                }
+                return;
+            }
+        }
+
+        self.accounts.inner.push(new_account);
+    }
+
+    fn remove_account(&mut self, index: usize) -> Account {
+        for group in &mut self.accounts.groups {
+            group.members.remove(index);
+        }
+        self.accounts.inner.remove(index)
+    }
+
     fn submit_account(&mut self) {
-        self.accounts.inner.push(Account::new(
-            self.account_name.trim().to_string(),
-            self.currency.clone().unwrap(),
-        ));
-        self.accounts.sort();
+        let name = self.account_name.trim().to_string();
+        if let Err(error) = self.check_account_name(&name) {
+            self.errors = Some(Arc::new(vec![error]));
+            return;
+        }
+
+        let new_account = Account::new(name, self.currency.clone().unwrap());
+
+        self.insert_new_account(new_account);
+        self.save();
+    }
+
+    fn update_account_name(&mut self, i: usize) {
+        let name = self.account_name.trim().to_string();
+        if let Err(error) = self.check_account_name(&name) {
+            self.errors = Some(Arc::new(vec![error]));
+            return;
+        }
+
+        let mut account = self.remove_account(i);
+        account.name = self.account_name.trim().to_string();
+        // add the new group
+
+        self.insert_new_account(account);
         self.save();
     }
 }
@@ -779,11 +840,7 @@ impl Application for App {
                     }
                 }
             }
-            Message::UpdateAccount(i) => {
-                self.accounts[i].name = self.account_name.trim().to_string();
-                self.accounts.sort();
-                self.accounts.save(self.file_path.as_ref()).unwrap();
-            }
+            Message::UpdateAccountName(i) => self.update_account_name(i),
             Message::UpdateCurrency(currency) => self.currency = Some(currency),
             Message::UpdateCryptoCurrency(fiat) => self.crypto_currency = Some(fiat),
             Message::UpdateCryptoDescription(description) => self.crypto_description = description,

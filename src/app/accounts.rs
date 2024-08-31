@@ -245,3 +245,29 @@ pub struct Group {
     pub name: String,
     pub members: Vec<usize>,
 }
+
+impl Group {
+    fn remove_inner(&mut self, index: usize) -> Option<usize> {
+        for (remove, i) in &mut self.members.iter().enumerate() {
+            if index == *i {
+                return Some(remove);
+            }
+        }
+
+        None
+    }
+
+    pub fn remove(&mut self, index: usize) -> Option<usize> {
+        for i in &mut self.members.iter_mut() {
+            if *i > index {
+                *i -= 1;
+            }
+        }
+
+        if let Some(index) = self.remove_inner(index) {
+            return Some(self.members.remove(index));
+        }
+
+        None
+    }
+}
