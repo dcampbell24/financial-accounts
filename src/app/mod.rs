@@ -10,7 +10,7 @@ mod screen;
 pub mod solarized;
 mod stocks;
 
-use std::{borrow::BorrowMut, cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
+use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use accounts::Group;
@@ -19,6 +19,7 @@ use chart::Chart;
 use chrono::Utc;
 use clap::{arg, command, Parser};
 use crypto::Crypto;
+use fs4::fs_std::FileExt;
 use iced::{
     executor, theme,
     widget::{
@@ -48,10 +49,10 @@ const ROW_SPACING: u16 = 5;
 const TEXT_SIZE: u16 = 24;
 
 /// The financial-accounts application.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct App {
     accounts: Accounts,
-    file_path: Option<PathBuf>,
+    file: Option<fs::File>,
     account_name: String,
     crypto_currency: Option<Fiat>,
     crypto_currency_selector: State<Fiat>,
@@ -238,6 +239,24 @@ impl App {
         Scrollable::new(cols)
     }
 
+    fn display_error(&mut self, error: anyhow::Error) {
+        match self.errors {
+            Some(ref mut errors) => {
+                let errors = Arc::get_mut(errors).unwrap();
+                errors.push(error);
+            }
+            None => self.errors = Some(Arc::new(vec![error])),
+        }
+    }
+
+    fn file_unlock(&self) -> anyhow::Result<()> {
+        if let Some(file) = &self.file {
+            file.unlock()?;
+        }
+
+        Ok(())
+    }
+
     fn get_configuration_file() -> File {
         let args = Args::parse();
 
@@ -258,14 +277,22 @@ impl App {
             .context("You must choose a file name for your configuration file.");
 
         match result {
-            Ok(file_path) => match Accounts::load(&file_path) {
-                Ok(accounts) => {
-                    self.accounts = accounts;
-                    self.file_path = Some(file_path);
+            Ok(file_path) => {
+                if let Err(error) = self.file_unlock() {
+                    self.display_error(error);
+                    return;
                 }
-                Err(error) => self.errors = Some(Arc::new(vec![error])),
-            },
-            Err(error) => self.errors = Some(Arc::new(vec![error])),
+                self.file = None;
+
+                match Accounts::load(&file_path) {
+                    Ok((accounts, file)) => {
+                        self.accounts = accounts;
+                        self.file = Some(file);
+                    }
+                    Err(error) => self.display_error(error),
+                }
+            }
+            Err(error) => self.display_error(error),
         }
     }
 
@@ -277,34 +304,28 @@ impl App {
             .context("You must choose a file name for your configuration file.");
 
         match result {
-            Ok(file_path) => match self.accounts.save(Some(&file_path)) {
-                Ok(()) => self.file_path = Some(file_path),
-                Err(error) => self.errors = Some(Arc::new(vec![error])),
+            Ok(file_path) => match self.accounts.save_first(&file_path) {
+                Ok(file) => self.file = Some(file),
+                Err(error) => self.display_error(error),
             },
-            Err(error) => self.errors = Some(Arc::new(vec![error])),
+            Err(error) => self.display_error(error),
         }
     }
 
     fn save(&mut self) {
         self.accounts
-            .save(self.file_path.as_ref())
-            .unwrap_or_else(|error| match self.errors.borrow_mut() {
-                Some(ref mut errors) => {
-                    let errors = Arc::get_mut(errors).unwrap();
-                    errors.push(error);
-                }
-                None => self.errors = Some(Arc::new(vec![error])),
-            });
+            .save(self.file.as_ref())
+            .unwrap_or_else(|error| self.display_error(error));
     }
 
-    fn new(accounts: Accounts, file_path: Option<PathBuf>) -> Self {
+    fn new(accounts: Accounts, file: Option<fs::File>) -> Self {
         let currencies = accounts.get_currencies();
 
         Self {
             fiat_selector: State::new(Fiat::all_minus_existing(&accounts.fiats)),
 
             accounts,
-            file_path,
+            file,
             account_name: String::new(),
             crypto_currency: None,
             crypto_currency_selector: State::new(Fiat::all()),
@@ -695,7 +716,7 @@ impl App {
     fn submit_account(&mut self) {
         let name = self.account_name.trim().to_string();
         if let Err(error) = self.check_account_name(&name) {
-            self.errors = Some(Arc::new(vec![error]));
+            self.display_error(error);
             return;
         }
 
@@ -708,7 +729,7 @@ impl App {
     fn update_account_name(&mut self, i: usize) {
         let name = self.account_name.trim().to_string();
         if let Err(error) = self.check_account_name(&name) {
-            self.errors = Some(Arc::new(vec![error]));
+            self.display_error(error);
             return;
         }
 
@@ -730,20 +751,21 @@ impl Application for App {
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
         match App::get_configuration_file() {
             File::Load(file_path) => {
-                let accounts = Accounts::load(&file_path)
+                let (accounts, file) = Accounts::load(&file_path)
                     .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path, err));
                 (
-                    Self::new(accounts, Some(file_path)),
+                    Self::new(accounts, Some(file)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
             File::New(file_path) => {
                 let accounts = Accounts::new();
-                accounts
+                let file = accounts
                     .save_first(&file_path)
                     .unwrap_or_else(|err| panic!("error creating {:?}: {}", &file_path, err));
+
                 (
-                    Self::new(accounts, Some(file_path)),
+                    Self::new(accounts, Some(file)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
@@ -796,7 +818,7 @@ impl Application for App {
                         self.save();
                     }
                     Err(error) => {
-                        self.errors = Some(Arc::new(vec![error]));
+                        self.display_error(error);
                     }
                 }
             }
@@ -815,8 +837,8 @@ impl Application for App {
                     .add_filter("csv", &["csv"])
                     .pick_file()
                 {
-                    if let Err(err) = account.import_boa(file_path) {
-                        self.errors = Some(Arc::new(vec![err]));
+                    if let Err(error) = account.import_boa(file_path) {
+                        self.display_error(error);
                     } else {
                         self.save();
                     }
@@ -829,8 +851,8 @@ impl Application for App {
                     .add_filter("xls", &["xls"])
                     .pick_file()
                 {
-                    if let Err(err) = self.import_investor_360(&file_path) {
-                        self.errors = Some(Arc::new(vec![err]));
+                    if let Err(error) = self.import_investor_360(&file_path) {
+                        self.display_error(error);
                     } else {
                         self.accounts.sort();
                         self.save();

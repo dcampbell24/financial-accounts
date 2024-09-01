@@ -1,11 +1,12 @@
 use anyhow::Context;
 use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
+use fs4::fs_std::FileExt;
 use ron::ser::PrettyConfig;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use std::fs::{File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
@@ -197,32 +198,35 @@ impl Accounts {
         total
     }
 
-    pub fn save_first(&self, file_path: &PathBuf) -> anyhow::Result<()> {
+    pub fn save_first(&self, file_path: &PathBuf) -> anyhow::Result<fs::File> {
         let pretty_config = PrettyConfig::new();
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
             .open(file_path)?;
+
+        file.try_lock_exclusive()?;
         file.write_all(j.as_bytes())?;
-        Ok(())
+        Ok(file)
     }
 
-    pub fn save(&self, file_path: Option<&PathBuf>) -> anyhow::Result<()> {
+    pub fn save(&self, file: Option<&fs::File>) -> anyhow::Result<()> {
         let pretty_config = PrettyConfig::new();
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
-        let file_path = file_path.context("Cannot save because file path is empty!")?;
-        let mut file = File::create(file_path)?;
+        let mut file = file.context("Cannot save because file is None!")?;
         file.write_all(j.as_bytes())?;
         Ok(())
     }
 
-    pub fn load(file_path: &PathBuf) -> anyhow::Result<Self> {
+    pub fn load(file_path: &PathBuf) -> anyhow::Result<(Self, fs::File)> {
         let mut buf = String::new();
-        let mut file = File::open(file_path)?;
+        let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
+
+        file.try_lock_exclusive()?;
         file.read_to_string(&mut buf)?;
         let accounts = ron::from_str(&buf)?;
-        Ok(accounts)
+        Ok((accounts, file))
     }
 }
 
