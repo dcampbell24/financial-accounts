@@ -304,10 +304,18 @@ impl App {
             .context("You must choose a file name for your configuration file.");
 
         match result {
-            Ok(file_path) => match self.accounts.save_first(&file_path) {
-                Ok(file) => self.file = Some(file),
-                Err(error) => self.display_error(error),
-            },
+            Ok(file_path) => {
+                if let Err(error) = self.file_unlock() {
+                    self.display_error(error);
+                    return;
+                }
+                self.file = None;
+
+                match self.accounts.save_dialogue(&file_path) {
+                    Ok(file) => self.file = Some(file),
+                    Err(error) => self.display_error(error),
+                }
+            }
             Err(error) => self.display_error(error),
         }
     }

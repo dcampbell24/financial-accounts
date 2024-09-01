@@ -198,6 +198,16 @@ impl Accounts {
         total
     }
 
+    pub fn save_dialogue(&self, file_path: &PathBuf) -> anyhow::Result<fs::File> {
+        let pretty_config = PrettyConfig::new();
+        let j = ron::ser::to_string_pretty(self, pretty_config)?;
+        let mut file = OpenOptions::new().write(true).open(file_path)?;
+
+        file.try_lock_exclusive()?;
+        file.write_all(j.as_bytes())?;
+        Ok(file)
+    }
+
     pub fn save_first(&self, file_path: &PathBuf) -> anyhow::Result<fs::File> {
         let pretty_config = PrettyConfig::new();
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
