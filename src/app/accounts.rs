@@ -7,7 +7,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use std::fs::{self, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{Read, Seek, Write};
 use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
@@ -205,6 +205,7 @@ impl Accounts {
 
         file.try_lock_exclusive()?;
         file.write_all(j.as_bytes())?;
+        file.rewind()?;
         Ok(file)
     }
 
@@ -218,6 +219,7 @@ impl Accounts {
 
         file.try_lock_exclusive()?;
         file.write_all(j.as_bytes())?;
+        file.rewind()?;
         Ok(file)
     }
 
@@ -226,6 +228,7 @@ impl Accounts {
         let j = ron::ser::to_string_pretty(self, pretty_config)?;
         let mut file = file.context("Cannot save because file is None!")?;
         file.write_all(j.as_bytes())?;
+        file.rewind()?;
         Ok(())
     }
 
@@ -235,6 +238,7 @@ impl Accounts {
 
         file.try_lock_exclusive()?;
         file.read_to_string(&mut buf)?;
+        file.rewind()?;
         let accounts = ron::from_str(&buf)?;
         Ok((accounts, file))
     }
