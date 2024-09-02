@@ -7,7 +7,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use std::fs::{self, OpenOptions};
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
@@ -18,6 +18,7 @@ use super::crypto::Crypto;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
+use super::File;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Accounts {
@@ -198,49 +199,81 @@ impl Accounts {
         total
     }
 
-    pub fn save_dialogue(&self, file_path: &PathBuf) -> anyhow::Result<fs::File> {
+    pub fn to_string(&self) -> anyhow::Result<String> {
         let pretty_config = PrettyConfig::new();
-        let j = ron::ser::to_string_pretty(self, pretty_config)?;
-        let mut file = OpenOptions::new().write(true).open(file_path)?;
-
-        file.try_lock_exclusive()?;
-        file.write_all(j.as_bytes())?;
-        file.rewind()?;
-        Ok(file)
+        let string = ron::ser::to_string_pretty(self, pretty_config)?;
+        Ok(string)
     }
 
-    pub fn save_first(&self, file_path: &PathBuf) -> anyhow::Result<fs::File> {
-        let pretty_config = PrettyConfig::new();
-        let j = ron::ser::to_string_pretty(self, pretty_config)?;
+    pub fn save_dialogue(
+        &self,
+        old_file: Option<File>,
+        file_path: PathBuf,
+    ) -> anyhow::Result<File> {
+        if let Some(old_file) = old_file {
+            old_file.inner.unlock()?;
+        }
+
+        if fs::exists(&file_path)? {
+            let file = fs::File::open(&file_path)?;
+            file.try_lock_exclusive()?;
+            file.unlock()?;
+        }
+
+        let mut file = fs::File::create(&file_path)?;
+        file.try_lock_exclusive()?;
+        file.write_all(self.to_string()?.as_bytes())?;
+        Ok(File {
+            path: file_path,
+            inner: file,
+        })
+    }
+
+    pub fn save_first(&self, file_path: PathBuf) -> anyhow::Result<File> {
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(file_path)?;
+            .open(&file_path)?;
 
         file.try_lock_exclusive()?;
-        file.write_all(j.as_bytes())?;
-        file.rewind()?;
-        Ok(file)
+        file.write_all(self.to_string()?.as_bytes())?;
+        Ok(File {
+            path: file_path,
+            inner: file,
+        })
     }
 
-    pub fn save(&self, file: Option<&fs::File>) -> anyhow::Result<()> {
-        let pretty_config = PrettyConfig::new();
-        let j = ron::ser::to_string_pretty(self, pretty_config)?;
-        let mut file = file.context("Cannot save because file is None!")?;
-        file.write_all(j.as_bytes())?;
-        file.rewind()?;
-        Ok(())
+    pub fn save(&self, old_file: Option<File>) -> anyhow::Result<File> {
+        let old_file = old_file.context("Cannot save because file is None!")?;
+        let file_path = old_file.path;
+
+        let mut file = fs::File::create(&file_path)?;
+        old_file.inner.unlock()?;
+        file.try_lock_exclusive()?;
+
+        file.write_all(self.to_string()?.as_bytes())?;
+        Ok(File {
+            path: file_path,
+            inner: file,
+        })
     }
 
-    pub fn load(file_path: &PathBuf) -> anyhow::Result<(Self, fs::File)> {
+    pub fn load(old_file: Option<File>, file_path: PathBuf) -> anyhow::Result<(Self, File)> {
+        if let Some(old_file) = old_file {
+            old_file.inner.unlock()?;
+        }
+        let mut file = fs::File::open(&file_path)?;
+        file.try_lock_exclusive()?;
         let mut buf = String::new();
-        let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
-
-        file.try_lock_exclusive()?;
         file.read_to_string(&mut buf)?;
-        file.rewind()?;
         let accounts = ron::from_str(&buf)?;
-        Ok((accounts, file))
+        Ok((
+            accounts,
+            File {
+                path: file_path,
+                inner: file,
+            },
+        ))
     }
 }
 

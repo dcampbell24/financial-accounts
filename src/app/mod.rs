@@ -1,6 +1,7 @@
 mod account;
 mod accounts;
 mod chart;
+mod command_line;
 mod crypto;
 mod import_boa;
 mod message;
@@ -10,16 +11,14 @@ mod screen;
 pub mod solarized;
 mod stocks;
 
-use std::{cmp::Ordering, fs, path::PathBuf, str::FromStr, sync::Arc};
+use std::{cmp::Ordering, fs, mem::take, path::PathBuf, str::FromStr, sync::Arc};
 
 use account::{transaction::Transaction, transactions::Transactions};
 use accounts::Group;
 use anyhow::Context;
 use chart::Chart;
 use chrono::Utc;
-use clap::{arg, command, Parser};
 use crypto::Crypto;
-use fs4::fs_std::FileExt;
 use iced::{
     executor, theme,
     widget::{
@@ -52,7 +51,7 @@ const TEXT_SIZE: u16 = 24;
 #[derive(Debug)]
 pub struct App {
     accounts: Accounts,
-    file: Option<fs::File>,
+    file: Option<File>,
     account_name: String,
     crypto_currency: Option<Fiat>,
     crypto_currency_selector: State<Fiat>,
@@ -72,12 +71,6 @@ pub struct App {
     project_months: Option<u16>,
     screen: Screen,
     errors: Option<Arc<Vec<anyhow::Error>>>,
-}
-
-enum File {
-    Load(PathBuf),
-    New(PathBuf),
-    None,
 }
 
 impl App {
@@ -249,26 +242,6 @@ impl App {
         }
     }
 
-    fn file_unlock(&self) -> anyhow::Result<()> {
-        if let Some(file) = &self.file {
-            file.unlock()?;
-        }
-
-        Ok(())
-    }
-
-    fn get_configuration_file() -> File {
-        let args = Args::parse();
-
-        if let Some(arg) = args.load {
-            File::Load(PathBuf::from(arg))
-        } else if let Some(arg) = args.new {
-            File::New(PathBuf::from(arg))
-        } else {
-            File::None
-        }
-    }
-
     fn load_file(&mut self) {
         let result = rfd::FileDialog::new()
             .set_title(TITLE_FILE_PICKER)
@@ -277,21 +250,13 @@ impl App {
             .context("You must choose a file name for your configuration file.");
 
         match result {
-            Ok(file_path) => {
-                if let Err(error) = self.file_unlock() {
-                    self.display_error(error);
-                    return;
+            Ok(file_path) => match Accounts::load(take(&mut self.file), file_path) {
+                Ok((accounts, file)) => {
+                    self.accounts = accounts;
+                    self.file = Some(file);
                 }
-                self.file = None;
-
-                match Accounts::load(&file_path) {
-                    Ok((accounts, file)) => {
-                        self.accounts = accounts;
-                        self.file = Some(file);
-                    }
-                    Err(error) => self.display_error(error),
-                }
-            }
+                Err(error) => self.display_error(error),
+            },
             Err(error) => self.display_error(error),
         }
     }
@@ -304,29 +269,22 @@ impl App {
             .context("You must choose a file name for your configuration file.");
 
         match result {
-            Ok(file_path) => {
-                if let Err(error) = self.file_unlock() {
-                    self.display_error(error);
-                    return;
-                }
-                self.file = None;
-
-                match self.accounts.save_dialogue(&file_path) {
-                    Ok(file) => self.file = Some(file),
-                    Err(error) => self.display_error(error),
-                }
-            }
+            Ok(file_path) => match self.accounts.save_dialogue(take(&mut self.file), file_path) {
+                Ok(file) => self.file = Some(file),
+                Err(error) => self.display_error(error),
+            },
             Err(error) => self.display_error(error),
         }
     }
 
     fn save(&mut self) {
-        self.accounts
-            .save(self.file.as_ref())
-            .unwrap_or_else(|error| self.display_error(error));
+        match self.accounts.save(take(&mut self.file)) {
+            Ok(file) => self.file = Some(file),
+            Err(error) => self.display_error(error),
+        }
     }
 
-    fn new(accounts: Accounts, file: Option<fs::File>) -> Self {
+    fn new(accounts: Accounts, file: Option<File>) -> Self {
         let currencies = accounts.get_currencies();
 
         Self {
@@ -757,27 +715,29 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
-        match App::get_configuration_file() {
-            File::Load(file_path) => {
-                let (accounts, file) = Accounts::load(&file_path)
-                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path, err));
+        match command_line::get_configuration_file() {
+            command_line::File::Load(file_path) => {
+                let file_path_ = file_path.clone();
+                let (accounts, file) = Accounts::load(None, file_path)
+                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path_, err));
                 (
                     Self::new(accounts, Some(file)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
-            File::New(file_path) => {
+            command_line::File::New(file_path) => {
                 let accounts = Accounts::new();
+                let file_path_ = file_path.clone();
                 let file = accounts
-                    .save_first(&file_path)
-                    .unwrap_or_else(|err| panic!("error creating {:?}: {}", &file_path, err));
+                    .save_first(file_path)
+                    .unwrap_or_else(|error| panic!("error creating {:?}: {}", &file_path_, error));
 
                 (
                     Self::new(accounts, Some(file)),
                     window::maximize(window::Id::MAIN, true),
                 )
             }
-            File::None => (
+            command_line::File::None => (
                 Self::new(Accounts::new(), None),
                 window::maximize(window::Id::MAIN, true),
             ),
@@ -921,18 +881,6 @@ impl Application for App {
     }
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-    /// Load FILE
-    #[arg(long, value_name = "FILE", exclusive = true)]
-    load: Option<String>,
-
-    /// Create a new FILE
-    #[arg(long, value_name = "FILE", exclusive = true)]
-    new: Option<String>,
-}
-
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
     value
         .as_ref()
@@ -982,6 +930,12 @@ enum Duration {
     Month,
     Year,
     All,
+}
+
+#[derive(Debug)]
+struct File {
+    path: PathBuf,
+    inner: fs::File,
 }
 
 #[derive(Debug, Deserialize)]
