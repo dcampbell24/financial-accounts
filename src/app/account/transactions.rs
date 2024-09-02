@@ -74,6 +74,28 @@ impl<T: Clone + Display> Transactions<T> {
         self.txs.last().map_or_else(|| dec!(0), |tx| tx.balance)
     }
 
+    pub fn balance_to_amount(&mut self, mut new_tx: Transaction) -> Transaction {
+        new_tx.amount = new_tx.balance;
+        let mut previous_tx = None;
+        for tx in &mut self.txs {
+            if tx.date <= new_tx.date {
+                previous_tx = Some(tx);
+            }
+        }
+        if let Some(tx) = previous_tx {
+            new_tx.amount = new_tx.balance - tx.balance;
+        }
+
+        for tx in &mut self.txs {
+            if tx.date > new_tx.date {
+                tx.amount = tx.balance - new_tx.balance;
+                break;
+            }
+        }
+
+        new_tx
+    }
+
     fn count(&self) -> Decimal {
         self.txs.iter().map(|tx| tx.amount).sum()
     }

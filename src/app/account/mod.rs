@@ -255,28 +255,30 @@ impl Account {
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
-    fn submit_balance_1st(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_1st(&mut self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
-        Ok(Transaction {
-            amount: balance - self.balance_1st(),
+        let tx = Transaction {
+            amount: dec!(0),
             balance,
             comment: self.tx.comment.clone(),
             date,
-        })
+        };
+        Ok(self.txs_1st.balance_to_amount(tx))
     }
 
-    fn submit_balance_2nd(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_2nd(&mut self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
-        Ok(Transaction {
-            amount: balance - self.balance_2nd().unwrap(),
+        let tx = Transaction {
+            amount: dec!(0),
             balance,
             comment: self.tx.comment.clone(),
             date,
-        })
+        };
+        Ok(self.txs_2nd.as_mut().unwrap().balance_to_amount(tx))
     }
 
     pub async fn submit_price_as_transaction(&self) -> anyhow::Result<Transaction> {
@@ -426,7 +428,8 @@ impl Account {
             Message::ClearDate => self.clear_date(),
             Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
-                    if let Ok(tx) = self.display_error(self.submit_balance_1st()) {
+                    let result = self.submit_balance_1st();
+                    if let Ok(tx) = self.display_error(result) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.sort();
                         self.tx = transaction::ToSubmit::new();
@@ -434,7 +437,8 @@ impl Account {
                     }
                 }
                 Screen::AccountSecondary(_) => {
-                    if let Ok(tx) = self.display_error(self.submit_balance_2nd()) {
+                    let result = self.submit_balance_2nd();
+                    if let Ok(tx) = self.display_error(result) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().sort();
                         self.tx = transaction::ToSubmit::new();
