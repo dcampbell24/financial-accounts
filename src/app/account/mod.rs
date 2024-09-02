@@ -237,6 +237,17 @@ impl Account {
         Scrollable::new(col)
     }
 
+    fn parse_date(&self) -> Result<DateTime<Utc>, ParseDateError> {
+        if self.tx.date.is_empty() {
+            Ok(Utc::now())
+        } else {
+            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
+                Ok(naive_date) => Ok(naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc()),
+                Err(error) => Err(ParseDateError { error }),
+            }
+        }
+    }
+
     pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
         let year = self.filter_date_year?;
         let month = self.filter_date_month?;
@@ -246,18 +257,7 @@ impl Account {
 
     pub fn submit_balance_1st(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
-
-        let mut date = Utc::now();
-        if !self.tx.date.is_empty() {
-            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(error) => {
-                    Err(ParseDateError { error })?;
-                }
-            }
-        }
+        let date = self.parse_date()?;
 
         Ok(Transaction {
             amount: balance - self.balance_1st(),
@@ -269,18 +269,7 @@ impl Account {
 
     pub fn submit_balance_2nd(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
-
-        let mut date = Utc::now();
-        if !self.tx.date.is_empty() {
-            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(error) => {
-                    Err(ParseDateError { error })?;
-                }
-            }
-        }
+        let date = self.parse_date()?;
 
         Ok(Transaction {
             amount: balance - self.balance_2nd().unwrap(),
@@ -303,18 +292,7 @@ impl Account {
 
     pub fn submit_tx_1st(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
-
-        let mut date = Utc::now();
-        if !self.tx.date.is_empty() {
-            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(error) => {
-                    Err(ParseDateError { error })?;
-                }
-            }
-        }
+        let date = self.parse_date()?;
 
         Ok(Transaction {
             amount,
@@ -326,18 +304,7 @@ impl Account {
 
     pub fn submit_tx_2nd(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
-
-        let mut date = Utc::now();
-        if !self.tx.date.is_empty() {
-            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => {
-                    date = naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
-                }
-                Err(error) => {
-                    Err(ParseDateError { error })?;
-                }
-            }
-        }
+        let date = self.parse_date()?;
 
         Ok(Transaction {
             amount,
