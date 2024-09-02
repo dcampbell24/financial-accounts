@@ -248,14 +248,14 @@ impl Account {
         }
     }
 
-    pub fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
+    fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
         let year = self.filter_date_year?;
         let month = self.filter_date_month?;
 
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
-    pub fn submit_balance_1st(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_1st(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
@@ -267,7 +267,7 @@ impl Account {
         })
     }
 
-    pub fn submit_balance_2nd(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_2nd(&self) -> Result<Transaction, ParseDateError> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
@@ -290,7 +290,7 @@ impl Account {
         Ok(tx)
     }
 
-    pub fn submit_tx_1st(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_tx_1st(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
         let date = self.parse_date()?;
 
@@ -302,7 +302,7 @@ impl Account {
         })
     }
 
-    pub fn submit_tx_2nd(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_tx_2nd(&self) -> Result<Transaction, ParseDateError> {
         let amount = self.tx.amount.unwrap();
         let date = self.parse_date()?;
 
@@ -314,7 +314,7 @@ impl Account {
         })
     }
 
-    pub fn submit_tx_monthly(&mut self) {
+    fn submit_tx_monthly(&mut self) {
         let tx = take(&mut self.tx_monthly);
         let tx = transaction::Monthly {
             amount: tx.amount.unwrap(),
