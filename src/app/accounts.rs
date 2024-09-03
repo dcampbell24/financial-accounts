@@ -20,7 +20,7 @@ use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
 use super::File;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Accounts {
     checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]

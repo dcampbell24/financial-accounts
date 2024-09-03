@@ -26,7 +26,7 @@ use super::{
     set_amount, some_or_empty, text_cell, Duration, ROW_SPACING,
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Account {
     #[serde(skip)]
     pub check_box: bool,
@@ -48,7 +48,7 @@ pub struct Account {
     #[serde(skip)]
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
-    pub error: Option<ParseDateError>,
+    pub error: Option<anyhow::Error>,
 }
 
 impl Account {
@@ -255,7 +255,7 @@ impl Account {
         Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
     }
 
-    fn submit_balance_1st(&mut self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_1st(&mut self) -> anyhow::Result<Transaction> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
@@ -268,7 +268,7 @@ impl Account {
         Ok(self.txs_1st.balance_to_amount(tx))
     }
 
-    fn submit_balance_2nd(&mut self) -> Result<Transaction, ParseDateError> {
+    fn submit_balance_2nd(&mut self) -> anyhow::Result<Transaction> {
         let balance = self.tx.balance.unwrap();
         let date = self.parse_date()?;
 
@@ -292,9 +292,10 @@ impl Account {
         Ok(tx)
     }
 
-    fn submit_tx_1st(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_tx_1st(&self) -> anyhow::Result<Transaction> {
         let amount = self.tx.amount.unwrap();
         let date = self.parse_date()?;
+        self.txs_1st.date_most_recent(&date)?;
 
         Ok(Transaction {
             amount,
@@ -304,9 +305,10 @@ impl Account {
         })
     }
 
-    fn submit_tx_2nd(&self) -> Result<Transaction, ParseDateError> {
+    fn submit_tx_2nd(&self) -> anyhow::Result<Transaction> {
         let amount = self.tx.amount.unwrap();
         let date = self.parse_date()?;
+        self.txs_2nd.as_ref().unwrap().date_most_recent(&date)?;
 
         Ok(Transaction {
             amount,
@@ -373,13 +375,14 @@ impl Account {
         amount
     }
 
-    fn display_error(
-        &mut self,
-        result: Result<Transaction, ParseDateError>,
-    ) -> Result<Transaction, ParseDateError> {
-        result.inspect_err(|err| {
-            self.error = Some(err.clone());
-        })
+    fn display_error(&mut self, result: anyhow::Result<Transaction>) -> Option<Transaction> {
+        match result {
+            Ok(tx) => Some(tx),
+            Err(error) => {
+                self.error = Some(error);
+                None
+            }
+        }
     }
 
     pub fn update(&mut self, screen: &Screen, message: Message) -> bool {
@@ -429,7 +432,7 @@ impl Account {
             Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
                     let result = self.submit_balance_1st();
-                    if let Ok(tx) = self.display_error(result) {
+                    if let Some(tx) = self.display_error(result) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.sort();
                         self.tx = transaction::ToSubmit::new();
@@ -438,7 +441,7 @@ impl Account {
                 }
                 Screen::AccountSecondary(_) => {
                     let result = self.submit_balance_2nd();
-                    if let Ok(tx) = self.display_error(result) {
+                    if let Some(tx) = self.display_error(result) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().sort();
                         self.tx = transaction::ToSubmit::new();
@@ -454,7 +457,7 @@ impl Account {
             }
             Message::SubmitTx => match screen {
                 Screen::Account(_) => {
-                    if let Ok(tx) = self.display_error(self.submit_tx_1st()) {
+                    if let Some(tx) = self.display_error(self.submit_tx_1st()) {
                         self.txs_1st.txs.push(tx);
                         self.txs_1st.sort();
                         self.tx = transaction::ToSubmit::new();
@@ -462,7 +465,7 @@ impl Account {
                     }
                 }
                 Screen::AccountSecondary(_) => {
-                    if let Ok(tx) = self.display_error(self.submit_tx_2nd()) {
+                    if let Some(tx) = self.display_error(self.submit_tx_2nd()) {
                         self.txs_2nd.as_mut().unwrap().txs.push(tx);
                         self.txs_2nd.as_mut().unwrap().sort();
                         self.tx = transaction::ToSubmit::new();

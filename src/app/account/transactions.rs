@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use anyhow::Error;
 use chrono::{DateTime, Months, TimeDelta, Utc};
 use reqwest::Client;
 use rust_decimal::Decimal;
@@ -98,6 +99,15 @@ impl<T: Clone + Display> Transactions<T> {
 
     fn count(&self) -> Decimal {
         self.txs.iter().map(|tx| tx.amount).sum()
+    }
+
+    pub fn date_most_recent(&self, date: &DateTime<Utc>) -> anyhow::Result<()> {
+        for tx in &self.txs {
+            if &tx.date > date {
+                return Err(Error::msg("The date is not the most recent!"));
+            }
+        }
+        Ok(())
     }
 
     pub fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
