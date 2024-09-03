@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make shortcuts to the URLs you open for imports.
 - Support pasting into text boxes.
 - Lock the configuration file while in use.
 - Breaking Change: add groups.

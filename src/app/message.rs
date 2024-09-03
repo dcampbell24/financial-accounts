@@ -29,6 +29,8 @@ pub enum Message {
     GetPriceAll,
     ImportBoa(usize),
     ImportInvestor360,
+    OpenBoaUrl,
+    OpenInvestor360Url,
     UpdateAccountName(usize),
     UpdateCurrency(Currency),
     UpdateCryptoCurrency(Fiat),

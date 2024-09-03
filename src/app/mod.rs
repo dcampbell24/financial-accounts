@@ -39,6 +39,9 @@ use thousands::Separable;
 
 use crate::app::{account::Account, accounts::Accounts, message::Message, screen::Screen};
 
+const BOA_URL: &str = "https://secure.bankofamerica.com/myaccounts/brain/redirect.go?target=portfolio&portfolio_page=transactions&request_locale=en-us&source=overview&fsd=y";
+const INVESTOR_360_URL: &str = "https://my.investor360.com/nce/Holdings";
+
 const TITLE_FILE_PICKER: &str = "Financial Accounts";
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
@@ -267,6 +270,12 @@ impl App {
                 Err(error) => self.display_error(error),
             },
             Err(error) => self.display_error(error),
+        }
+    }
+
+    fn open_url(&mut self, url: &str) {
+        if let Err(error) = webbrowser::open(url) {
+            self.display_error(error.into());
         }
     }
 
@@ -637,11 +646,15 @@ impl App {
                 button_cell(button("Exit").on_press(Message::Exit)),
                 button_cell(button("Load").on_press(Message::FileLoad)),
                 button_cell(button("Save As").on_press(Message::FileSaveAs)),
-                button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
                 button_cell(button("Check Monthly").on_press(Message::CheckMonthly)),
                 button_cell(button("Configuration").on_press(Message::Configuration)),
             ].padding(PADDING).spacing(ROW_SPACING),
+            row![
+                button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
+                button_cell(button("Open Investor 360 URL URL").on_press(Message::OpenInvestor360Url)),
+                button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
+            ]
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
@@ -839,6 +852,8 @@ impl Application for App {
                     }
                 }
             }
+            Message::OpenBoaUrl => self.open_url(BOA_URL),
+            Message::OpenInvestor360Url => self.open_url(INVESTOR_360_URL),
             Message::UpdateAccountName(i) => self.update_account_name(i),
             Message::UpdateCurrency(currency) => self.currency = Some(currency),
             Message::UpdateCryptoCurrency(fiat) => self.crypto_currency = Some(fiat),
