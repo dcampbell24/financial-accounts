@@ -649,7 +649,7 @@ impl App {
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
                 button_cell(button("Check Monthly").on_press(Message::CheckMonthly)),
                 button_cell(button("Configuration").on_press(Message::Configuration)),
-            ].padding(PADDING).spacing(ROW_SPACING),
+            ].padding(PADDING),
             row![
                 button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
                 button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
