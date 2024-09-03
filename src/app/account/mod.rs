@@ -500,6 +500,7 @@ fn date_view(date: &str) -> TextInput<app::Message> {
 fn comment_view(comment: &str) -> TextInput<app::Message> {
     text_input("Comment", comment)
         .on_input(|string| app::Message::Account(Message::ChangeComment(string)))
+        .on_paste(|string| app::Message::Account(Message::ChangeComment(string)))
 }
 
 fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, app::Message> {

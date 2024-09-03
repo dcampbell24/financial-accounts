@@ -156,9 +156,12 @@ impl App {
             ),
             text_cell("Description:"),
             text_input("Description", &self.crypto_description)
-                .on_input(Message::UpdateCryptoDescription),
+                .on_input(Message::UpdateCryptoDescription)
+                .on_paste(Message::UpdateCryptoDescription),
             text_cell("Symbol:"),
-            text_input("Symbol", &self.crypto_symbol).on_input(Message::UpdateCryptoSymbol),
+            text_input("Symbol", &self.crypto_symbol)
+                .on_input(Message::UpdateCryptoSymbol)
+                .on_paste(Message::UpdateCryptoSymbol)
         ];
 
         let mut fiats_current = Column::new();
@@ -189,9 +192,12 @@ impl App {
             ),
             text_cell("Description:"),
             text_input("Description", &self.metal_description)
-                .on_input(Message::UpdateMetalDescription),
+                .on_input(Message::UpdateMetalDescription)
+                .on_paste(Message::UpdateMetalDescription),
             text_cell("Symbol:"),
-            text_input("Symbol", &self.metal_symbol).on_input(Message::UpdateMetalSymbol),
+            text_input("Symbol", &self.metal_symbol)
+                .on_input(Message::UpdateMetalSymbol)
+                .on_paste(Message::UpdateMetalSymbol),
         ];
 
         let mut stock_plus_current = Column::new();
@@ -204,9 +210,12 @@ impl App {
             button_cell(button("Add Stock Plus").on_press(Message::AddStockPlus)),
             text_cell("Description:"),
             text_input("Description", &self.stock_plus_description)
-                .on_input(Message::UpdateStockPlusDescription),
+                .on_input(Message::UpdateStockPlusDescription)
+                .on_paste(Message::UpdateStockPlusDescription),
             text_cell("Symbol:"),
-            text_input("Symbol", &self.stock_plus_symbol).on_input(Message::UpdateStockPlusSymbol),
+            text_input("Symbol", &self.stock_plus_symbol)
+                .on_input(Message::UpdateStockPlusSymbol)
+                .on_paste(Message::UpdateStockPlusSymbol),
         ];
 
         let mut column_errors = Column::new();
@@ -586,7 +595,10 @@ impl App {
         }
 
         let name = text_input("Name", &self.account_name)
-            .on_input(Message::ChangeAccountName);
+            .on_input(Message::ChangeAccountName)
+            .on_paste(Message::ChangeAccountName);
+
+        let currency = ComboBox::new(&self.currency_selector, "Currency", self.currency.as_ref(), Message::UpdateCurrency);
 
         let months = text_input("Months", &some_or_empty(&self.project_months))
             .on_input(Message::ChangeProjectMonths);
@@ -609,7 +621,7 @@ impl App {
             row![
                 text("Account").size(TEXT_SIZE),
                 name,
-                ComboBox::new(&self.currency_selector, "currency", self.currency.as_ref(), |currency|  { Message::UpdateCurrency(currency) }),
+                currency,
                 add,
                 add_group,
                 text(" ".repeat(EDGE_PADDING)),
