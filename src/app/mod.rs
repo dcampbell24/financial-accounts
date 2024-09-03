@@ -652,7 +652,7 @@ impl App {
             ].padding(PADDING).spacing(ROW_SPACING),
             row![
                 button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
-                button_cell(button("Open Investor 360 URL URL").on_press(Message::OpenInvestor360Url)),
+                button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
             ]
             // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
