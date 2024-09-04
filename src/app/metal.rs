@@ -24,7 +24,7 @@ pub struct Metal {
 
 impl fmt::Display for Metal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} in {}", self.description, self.currency)
+        write!(f, "{}", self.description)
     }
 }
 

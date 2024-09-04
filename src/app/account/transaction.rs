@@ -28,6 +28,10 @@ impl ToSubmit {
             date: String::new(),
         }
     }
+
+    pub fn submit_commit(&self) -> String {
+        self.comment.trim().to_string()
+    }
 }
 
 impl Default for ToSubmit {

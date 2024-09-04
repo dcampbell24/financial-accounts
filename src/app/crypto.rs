@@ -104,7 +104,7 @@ impl Price for Crypto {
 
 impl Display for Crypto {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        writeln!(f, "{} in {}", self.description, self.currency)
+        writeln!(f, "{}", self.description)
     }
 }
 

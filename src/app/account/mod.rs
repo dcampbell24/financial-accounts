@@ -1,7 +1,7 @@
 pub mod transaction;
 pub mod transactions;
 
-use std::{error::Error, fmt::Display, mem::take, path::PathBuf, string::ToString};
+use std::{error::Error, fmt::Display, path::PathBuf, string::ToString};
 
 use chrono::{DateTime, NaiveDate, ParseError, TimeDelta, TimeZone, Utc};
 use iced::{
@@ -189,7 +189,7 @@ impl Account {
             .map_or_else(|| row![], |error| row![text_cell(error)]);
 
         let col = column![
-            text_cell(format!("{} {}", &self.name, &txs_struct.currency)),
+            text_cell(&txs_struct.currency.to_string()),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],
@@ -262,7 +262,7 @@ impl Account {
         let tx = Transaction {
             amount: dec!(0),
             balance,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.submit_commit(),
             date,
         };
         Ok(self.txs_1st.balance_to_amount(tx))
@@ -275,7 +275,7 @@ impl Account {
         let tx = Transaction {
             amount: dec!(0),
             balance,
-            comment: self.tx.comment.clone(),
+            comment: self.tx.submit_commit(),
             date,
         };
         Ok(self.txs_2nd.as_mut().unwrap().balance_to_amount(tx))
@@ -300,7 +300,7 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_1st() + amount,
-            comment: self.tx.comment.trim().to_string(),
+            comment: self.tx.submit_commit(),
             date,
         })
     }
@@ -313,16 +313,15 @@ impl Account {
         Ok(Transaction {
             amount,
             balance: self.balance_2nd().unwrap() + amount,
-            comment: self.tx.comment.trim().to_string(),
+            comment: self.tx.submit_commit(),
             date,
         })
     }
 
     fn submit_tx_monthly(&mut self) {
-        let tx = take(&mut self.tx_monthly);
         let tx = transaction::Monthly {
-            amount: tx.amount.unwrap(),
-            comment: tx.comment,
+            amount: self.tx.amount.unwrap(),
+            comment: self.tx.submit_commit(),
         };
         self.txs_monthly.push(tx);
     }
