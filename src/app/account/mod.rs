@@ -189,7 +189,7 @@ impl Account {
             .map_or_else(|| row![], |error| row![text_cell(error)]);
 
         let col = column![
-            text_cell(&txs_struct.currency.to_string()),
+            text_cell(txs_struct.currency.to_string()),
             chart,
             rows,
             row![text_cell("total: "), number_cell(total)],
