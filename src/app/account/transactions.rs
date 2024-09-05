@@ -57,7 +57,7 @@ impl PriceAsTransaction for Transactions<Currency> {
                 amount: dec!(0),
                 balance: count * price,
                 date: Utc::now(),
-                comment: format!("{count} {} at {price} USD", &self.currency),
+                comment: format!("{count} {} at {price} United States Dollar", &self.currency),
             }),
         }
     }
