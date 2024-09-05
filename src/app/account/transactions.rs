@@ -39,20 +39,26 @@ impl PriceAsTransaction for Transactions<Currency> {
         let price = self.get_price(&client).await?;
         let count = self.count();
 
-        if let Currency::Metal(metal) = &self.currency {
-            Ok(Transaction {
+        match &self.currency {
+            Currency::Crypto(crypto) => Ok(Transaction {
+                amount: dec!(0),
+                balance: count * price,
+                date: Utc::now(),
+                comment: format!("{count} {} at {price} {}", &self.currency, crypto.currency),
+            }),
+            Currency::Fiat(_) => unreachable!("You can't have a fiat price_as_transaction!"),
+            Currency::Metal(metal) => Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
                 date: Utc::now(),
                 comment: format!("{count} {} at {price} {}", &self.currency, metal.currency),
-            })
-        } else {
-            Ok(Transaction {
+            }),
+            Currency::StockPlus(_) => Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
                 date: Utc::now(),
                 comment: format!("{count} {} at {price} USD", &self.currency),
-            })
+            }),
         }
     }
 }
