@@ -1,5 +1,4 @@
 use anyhow::Context;
-use chrono::{offset::Utc, DateTime};
 use fs4::fs_std::FileExt;
 use ron::ser::PrettyConfig;
 use rust_decimal::Decimal;
@@ -22,7 +21,6 @@ use super::File;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Accounts {
-    checked_up_to: DateTime<Utc>,
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,
     pub groups: Vec<Group>,
@@ -104,7 +102,6 @@ impl Accounts {
 
     pub fn new() -> Self {
         Self {
-            checked_up_to: DateTime::<Utc>::default(),
             inner: Vec::new(),
             groups: Vec::new(),
             crypto: Vec::new(),
