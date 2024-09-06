@@ -623,17 +623,17 @@ impl App {
                 text(" ".repeat(EDGE_PADDING)),
 
             ].padding(PADDING).spacing(ROW_SPACING),
-            row![
-                button_cell(button("Exit").on_press(Message::Exit)),
-                button_cell(button("Load").on_press(Message::FileLoad)),
-                button_cell(button("Save As").on_press(Message::FileSaveAs)),
-                button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
-                button_cell(button("Configuration").on_press(Message::Configuration)),
-            ].padding(PADDING),
+            row![button_cell(button("Get All Prices").on_press(Message::GetPriceAll))],
             row![
                 button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
                 button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
+            ].padding(PADDING),
+            row![
+                button_cell(button("Exit").on_press(Message::Exit)),
+                button_cell(button("Load").on_press(Message::FileLoad)),
+                button_cell(button("Save As").on_press(Message::FileSaveAs)),
+                button_cell(button("Configuration").on_press(Message::Configuration)),
             ]
         ];
 
