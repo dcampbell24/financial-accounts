@@ -24,7 +24,7 @@ use iced::{
     widget::{
         button, column,
         combo_box::{ComboBox, State},
-        row, text, text_input, Button, Checkbox, Column, Row, Scrollable,
+        row, text, text_input, Button, Checkbox, Column, ProgressBar, Row, Scrollable,
     },
     window, Alignment, Application, Element, Length, Theme,
 };
@@ -66,6 +66,7 @@ pub struct App {
     metal_currency_selector: State<Fiat>,
     metal_description: String,
     metal_symbol: String,
+    progress_bar: Option<f32>,
     stock_plus_description: String,
     stock_plus_symbol: String,
     currency: Option<Currency>,
@@ -320,6 +321,7 @@ impl App {
             metal_currency_selector: State::new(Fiat::all()),
             metal_description: String::new(),
             metal_symbol: String::new(),
+            progress_bar: None,
             stock_plus_description: String::new(),
             stock_plus_symbol: String::new(),
             currency: None,
@@ -609,6 +611,12 @@ impl App {
             add_group = add_group.on_press(Message::AddGroup);
         }
 
+        let mut all_prices = row![button_cell(button("Get All Prices").on_press(Message::GetPriceAll))];
+        if let Some(progress) = self.progress_bar {
+            all_prices = all_prices.push(ProgressBar::<Theme>::new(0.0..=100.0, progress));
+        }
+        all_prices = all_prices.push(text(" ".repeat(EDGE_PADDING)));
+
         let cols = column![
             chart,
             rows.spacing(ROW_SPACING),
@@ -623,7 +631,7 @@ impl App {
                 text(" ".repeat(EDGE_PADDING)),
 
             ].padding(PADDING).spacing(ROW_SPACING),
-            row![button_cell(button("Get All Prices").on_press(Message::GetPriceAll))],
+            all_prices,
             row![
                 button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
                 button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
