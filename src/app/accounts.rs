@@ -1,5 +1,5 @@
 use anyhow::Context;
-use chrono::{offset::Utc, DateTime, Datelike, TimeZone};
+use chrono::{offset::Utc, DateTime};
 use fs4::fs_std::FileExt;
 use ron::ser::PrettyConfig;
 use rust_decimal::Decimal;
@@ -11,7 +11,7 @@ use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
 use std::path::PathBuf;
 
-use crate::app::account::{transaction::Transaction, Account};
+use crate::app::account::Account;
 
 use super::account::transactions::Transactions;
 use super::crypto::Crypto;
@@ -55,29 +55,6 @@ impl Accounts {
             tx.balance = balance;
         }
         transactions
-    }
-
-    pub fn check_monthly(&mut self) {
-        let past = self.checked_up_to;
-        let now = Utc::now();
-        let day_1 = TimeZone::with_ymd_and_hms(&Utc, now.year(), now.month(), 1, 0, 0, 0).unwrap();
-
-        if day_1 >= past && day_1 < now {
-            for account in &mut self.inner {
-                let mut balance = account.balance_1st();
-                for tx in &account.txs_monthly {
-                    balance += tx.amount;
-                    account.txs_1st.txs.push(Transaction {
-                        amount: tx.amount,
-                        balance,
-                        comment: tx.comment.clone(),
-                        date: day_1,
-                    });
-                }
-                account.txs_1st.sort();
-            }
-        }
-        self.checked_up_to = now;
     }
 
     #[must_use]
@@ -137,13 +114,6 @@ impl Accounts {
         }
     }
 
-    pub fn project_months(&self, months: Option<u16>) -> Decimal {
-        months.map_or_else(
-            || self.balance_usd(),
-            |months| self.balance_usd() + self.total_for_months_usd(months),
-        )
-    }
-
     pub fn balance_usd(&self) -> Decimal {
         let mut balance = dec!(0);
         for account in &self.inner {
@@ -152,18 +122,6 @@ impl Accounts {
             }
         }
         balance
-    }
-
-    pub fn total_for_months_usd(&self, project_months: u16) -> Decimal {
-        let mut total = dec!(0);
-        for account in &self.inner {
-            if account.txs_1st.currency == Fiat::Usd {
-                let sum = account.sum_monthly();
-                let times: Decimal = project_months.into();
-                total += sum * times;
-            }
-        }
-        total
     }
 
     pub fn total_for_last_week_usd(&self) -> Decimal {

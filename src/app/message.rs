@@ -19,7 +19,6 @@ pub enum Message {
     ChangeAccountName(String),
     ChangeProjectMonths(String),
     Checkbox((usize, bool)),
-    CheckMonthly,
     Configuration,
     Delete(usize),
     DeleteGroup(usize),
@@ -44,7 +43,6 @@ pub enum Message {
     UpdateStockPlusSymbol(String),
     SelectAccount(usize),
     SelectAccountSecondary(usize),
-    SelectMonthly(usize),
     SubmitAccount,
     Exit,
 }

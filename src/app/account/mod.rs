@@ -33,14 +33,10 @@ pub struct Account {
     pub name: String,
     #[serde(skip)]
     pub tx: transaction::ToSubmit,
-    #[serde(skip)]
-    pub tx_monthly: transaction::MonthlyToSubmit,
     #[serde(rename = "transactions")]
     pub txs_1st: Transactions<Fiat>,
     #[serde(rename = "transactions_secondary")]
     pub txs_2nd: Option<Transactions<Currency>>,
-    #[serde(rename = "transactions_monthly")]
-    pub txs_monthly: Vec<transaction::Monthly>,
     #[serde(skip)]
     pub filter_date: Option<DateTime<Utc>>,
     #[serde(skip)]
@@ -73,10 +69,8 @@ impl Account {
             check_box: false,
             name,
             tx: transaction::ToSubmit::new(),
-            tx_monthly: transaction::MonthlyToSubmit::new(),
             txs_1st,
             txs_2nd,
-            txs_monthly: Vec::new(),
             filter_date: None,
             filter_date_year: None,
             filter_date_month: None,
@@ -203,40 +197,6 @@ impl Account {
         Scrollable::new(col)
     }
 
-    pub fn list_monthly(&self) -> Scrollable<app::Message> {
-        let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
-        let mut col_2 = column![text_cell(" Comment ")];
-        let mut col_3 = column![text_cell("")];
-
-        let mut total = dec!(0);
-        for (i, tx) in self.txs_monthly.iter().enumerate() {
-            total += tx.amount;
-            col_1 = col_1.push(number_cell(tx.amount));
-            col_2 = col_2.push(text_cell(&tx.comment));
-            col_3 = col_3.push(button_cell(
-                button("Delete").on_press(app::Message::Delete(i)),
-            ));
-        }
-        let rows = row![col_1, col_2, col_3];
-
-        let input = row![
-            amount_view(&self.tx_monthly.amount),
-            comment_view(&self.tx_monthly.comment),
-            add_view(&self.tx_monthly.amount, &None),
-            text(" ".repeat(EDGE_PADDING)),
-        ];
-
-        let col = column![
-            text_cell(&self.name),
-            rows,
-            row![text_cell("total: "), number_cell(total)],
-            input.padding(PADDING).spacing(ROW_SPACING),
-            back_exit_view(),
-        ];
-
-        Scrollable::new(col)
-    }
-
     fn parse_date(&self) -> Result<DateTime<Utc>, ParseDateError> {
         if self.tx.date.is_empty() {
             Ok(Utc::now())
@@ -318,24 +278,12 @@ impl Account {
         })
     }
 
-    fn submit_tx_monthly(&mut self) {
-        let tx = transaction::Monthly {
-            amount: self.tx.amount.unwrap(),
-            comment: self.tx.submit_commit(),
-        };
-        self.txs_monthly.push(tx);
-    }
-
     pub fn total_1st(&self) -> Decimal {
         self.txs_1st.total()
     }
 
     pub fn total_2nd(&self) -> Decimal {
         self.txs_2nd.as_ref().unwrap().total()
-    }
-
-    pub fn sum_monthly(&self) -> Decimal {
-        self.txs_monthly.iter().map(|d| d.amount).sum()
     }
 
     pub fn sum_last_week(&self) -> Decimal {
@@ -385,20 +333,13 @@ impl Account {
     }
 
     pub fn update(&mut self, screen: &Screen, message: Message) -> bool {
-        let list_monthly = list_monthly(screen);
         self.error = None;
 
         match message {
             Message::ChangeBalance(balance) => {
                 set_amount(&mut self.tx.balance, &balance);
             }
-            Message::ChangeComment(comment) => {
-                if list_monthly {
-                    self.tx_monthly.comment = comment;
-                } else {
-                    self.tx.comment = comment;
-                }
-            }
+            Message::ChangeComment(comment) => self.tx.comment = comment,
             Message::ChangeDate(date) => self.tx.date = date,
             Message::ChangeFilterDateMonth(date) => {
                 if date.is_empty() {
@@ -420,13 +361,7 @@ impl Account {
                     }
                 }
             }
-            Message::ChangeTx(tx) => {
-                if list_monthly {
-                    set_amount(&mut self.tx_monthly.amount, &tx);
-                } else {
-                    set_amount(&mut self.tx.amount, &tx);
-                }
-            }
+            Message::ChangeTx(tx) => set_amount(&mut self.tx.amount, &tx),
             Message::ClearDate => self.clear_date(),
             Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
@@ -447,7 +382,7 @@ impl Account {
                         return true;
                     }
                 }
-                Screen::Accounts | Screen::Configuration | Screen::Monthly(_) => {
+                Screen::Accounts | Screen::Configuration => {
                     panic!("You can't submit a balance here!");
                 }
             },
@@ -471,7 +406,6 @@ impl Account {
                         return true;
                     }
                 }
-                Screen::Monthly(_) => self.submit_tx_monthly(),
                 Screen::Accounts | Screen::Configuration => {
                     panic!("You can't submit a transaction here!")
                 }
@@ -520,16 +454,6 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
         button("Exit").on_press(app::Message::Exit),
     ]
     .spacing(ROW_SPACING)
-}
-
-const fn list_monthly(screen: &Screen) -> bool {
-    match screen {
-        Screen::Accounts
-        | Screen::Account(_)
-        | Screen::AccountSecondary(_)
-        | Screen::Configuration => false,
-        Screen::Monthly(_) => true,
-    }
 }
 
 #[derive(Clone, Debug)]

@@ -348,11 +348,6 @@ impl App {
         Ok(())
     }
 
-    fn check_monthly(&mut self) {
-        self.accounts.check_monthly();
-        self.save();
-    }
-
     fn delete(&mut self, i: usize) {
         match self.screen {
             Screen::Accounts => {
@@ -368,9 +363,6 @@ impl App {
                 self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
             }
             Screen::Configuration => panic!("Nothing to delete!"),
-            Screen::Monthly(j) => {
-                self.accounts[j].txs_monthly.remove(i);
-            }
         };
         self.save();
     }
@@ -490,7 +482,6 @@ impl App {
         let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut last_week = account.sum_last_week();
@@ -523,23 +514,22 @@ impl App {
                 }
             }
             col_8 = col_8.push(button_cell(txs_2nd));
-            col_9 = col_9.push(button_cell(button("Monthly Tx").on_press(Message::SelectMonthly(i))));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccountName(i));
             }
-            col_a = col_a.push(button_cell(update_name));
+            col_9 = col_9.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
                 import_boa = import_boa.on_press(Message::ImportBoa(i));
             }
-            col_b = col_b.push(button_cell(import_boa));
+            col_a = col_a.push(button_cell(import_boa));
             let mut get_price = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_price = get_price.on_press(Message::GetPrice(i));
             }
-            col_c = col_c.push(button_cell(get_price));
-            col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_b = col_b.push(button_cell(get_price));
+            col_c = col_c.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
         let mut total_for_last_week_usd = self.accounts.total_for_last_week_usd();
@@ -557,7 +547,7 @@ impl App {
         col_2 = col_2.push(number_cell(total_for_last_month_usd));
         col_3 = col_3.push(number_cell(total_for_last_year_usd));
         col_4 = col_4.push(number_cell(balance));
-        col_d = col_d.push(text_cell(""));
+        col_c = col_c.push(text_cell(""));
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
             col_0 = col_0.push(text_cell(&group.name));
@@ -581,10 +571,10 @@ impl App {
             col_2 = col_2.push(number_cell(month));
             col_3 = col_3.push(number_cell(year));
             col_4 = col_4.push(number_cell(balance));
-            col_d = col_d.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
+            col_c = col_c.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
 
-        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c]
     }
 
     #[rustfmt::skip]
@@ -608,9 +598,6 @@ impl App {
             .on_paste(Message::ChangeAccountName);
 
         let currency = ComboBox::new(&self.currency_selector, "Currency", self.currency.as_ref(), Message::UpdateCurrency);
-
-        let months = text_input("Months", &some_or_empty(&self.project_months))
-            .on_input(Message::ChangeProjectMonths);
 
         let mut add = button("Add");
         if !self.account_name.is_empty() && self.currency.is_some() {
@@ -637,17 +624,10 @@ impl App {
 
             ].padding(PADDING).spacing(ROW_SPACING),
             row![
-                text("Project").size(TEXT_SIZE),
-                months,
-                text((self.accounts.project_months(self.project_months)).separate_with_commas()).size(TEXT_SIZE),
-                text(" ".repeat(EDGE_PADDING)),
-            ].padding(PADDING).spacing(ROW_SPACING),
-            row![
                 button_cell(button("Exit").on_press(Message::Exit)),
                 button_cell(button("Load").on_press(Message::FileLoad)),
                 button_cell(button("Save As").on_press(Message::FileSaveAs)),
                 button_cell(button("Get All Prices").on_press(Message::GetPriceAll)),
-                button_cell(button("Check Monthly").on_press(Message::CheckMonthly)),
                 button_cell(button("Configuration").on_press(Message::Configuration)),
             ].padding(PADDING),
             row![
@@ -655,7 +635,6 @@ impl App {
                 button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
             ]
-            // text_(format!("Checked Up To: {}", self.checked_up_to.to_string())).size(TEXT_SIZE),
         ];
 
         Scrollable::new(cols)
@@ -664,9 +643,7 @@ impl App {
     fn select_account(&mut self, message: account::Message) {
         if let Some(account) = match self.screen {
             Screen::Accounts | Screen::Configuration => None,
-            Screen::Account(account)
-            | Screen::AccountSecondary(account)
-            | Screen::Monthly(account) => Some(account),
+            Screen::Account(account) | Screen::AccountSecondary(account) => Some(account),
         } {
             if self.accounts[account].update(&self.screen, message) {
                 self.save();
@@ -795,7 +772,6 @@ impl Application for App {
             Message::ChartYear => self.duration = Duration::Year,
             Message::ChartAll => self.duration = Duration::All,
             Message::Checkbox((i, b)) => self.accounts[i].check_box = b,
-            Message::CheckMonthly => self.check_monthly(),
             Message::Configuration => self.screen = Screen::Configuration,
             Message::Delete(i) => self.delete(i),
             Message::DeleteGroup(i) => self.delete_group(i),
@@ -869,7 +845,6 @@ impl Application for App {
             Message::UpdateStockPlusSymbol(symbol) => self.stock_plus_symbol = symbol,
             Message::SelectAccount(i) => self.screen = Screen::Account(i),
             Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
-            Message::SelectMonthly(i) => self.screen = Screen::Monthly(i),
             Message::SubmitAccount => self.submit_account(),
             Message::Exit => {
                 return window::close(window::Id::MAIN);
@@ -903,7 +878,6 @@ impl Application for App {
                     .into()
             }
             Screen::Configuration => self.config().into(),
-            Screen::Monthly(i) => self.accounts[i].list_monthly().into(),
         }
     }
 }
