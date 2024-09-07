@@ -59,7 +59,7 @@ impl Accounts {
     pub async fn get_all_prices(&mut self) -> Vec<anyhow::Error> {
         let mut tasks = Vec::new();
         let mut indexes = Vec::new();
-        for (index, account) in &mut self.inner.iter().enumerate() {
+        for (index, account) in self.inner.iter().enumerate() {
             if account.txs_2nd.is_some() {
                 indexes.push(index);
                 tasks.push(account.submit_price_as_transaction());
