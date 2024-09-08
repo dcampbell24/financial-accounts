@@ -83,6 +83,6 @@ impl Price for StockPlus {
 
 impl fmt::Display for StockPlus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)
+        write!(f, "{} in United States Dollar", self.description)
     }
 }

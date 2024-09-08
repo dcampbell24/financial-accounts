@@ -40,19 +40,13 @@ impl PriceAsTransaction for Transactions<Currency> {
         let count = self.count();
 
         match &self.currency {
-            Currency::Crypto(crypto) => Ok(Transaction {
+            Currency::Crypto(_) | Currency::Metal(_) => Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
                 date: Utc::now(),
-                comment: format!("{count} {} at {price} {}", &self.currency, crypto.currency),
+                comment: format!("{count} {} at {price}", &self.currency),
             }),
             Currency::Fiat(_) => unreachable!("You can't have a fiat price_as_transaction!"),
-            Currency::Metal(metal) => Ok(Transaction {
-                amount: dec!(0),
-                balance: count * price,
-                date: Utc::now(),
-                comment: format!("{count} {} at {price} {}", &self.currency, metal.currency),
-            }),
             Currency::StockPlus(_) => Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
