@@ -39,30 +39,3 @@ impl Default for ToSubmit {
         Self::new()
     }
 }
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Monthly {
-    pub amount: Decimal,
-    pub comment: String,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct MonthlyToSubmit {
-    pub amount: Option<Decimal>,
-    pub comment: String,
-}
-
-impl MonthlyToSubmit {
-    pub const fn new() -> Self {
-        Self {
-            amount: None,
-            comment: String::new(),
-        }
-    }
-}
-
-impl Default for MonthlyToSubmit {
-    fn default() -> Self {
-        Self::new()
-    }
-}
