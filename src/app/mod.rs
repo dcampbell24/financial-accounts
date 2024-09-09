@@ -864,16 +864,7 @@ impl Application for App {
     fn view(&self) -> Element<Message> {
         match self.screen {
             Screen::Accounts => self.list_accounts().into(),
-            Screen::Account(i) => {
-                let account = &self.accounts[i];
-                self.accounts[i]
-                    .list_transactions(
-                        account.txs_1st.clone(),
-                        account.total_1st(),
-                        account.balance_1st(),
-                    )
-                    .into()
-            }
+            Screen::Account(i) => self.accounts[i].list_transactions_().into(),
             Screen::AccountSecondary(i) => {
                 let account = &self.accounts[i];
                 let txs = account.txs_2nd.as_ref().unwrap();

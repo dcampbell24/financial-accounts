@@ -197,6 +197,109 @@ impl Account {
         Scrollable::new(col)
     }
 
+    pub fn list_transactions_(&self) -> Scrollable<app::Message> {
+        let mut txs_1st = self.txs_1st.clone();
+        txs_1st.filter_month(self.filter_date);
+
+        let mut txs_2nd = self.txs_2nd.clone();
+        txs_2nd = if let Some(mut txs_2nd) = txs_2nd {
+            txs_2nd.filter_month(self.filter_date);
+            Some(txs_2nd)
+        } else {
+            None
+        };
+
+        let chart = Chart {
+            txs: txs_1st.clone(),
+            duration: Duration::All,
+        };
+        let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
+
+        let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
+        let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        let mut col_3 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
+        let mut col_4 = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        let mut col_5 = column![text_cell("Date")];
+        let mut col_6 = column![text_cell("Comment")];
+        let mut col_7 = column![text_cell("")];
+
+        for (i, tx) in txs_1st.txs.iter().enumerate() {
+            col_1 = col_1.push(number_cell(tx.balance));
+            col_2 = col_2.push(number_cell(tx.amount));
+
+            // col_3 =
+            // col_4 =
+
+            col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d")));
+            col_6 = col_6.push(text_cell(&tx.comment));
+            col_7 = col_7.push(button_cell(
+                button("Delete").on_press(app::Message::Delete(i)),
+            ));
+        }
+
+        let rows = if let Some(_) = txs_2nd {
+            row![col_1, col_2, col_3, col_4, col_5, col_6, col_7]
+        } else {
+            row![col_1, col_2, col_5, col_6, col_7]
+        };
+
+        let input = row![
+            balance_view(&self.tx.balance),
+            amount_view(&self.tx.amount),
+            date_view(&self.tx.date),
+            comment_view(&self.tx.comment),
+            add_view(&self.tx.amount, &self.tx.balance),
+            text(" ".repeat(EDGE_PADDING)),
+        ];
+
+        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
+        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
+        let mut filter_button = button("Filter");
+        if self.submit_filter_date().is_some() {
+            filter_button =
+                filter_button.on_press(app::Message::Account(Message::SubmitFilterDate));
+        }
+        let clear_button = button("Clear").on_press(app::Message::Account(Message::ClearDate));
+        let filter_date = row![
+            year,
+            month,
+            filter_button,
+            clear_button,
+            text(" ".repeat(EDGE_PADDING)),
+        ];
+        let error = self
+            .error
+            .as_ref()
+            .map_or_else(|| row![], |error| row![text_cell(error)]);
+
+        let name = if let Some(txs_2nd) = &self.txs_2nd {
+            txs_2nd.currency.to_string()
+        } else {
+            self.txs_1st.currency.to_string()
+        };
+
+        let col = column![
+            text_cell(name),
+            chart,
+            rows.spacing(ROW_SPACING),
+            row![
+                text_cell("balance: "),
+                number_cell(self.txs_1st.balance()),
+                text_cell("total: "),
+                number_cell(self.txs_1st.total()),
+            ]
+            .spacing(ROW_SPACING),
+            input.padding(PADDING).spacing(ROW_SPACING),
+            filter_date.padding(PADDING).spacing(ROW_SPACING),
+            error,
+            back_exit_view(),
+        ];
+
+        Scrollable::new(col)
+    }
+
     fn parse_date(&self) -> Result<DateTime<Utc>, ParseDateError> {
         if self.tx.date.is_empty() {
             Ok(Utc::now())
@@ -454,6 +557,24 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
         button("Exit").on_press(app::Message::Exit),
     ]
     .spacing(ROW_SPACING)
+}
+
+// Fixme:
+fn get_quantity<'a, T: Iterator<Item = &'a Transaction>>(
+    txs_2nd: &mut T,
+    mut tx_2nd: &'a Transaction,
+    date: &DateTime<Utc>,
+) -> Option<Decimal> {
+    //let mut quantity = None;
+    //let mut txs_2nd = None;
+    //let mut tx_2nd = None;
+    for tx in txs_2nd {
+        if &tx.date > date {
+            return Some(tx_2nd.balance.clone());
+        }
+        tx_2nd = tx;
+    }
+    None
 }
 
 #[derive(Clone, Debug)]
