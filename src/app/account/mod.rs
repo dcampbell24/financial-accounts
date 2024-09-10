@@ -94,6 +94,38 @@ impl Account {
         self.filter_date = None;
     }
 
+    fn get_quantity(&self, date: DateTime<Utc>) -> Option<Transaction> {
+        if let Some(txs) = &self.txs_2nd {
+            if txs.txs.is_empty() {
+                return None;
+            }
+
+            if txs.txs.len() == 1 {
+                let tx = txs.txs.first().unwrap();
+                return if tx.date <= date {
+                    Some(tx.clone())
+                } else {
+                    None
+                };
+            }
+
+            for window in txs.txs.windows(2) {
+                if window[1].date > date {
+                    return Some(window[0].clone());
+                }
+            }
+
+            let tx = txs.txs.last().unwrap();
+            if tx.date <= date {
+                return Some(tx.clone());
+            }
+
+            None
+        } else {
+            None
+        }
+    }
+
     pub fn import_boa(&mut self, file_path: PathBuf) -> anyhow::Result<()> {
         let mut boa = import_boa(file_path)?;
         boa.remove_duplicates(&self.txs_1st);
@@ -218,17 +250,29 @@ impl Account {
         let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_3 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
-        let mut col_4 = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        // let mut col_4 = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_5 = column![text_cell("Date")];
         let mut col_6 = column![text_cell("Comment")];
         let mut col_7 = column![text_cell("")];
 
         for (i, tx) in txs_1st.txs.iter().enumerate() {
-            col_1 = col_1.push(number_cell(tx.balance));
-            col_2 = col_2.push(number_cell(tx.amount));
+            let mut balance = tx.balance;
+            let mut amount = tx.amount;
+            balance.rescale(2);
+            amount.rescale(2);
 
-            // col_3 =
-            // col_4 =
+            col_1 = col_1.push(number_cell(balance));
+            col_2 = col_2.push(number_cell(amount));
+
+            if let Some(tx_quantity) = self.get_quantity(tx.date) {
+                let mut balance = tx_quantity.balance;
+                // let mut amount = tx_quantity.amount;
+                balance.rescale(8);
+                // amount.rescale(8);
+
+                col_3 = col_3.push(number_cell(balance));
+                // col_4 = col_4.push(number_cell(amount));
+            }
 
             col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d")));
             col_6 = col_6.push(text_cell(&tx.comment));
@@ -237,8 +281,8 @@ impl Account {
             ));
         }
 
-        let rows = if let Some(_) = txs_2nd {
-            row![col_1, col_2, col_3, col_4, col_5, col_6, col_7]
+        let rows = if txs_2nd.is_some() {
+            row![col_1, col_2, col_3, /* col_4, */ col_5, col_6, col_7]
         } else {
             row![col_1, col_2, col_5, col_6, col_7]
         };
@@ -379,10 +423,6 @@ impl Account {
             comment: self.tx.submit_commit(),
             date,
         })
-    }
-
-    pub fn total_1st(&self) -> Decimal {
-        self.txs_1st.total()
     }
 
     pub fn total_2nd(&self) -> Decimal {
@@ -557,24 +597,6 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
         button("Exit").on_press(app::Message::Exit),
     ]
     .spacing(ROW_SPACING)
-}
-
-// Fixme:
-fn get_quantity<'a, T: Iterator<Item = &'a Transaction>>(
-    txs_2nd: &mut T,
-    mut tx_2nd: &'a Transaction,
-    date: &DateTime<Utc>,
-) -> Option<Decimal> {
-    //let mut quantity = None;
-    //let mut txs_2nd = None;
-    //let mut tx_2nd = None;
-    for tx in txs_2nd {
-        if &tx.date > date {
-            return Some(tx_2nd.balance.clone());
-        }
-        tx_2nd = tx;
-    }
-    None
 }
 
 #[derive(Clone, Debug)]
