@@ -249,39 +249,45 @@ impl Account {
 
         let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
-        let mut col_3 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
-        let mut col_4 = column![text_cell("Date")];
-        let mut col_5 = column![text_cell("Comment")];
-        let mut col_6 = column![text_cell("")];
+        let mut col_3 = column![text_cell("Price")].align_items(iced::Alignment::End);
+        let mut col_4 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
+        let mut col_5 = column![text_cell("Date")];
+        let mut col_6 = column![text_cell("Comment")];
+        let mut col_7 = column![text_cell("")];
 
         for (i, tx) in txs_1st.txs.iter().enumerate() {
             let mut balance = tx.balance;
             let mut amount = tx.amount;
+
+            if let Some(tx_quantity) = self.get_quantity(tx.date) {
+                let mut quantity = tx_quantity.balance;
+                let mut price = balance / quantity;
+
+                price.rescale(2);
+                quantity.rescale(8);
+                col_3 = col_3.push(number_cell(price));
+                col_4 = col_4.push(number_cell(quantity));
+            } else {
+                col_3 = col_3.push(text_cell(""));
+                col_4 = col_4.push(text_cell(""));
+            }
+
             balance.rescale(2);
             amount.rescale(2);
-
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
 
-            if let Some(tx_quantity) = self.get_quantity(tx.date) {
-                let mut balance = tx_quantity.balance;
-                balance.rescale(8);
-                col_3 = col_3.push(number_cell(balance));
-            } else {
-                col_3 = col_3.push(text_cell(""));
-            }
-
-            col_4 = col_4.push(text_cell(tx.date.format("%Y-%m-%d")));
-            col_5 = col_5.push(text_cell(&tx.comment));
-            col_6 = col_6.push(button_cell(
+            col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d")));
+            col_6 = col_6.push(text_cell(&tx.comment));
+            col_7 = col_7.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
             ));
         }
 
         let rows = if txs_2nd.is_some() {
-            row![col_1, col_2, col_3, col_4, col_5, col_6]
+            row![col_1, col_2, col_3, col_4, col_5, col_6, col_7]
         } else {
-            row![col_1, col_2, col_4, col_5, col_6]
+            row![col_1, col_2, col_5, col_6, col_7]
         };
 
         let input = row![
