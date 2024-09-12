@@ -151,6 +151,19 @@ impl Account {
         Ok(())
     }
 
+    fn input(&self) -> Row<super::Message> {
+        row![
+            balance_view(&self.tx.balance),
+            amount_view(&self.tx.amount),
+            date_view(&self.tx.date),
+            comment_view(&self.tx.comment),
+            add_view(&self.tx.amount, &self.tx.balance),
+            text(" ".repeat(EDGE_PADDING)),
+        ]
+        .padding(PADDING)
+        .spacing(ROW_SPACING)
+    }
+
     pub fn list_transactions<'a, T: 'a + Clone + Display>(
         &'a self,
         mut txs_struct: Transactions<T>,
@@ -183,15 +196,6 @@ impl Account {
         }
         let rows = row![col_1, col_2, col_3, col_4, col_5];
 
-        let input = row![
-            amount_view(&self.tx.amount),
-            balance_view(&self.tx.balance),
-            date_view(&self.tx.date),
-            comment_view(&self.tx.comment),
-            add_view(&self.tx.amount, &self.tx.balance),
-            text(" ".repeat(EDGE_PADDING)),
-        ];
-
         let year = text_input("Year", &some_or_empty(&self.filter_date_year))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
         let month = text_input("Month", &some_or_empty(&self.filter_date_month))
@@ -220,7 +224,7 @@ impl Account {
             rows,
             row![text_cell("total: "), number_cell(total)],
             row![text_cell("balance: "), number_cell(balance)],
-            input.padding(PADDING).spacing(ROW_SPACING),
+            self.input(),
             filter_date.padding(PADDING).spacing(ROW_SPACING),
             error,
             back_exit_view(),
@@ -286,15 +290,6 @@ impl Account {
         };
         let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
-        let input = row![
-            balance_view(&self.tx.balance),
-            amount_view(&self.tx.amount),
-            date_view(&self.tx.date),
-            comment_view(&self.tx.comment),
-            add_view(&self.tx.amount, &self.tx.balance),
-            text(" ".repeat(EDGE_PADDING)),
-        ];
-
         let year = text_input("Year", &some_or_empty(&self.filter_date_year))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
         let month = text_input("Month", &some_or_empty(&self.filter_date_month))
@@ -334,7 +329,7 @@ impl Account {
                 number_cell(txs_1st.total()),
             ]
             .spacing(ROW_SPACING),
-            input.padding(PADDING).spacing(ROW_SPACING),
+            self.input(),
             filter_date.padding(PADDING).spacing(ROW_SPACING),
             error,
             back_exit_view(),
