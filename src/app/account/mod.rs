@@ -164,6 +164,31 @@ impl Account {
         .spacing(ROW_SPACING)
     }
 
+    fn filter_date(&self) -> Row<super::Message> {
+        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
+
+        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
+            .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
+
+        let mut filter_button = button("Filter");
+        if self.submit_filter_date().is_some() {
+            filter_button =
+                filter_button.on_press(app::Message::Account(Message::SubmitFilterDate));
+        }
+
+        let clear_button = button("Clear").on_press(app::Message::Account(Message::ClearDate));
+        row![
+            year,
+            month,
+            filter_button,
+            clear_button,
+            text(" ".repeat(EDGE_PADDING)),
+        ]
+        .padding(PADDING)
+        .spacing(ROW_SPACING)
+    }
+
     pub fn list_transactions<'a, T: 'a + Clone + Display>(
         &'a self,
         mut txs_struct: Transactions<T>,
@@ -196,23 +221,6 @@ impl Account {
         }
         let rows = row![col_1, col_2, col_3, col_4, col_5];
 
-        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
-            .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
-        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
-            .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
-        let mut filter_button = button("Filter");
-        if self.submit_filter_date().is_some() {
-            filter_button =
-                filter_button.on_press(app::Message::Account(Message::SubmitFilterDate));
-        }
-        let clear_button = button("Clear").on_press(app::Message::Account(Message::ClearDate));
-        let filter_date = row![
-            year,
-            month,
-            filter_button,
-            clear_button,
-            text(" ".repeat(EDGE_PADDING)),
-        ];
         let error = self
             .error
             .as_ref()
@@ -225,7 +233,7 @@ impl Account {
             row![text_cell("total: "), number_cell(total)],
             row![text_cell("balance: "), number_cell(balance)],
             self.input(),
-            filter_date.padding(PADDING).spacing(ROW_SPACING),
+            self.filter_date(),
             error,
             back_exit_view(),
         ];
@@ -290,23 +298,6 @@ impl Account {
         };
         let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
-        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
-            .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
-        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
-            .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
-        let mut filter_button = button("Filter");
-        if self.submit_filter_date().is_some() {
-            filter_button =
-                filter_button.on_press(app::Message::Account(Message::SubmitFilterDate));
-        }
-        let clear_button = button("Clear").on_press(app::Message::Account(Message::ClearDate));
-        let filter_date = row![
-            year,
-            month,
-            filter_button,
-            clear_button,
-            text(" ".repeat(EDGE_PADDING)),
-        ];
         let error = self
             .error
             .as_ref()
@@ -330,7 +321,7 @@ impl Account {
             ]
             .spacing(ROW_SPACING),
             self.input(),
-            filter_date.padding(PADDING).spacing(ROW_SPACING),
+            self.filter_date(),
             error,
             back_exit_view(),
         ];
