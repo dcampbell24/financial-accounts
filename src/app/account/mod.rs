@@ -229,24 +229,7 @@ impl Account {
         Scrollable::new(col)
     }
 
-    pub fn list_transactions_(&self) -> Scrollable<app::Message> {
-        let mut txs_1st = self.txs_1st.clone();
-        txs_1st.filter_month(self.filter_date);
-
-        let mut txs_2nd = self.txs_2nd.clone();
-        txs_2nd = if let Some(mut txs_2nd) = txs_2nd {
-            txs_2nd.filter_month(self.filter_date);
-            Some(txs_2nd)
-        } else {
-            None
-        };
-
-        let chart = Chart {
-            txs: txs_1st.clone(),
-            duration: Duration::All,
-        };
-        let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
-
+    fn rows(&self, txs_1st: &Transactions<Fiat>) -> Row<super::Message> {
         let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_3 = column![text_cell("Price")].align_items(iced::Alignment::End);
@@ -284,11 +267,24 @@ impl Account {
             ));
         }
 
-        let rows = if txs_2nd.is_some() {
+        let rows = if self.txs_2nd.is_some() {
             row![col_1, col_2, col_3, col_4, col_5, col_6, col_7]
         } else {
             row![col_1, col_2, col_5, col_6, col_7]
         };
+
+        rows.spacing(ROW_SPACING)
+    }
+
+    pub fn list_transactions_(&self) -> Scrollable<app::Message> {
+        let mut txs_1st = self.txs_1st.clone();
+        txs_1st.filter_month(self.filter_date);
+
+        let chart = Chart {
+            txs: txs_1st.clone(),
+            duration: Duration::All,
+        };
+        let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
         let input = row![
             balance_view(&self.tx.balance),
@@ -330,12 +326,12 @@ impl Account {
         let col = column![
             text_cell(name),
             chart,
-            rows.spacing(ROW_SPACING),
+            self.rows(&txs_1st),
             row![
                 text_cell("balance: "),
-                number_cell(self.txs_1st.balance()),
+                number_cell(txs_1st.balance()),
                 text_cell("total: "),
-                number_cell(self.txs_1st.total()),
+                number_cell(txs_1st.total()),
             ]
             .spacing(ROW_SPACING),
             input.padding(PADDING).spacing(ROW_SPACING),
