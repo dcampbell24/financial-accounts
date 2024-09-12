@@ -204,16 +204,21 @@ impl Account {
         let chart: ChartWidget<'a, _, _, _, _> =
             ChartWidget::new(chart).height(Length::Fixed(400.0));
 
-        let mut col_1 = column![text_cell(" Amount ")].align_items(iced::Alignment::End);
-        let mut col_2 = column![text_cell(" Date ")];
-        let mut col_3 = column![text_cell(" Balance ")].align_items(iced::Alignment::End);
-        let mut col_4 = column![text_cell(" Comment ")];
+        let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
+        let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        let mut col_3 = column![text_cell("Date")];
+        let mut col_4 = column![text_cell("Comment")];
         let mut col_5 = column![text_cell("")];
 
         for (i, tx) in txs_struct.txs.iter().enumerate() {
-            col_1 = col_1.push(number_cell(tx.amount));
-            col_2 = col_2.push(text_cell(tx.date.format("%Y-%m-%d")));
-            col_3 = col_3.push(number_cell(tx.balance));
+            let mut balance = tx.balance;
+            let mut amount = tx.amount;
+            balance.rescale(10);
+            amount.rescale(10);
+
+            col_1 = col_1.push(number_cell(balance));
+            col_2 = col_2.push(number_cell(amount));
+            col_3 = col_3.push(text_cell(tx.date.format("%Y-%m-%d")));
             col_4 = col_4.push(text_cell(&tx.comment));
             col_5 = col_5.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
@@ -229,9 +234,13 @@ impl Account {
         let col = column![
             text_cell(txs_struct.currency.to_string()),
             chart,
-            rows,
-            row![text_cell("total: "), number_cell(total)],
-            row![text_cell("balance: "), number_cell(balance)],
+            rows.spacing(ROW_SPACING),
+            row![
+                text_cell("balance: "),
+                number_cell(balance),
+                text_cell("total: "),
+                number_cell(total)
+            ],
             self.input(),
             self.filter_date(),
             error,
