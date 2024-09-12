@@ -189,7 +189,7 @@ impl Account {
         .spacing(ROW_SPACING)
     }
 
-    pub fn list_transactions<'a, T: 'a + Clone + Display>(
+    pub fn list_transactions_2nd<'a, T: 'a + Clone + Display>(
         &'a self,
         mut txs_struct: Transactions<T>,
         total: Decimal,
@@ -297,7 +297,7 @@ impl Account {
         rows.spacing(ROW_SPACING)
     }
 
-    pub fn list_transactions_(&self) -> Scrollable<app::Message> {
+    pub fn list_transactions(&self) -> Scrollable<app::Message> {
         let mut txs_1st = self.txs_1st.clone();
         txs_1st.filter_month(self.filter_date);
 

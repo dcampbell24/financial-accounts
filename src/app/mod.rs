@@ -864,12 +864,12 @@ impl Application for App {
     fn view(&self) -> Element<Message> {
         match self.screen {
             Screen::Accounts => self.list_accounts().into(),
-            Screen::Account(i) => self.accounts[i].list_transactions_().into(),
+            Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::AccountSecondary(i) => {
                 let account = &self.accounts[i];
                 let txs = account.txs_2nd.as_ref().unwrap();
                 self.accounts[i]
-                    .list_transactions(
+                    .list_transactions_2nd(
                         txs.clone(),
                         account.total_2nd(),
                         account.balance_2nd().unwrap(),
