@@ -44,7 +44,7 @@ impl PriceAsTransaction for Transactions<Currency> {
                 amount: dec!(0),
                 balance: count * price,
                 date: Utc::now(),
-                comment: format!("Price: {price}"),
+                comment: String::new(),
             }),
             Currency::Fiat(_) => unreachable!("You can't have a fiat price_as_transaction!"),
         }
