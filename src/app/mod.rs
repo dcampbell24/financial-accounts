@@ -470,14 +470,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn display_groups(&self) -> (
-        Column<Message>,
-        Column<Message>,
-        Column<Message>,
-        Column<Message>,
-        Column<Message>,
-        Column<Message>,
-    ) {
+    fn display_groups(&self) -> GroupDisplay {
         let mut col_0 = column![text_cell(""), text_cell("Group")];
         let mut col_1 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
         let mut col_2 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
@@ -510,7 +503,7 @@ impl App {
             col_5 = col_5.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
 
-        (col_0, col_1, col_2, col_3, col_4, col_5)
+        GroupDisplay { col_0, col_1, col_2, col_3, col_4, col_5 }
     }
 
     #[rustfmt::skip]
@@ -603,13 +596,13 @@ impl App {
         col_4 = col_4.push(number_cell(balance));
         col_d = col_d.push(text_cell(""));
 
-        let (col_0_a, col_1_a, col_2_a, col_3_a, col_4_a, col_d_a) = self.display_groups();
-        col_0 = col_0.push(col_0_a);
-        col_1 = col_1.push(col_1_a);
-        col_2 = col_2.push(col_2_a);
-        col_3 = col_3.push(col_3_a);
-        col_4 = col_4.push(col_4_a);
-        col_d = col_d.push(col_d_a);
+        let group_display = self.display_groups();
+        col_0 = col_0.push(group_display.col_0);
+        col_1 = col_1.push(group_display.col_1);
+        col_2 = col_2.push(group_display.col_2);
+        col_3 = col_3.push(group_display.col_3);
+        col_4 = col_4.push(group_display.col_4);
+        col_d = col_d.push(group_display.col_5);
 
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
@@ -904,6 +897,15 @@ impl Application for App {
             Screen::Configuration => self.config().into(),
         }
     }
+}
+
+struct GroupDisplay<'a> {
+    col_0: Column<'a, Message>,
+    col_1: Column<'a, Message>,
+    col_2: Column<'a, Message>,
+    col_3: Column<'a, Message>,
+    col_4: Column<'a, Message>,
+    col_5: Column<'a, Message>,
 }
 
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
