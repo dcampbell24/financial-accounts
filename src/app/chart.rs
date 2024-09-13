@@ -31,8 +31,8 @@ impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
         };
 
         if let (Some(Some(min_balance)), Some(Some(max_balance)), Some(min_date), Some(max_date)) = (
-            txs.min_balance().map(|min| min.to_f64()),
-            txs.max_balance().map(|max| max.to_f64()),
+            txs.min_balance().map(|min| min.to_f32()),
+            txs.max_balance().map(|max| max.to_f32()),
             txs.min_date(),
             txs.max_date(),
         ) {
@@ -71,7 +71,7 @@ impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
                     AreaSeries::new(
                         txs.txs
                             .iter()
-                            .map(|tx| (tx.date, tx.balance.to_f64().unwrap())),
+                            .map(|tx| (tx.date, tx.balance.to_f32().unwrap())),
                         0.0,
                         solarized::plot::blue(),
                     )
