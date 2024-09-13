@@ -30,6 +30,8 @@ use super::{
 pub struct Account {
     #[serde(skip)]
     pub check_box: bool,
+    #[serde(skip)]
+    pub duration: Duration,
     pub name: String,
     #[serde(skip)]
     pub tx: transaction::ToSubmit,
@@ -67,6 +69,7 @@ impl Account {
 
         Self {
             check_box: false,
+            duration: Duration::default(),
             name,
             tx: transaction::ToSubmit::new(),
             txs_1st,
@@ -86,6 +89,15 @@ impl Account {
         self.txs_2nd
             .as_ref()
             .map(transactions::Transactions::balance)
+    }
+
+    fn change_duration(&self) -> Row<app::Message> {
+        let col_1 = button("Week").on_press(app::Message::Account(Message::ChartWeek));
+        let col_2 = button("Month").on_press(app::Message::Account(Message::ChartMonth));
+        let col_3 = button("Year").on_press(app::Message::Account(Message::ChartYear));
+        let col_4 = button("Balance").on_press(app::Message::Account(Message::ChartAll));
+
+        row![col_1, col_2, col_3, col_4].spacing(ROW_SPACING)
     }
 
     fn clear_date(&mut self) {
@@ -195,7 +207,7 @@ impl Account {
 
         let chart = Chart {
             txs: txs_struct.clone(),
-            duration: Duration::All,
+            duration: self.duration.clone(),
         };
         let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
@@ -229,6 +241,7 @@ impl Account {
         let col = column![
             text_cell(txs_struct.currency.to_string()),
             chart,
+            self.change_duration(),
             rows.spacing(ROW_SPACING),
             row![
                 text_cell("balance: "),
@@ -312,7 +325,7 @@ impl Account {
 
         let chart = Chart {
             txs: txs_1st.clone(),
-            duration: Duration::All,
+            duration: self.duration.clone(),
         };
         let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
@@ -330,6 +343,7 @@ impl Account {
         let col = column![
             text_cell(name),
             chart,
+            self.change_duration(),
             self.rows(&txs_1st),
             row![
                 text_cell("balance: "),
@@ -508,6 +522,10 @@ impl Account {
                 }
             }
             Message::ChangeTx(tx) => set_amount(&mut self.tx.amount, &tx),
+            Message::ChartWeek => self.duration = Duration::Week,
+            Message::ChartMonth => self.duration = Duration::Month,
+            Message::ChartYear => self.duration = Duration::Year,
+            Message::ChartAll => self.duration = Duration::All,
             Message::ClearDate => self.clear_date(),
             Message::SubmitBalance => match screen {
                 Screen::Account(_) => {
@@ -623,6 +641,10 @@ pub enum Message {
     ChangeFilterDateMonth(String),
     ChangeFilterDateYear(String),
     ChangeTx(String),
+    ChartWeek,
+    ChartMonth,
+    ChartYear,
+    ChartAll,
     ClearDate,
     SubmitBalance,
     SubmitFilterDate,

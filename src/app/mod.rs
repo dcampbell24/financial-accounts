@@ -959,6 +959,12 @@ enum Duration {
     All,
 }
 
+impl Default for Duration {
+    fn default() -> Self {
+        Duration::All
+    }
+}
+
 #[derive(Debug)]
 struct File {
     path: PathBuf,
