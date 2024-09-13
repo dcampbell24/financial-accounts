@@ -476,62 +476,71 @@ impl App {
         let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_items(Alignment::End);
         let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_items(Alignment::End);
         let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
-        let mut col_7 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+
+        let mut col_5 = column![text_cell("Price"), text_cell("")].align_items(Alignment::End);
+        let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
+        let mut col_7 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let mut last_week = account.sum_last_week();
             let mut last_month = account.sum_last_month();
             let mut last_year = account.sum_last_year();
-            let mut balance_1st = account.balance_1st();
+            let mut value = account.balance_1st();
 
-            let balance_2nd = account.balance_2nd().map_or_else(|| text_cell(""), |mut balance| {
-                balance.rescale(8);
-                number_cell(balance)
-            });
+            let mut quantity = text_cell("");
+            let mut price = text_cell("");
+            if let Some(mut quantity_) = account.balance_2nd() {
+                let mut price_ = value / quantity_;
+
+                quantity_.rescale(8);
+                price_.rescale(2);
+                quantity = number_cell(quantity_);
+                price = number_cell(price_);
+            }
 
             last_week.rescale(2);
             last_month.rescale(2);
             last_year.rescale(2);
-            balance_1st.rescale(2);
+            value.rescale(2);
 
             col_0 = col_0.push(text_cell(&account.name));
             col_1 = col_1.push(number_cell(last_week));
             col_2 = col_2.push(number_cell(last_month));
             col_3 = col_3.push(number_cell(last_year));
-            col_4 = col_4.push(number_cell(balance_1st));
-            col_5 = col_5.push(balance_2nd);
-            col_6 = col_6.push(Checkbox::new("", self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
-            col_7 = col_7.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
+            col_4 = col_4.push(number_cell(value));
+            col_5 = col_5.push(price);
+            col_6 = col_6.push(quantity);
+            col_7 = col_7.push(Checkbox::new("", self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
+            col_8 = col_8.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd {
                 if account.has_txs_2nd() {
                     txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
                 }
             }
-            col_8 = col_8.push(button_cell(txs_2nd));
+            col_9 = col_9.push(button_cell(txs_2nd));
             let mut update_name = button("Update Name");
             if !self.account_name.is_empty() {
                 update_name = update_name.on_press(Message::UpdateAccountName(i));
             }
-            col_9 = col_9.push(button_cell(update_name));
+            col_a = col_a.push(button_cell(update_name));
             let mut import_boa = button("Import BoA");
             if account.txs_2nd.is_none() {
                 import_boa = import_boa.on_press(Message::ImportBoa(i));
             }
-            col_a = col_a.push(button_cell(import_boa));
+            col_b = col_b.push(button_cell(import_boa));
             let mut get_price = button("Get Price");
             if account.txs_2nd.is_some() {
                 get_price = get_price.on_press(Message::GetPrice(i));
             }
-            col_b = col_b.push(button_cell(get_price));
-            col_c = col_c.push(button_cell(button("Delete").on_press(Message::Delete(i))));
+            col_c = col_c.push(button_cell(get_price));
+            col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
         let mut total_for_last_week_usd = self.accounts.total_for_last_week_usd();
@@ -549,7 +558,7 @@ impl App {
         col_2 = col_2.push(number_cell(total_for_last_month_usd));
         col_3 = col_3.push(number_cell(total_for_last_year_usd));
         col_4 = col_4.push(number_cell(balance));
-        col_c = col_c.push(text_cell(""));
+        col_d = col_d.push(text_cell(""));
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
             col_0 = col_0.push(text_cell(&group.name));
@@ -573,10 +582,10 @@ impl App {
             col_2 = col_2.push(number_cell(month));
             col_3 = col_3.push(number_cell(year));
             col_4 = col_4.push(number_cell(balance));
-            col_c = col_c.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
+            col_d = col_d.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
 
-        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c]
+        row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
 
     #[rustfmt::skip]
