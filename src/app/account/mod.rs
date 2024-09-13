@@ -254,26 +254,42 @@ impl Account {
         let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_3 = column![text_cell("Price")].align_items(iced::Alignment::End);
+        let mut col_3b = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_4 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
+        let mut col_4b = column![text_cell("Δ")].align_items(iced::Alignment::End);
         let mut col_5 = column![text_cell("Date")];
         let mut col_6 = column![text_cell("Comment")];
         let mut col_7 = column![text_cell("")];
 
+        let mut quantity = dec!(0);
+        let mut price = dec!(0);
         for (i, tx) in txs_1st.txs.iter().enumerate() {
             let mut balance = tx.balance;
             let mut amount = tx.amount;
 
             if let Some(tx_quantity) = self.get_quantity(tx.date) {
-                let mut quantity = tx_quantity.balance;
-                let mut price = balance / quantity;
+                let mut quantity_new = tx_quantity.balance;
+                let mut price_new = balance / quantity_new;
+                let mut quantity_diff = quantity_new - quantity;
+                let mut price_diff = price_new - price;
+                quantity = quantity_new;
+                price = price_new;
 
-                price.rescale(2);
-                quantity.rescale(8);
-                col_3 = col_3.push(number_cell(price));
-                col_4 = col_4.push(number_cell(quantity));
+                price_new.rescale(2);
+                price_diff.rescale(2);
+                quantity_new.rescale(8);
+                quantity_diff.rescale(8);
+                col_3 = col_3.push(number_cell(price_new));
+                col_3b = col_3b.push(number_cell(price_diff));
+                col_4 = col_4.push(number_cell(quantity_new));
+                col_4b = col_4b.push(number_cell(quantity_diff));
             } else {
+                quantity = dec!(0);
+                price = dec!(0);
                 col_3 = col_3.push(text_cell(""));
+                col_3b = col_3b.push(text_cell(""));
                 col_4 = col_4.push(text_cell(""));
+                col_4b = col_4b.push(text_cell(""));
             }
 
             balance.rescale(2);
@@ -289,7 +305,7 @@ impl Account {
         }
 
         let rows = if self.txs_2nd.is_some() {
-            row![col_1, col_2, col_3, col_4, col_5, col_6, col_7]
+            row![col_1, col_2, col_3, col_3b, col_4, col_4b, col_5, col_6, col_7]
         } else {
             row![col_1, col_2, col_5, col_6, col_7]
         };
