@@ -470,16 +470,16 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn display_groups(&self) -> GroupDisplay {
-        let mut col_0 = column![text_cell(""), text_cell("Group")];
-        let mut col_1 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut col_2 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut col_3 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut col_4 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell(""), text_cell("")];
+    fn display_groups(&self) -> GroupColumnDisplay {
+        let mut a = column![text_cell(""), text_cell("Group")];
+        let mut b = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut c = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut d = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut e = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut f = column![text_cell(""), text_cell("")];
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
-            col_0 = col_0.push(text_cell(&group.name));
+            a = a.push(text_cell(&group.name));
             let mut week = dec!(0);
             let mut month = dec!(0);
             let mut year = dec!(0);
@@ -496,14 +496,14 @@ impl App {
             year.rescale(2);
             balance.rescale(2);
 
-            col_1 = col_1.push(number_cell(week));
-            col_2 = col_2.push(number_cell(month));
-            col_3 = col_3.push(number_cell(year));
-            col_4 = col_4.push(number_cell(balance));
-            col_5 = col_5.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
+            b = b.push(number_cell(week));
+            c = c.push(number_cell(month));
+            d = d.push(number_cell(year));
+            e = e.push(number_cell(balance));
+            f = f.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
 
-        GroupDisplay { col_0, col_1, col_2, col_3, col_4, col_5 }
+        GroupColumnDisplay { a, b, c, d, e, f }
     }
 
     #[rustfmt::skip]
@@ -597,12 +597,12 @@ impl App {
         col_d = col_d.push(text_cell(""));
 
         let group_display = self.display_groups();
-        col_0 = col_0.push(group_display.col_0);
-        col_1 = col_1.push(group_display.col_1);
-        col_2 = col_2.push(group_display.col_2);
-        col_3 = col_3.push(group_display.col_3);
-        col_4 = col_4.push(group_display.col_4);
-        col_d = col_d.push(group_display.col_5);
+        col_0 = col_0.push(group_display.a);
+        col_1 = col_1.push(group_display.b);
+        col_2 = col_2.push(group_display.c);
+        col_3 = col_3.push(group_display.d);
+        col_4 = col_4.push(group_display.e);
+        col_d = col_d.push(group_display.f);
 
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
@@ -899,13 +899,13 @@ impl Application for App {
     }
 }
 
-struct GroupDisplay<'a> {
-    col_0: Column<'a, Message>,
-    col_1: Column<'a, Message>,
-    col_2: Column<'a, Message>,
-    col_3: Column<'a, Message>,
-    col_4: Column<'a, Message>,
-    col_5: Column<'a, Message>,
+struct GroupColumnDisplay<'a> {
+    a: Column<'a, Message>,
+    b: Column<'a, Message>,
+    c: Column<'a, Message>,
+    d: Column<'a, Message>,
+    e: Column<'a, Message>,
+    f: Column<'a, Message>,
 }
 
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
