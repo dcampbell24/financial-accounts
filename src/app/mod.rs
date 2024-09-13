@@ -470,13 +470,56 @@ impl App {
     }
 
     #[rustfmt::skip]
+    fn display_groups(&self) -> (
+        Column<Message>,
+        Column<Message>,
+        Column<Message>,
+        Column<Message>,
+        Column<Message>,
+        Column<Message>,
+    ) {
+        let mut col_0 = column![text_cell(""), text_cell("Group")];
+        let mut col_1 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut col_2 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut col_3 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut col_4 = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut col_5 = column![text_cell(""), text_cell("")];
+
+        for (index, group) in self.accounts.groups.iter().enumerate() {
+            col_0 = col_0.push(text_cell(&group.name));
+            let mut week = dec!(0);
+            let mut month = dec!(0);
+            let mut year = dec!(0);
+            let mut balance = dec!(0);
+            for index in &group.members {
+                week += self.accounts.inner[*index].sum_last_week();
+                month += self.accounts.inner[*index].sum_last_month();
+                year += self.accounts.inner[*index].sum_last_year();
+                balance += self.accounts.inner[*index].balance_1st();
+            }
+
+            week.rescale(2);
+            month.rescale(2);
+            year.rescale(2);
+            balance.rescale(2);
+
+            col_1 = col_1.push(number_cell(week));
+            col_2 = col_2.push(number_cell(month));
+            col_3 = col_3.push(number_cell(year));
+            col_4 = col_4.push(number_cell(balance));
+            col_5 = col_5.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
+        }
+
+        (col_0, col_1, col_2, col_3, col_4, col_5)
+    }
+
+    #[rustfmt::skip]
     fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
         let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_items(Alignment::End);
         let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_items(Alignment::End);
         let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_items(Alignment::End);
         let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_items(Alignment::End);
-
         let mut col_5 = column![text_cell("Price"), text_cell("")].align_items(Alignment::End);
         let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
         let mut col_7 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
@@ -560,30 +603,13 @@ impl App {
         col_4 = col_4.push(number_cell(balance));
         col_d = col_d.push(text_cell(""));
 
-        for (index, group) in self.accounts.groups.iter().enumerate() {
-            col_0 = col_0.push(text_cell(&group.name));
-            let mut week = dec!(0);
-            let mut month = dec!(0);
-            let mut year = dec!(0);
-            let mut balance = dec!(0);
-            for index in &group.members {
-                week += self.accounts.inner[*index].sum_last_week();
-                month += self.accounts.inner[*index].sum_last_month();
-                year += self.accounts.inner[*index].sum_last_year();
-                balance += self.accounts.inner[*index].balance_1st();
-            }
-
-            week.rescale(2);
-            month.rescale(2);
-            year.rescale(2);
-            balance.rescale(2);
-
-            col_1 = col_1.push(number_cell(week));
-            col_2 = col_2.push(number_cell(month));
-            col_3 = col_3.push(number_cell(year));
-            col_4 = col_4.push(number_cell(balance));
-            col_d = col_d.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
-        }
+        let (col_0_a, col_1_a, col_2_a, col_3_a, col_4_a, col_d_a) = self.display_groups();
+        col_0 = col_0.push(col_0_a);
+        col_1 = col_1.push(col_1_a);
+        col_2 = col_2.push(col_2_a);
+        col_3 = col_3.push(col_3_a);
+        col_4 = col_4.push(col_4_a);
+        col_d = col_d.push(col_d_a);
 
         row![col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7, col_8, col_9, col_a, col_b, col_c, col_d]
     }
