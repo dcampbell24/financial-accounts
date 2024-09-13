@@ -284,8 +284,6 @@ impl Account {
                 col_4 = col_4.push(number_cell(quantity_new));
                 col_4b = col_4b.push(number_cell(quantity_diff));
             } else {
-                quantity = dec!(0);
-                price = dec!(0);
                 col_3 = col_3.push(text_cell(""));
                 col_3b = col_3b.push(text_cell(""));
                 col_4 = col_4.push(text_cell(""));
