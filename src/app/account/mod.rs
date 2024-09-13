@@ -91,15 +91,6 @@ impl Account {
             .map(transactions::Transactions::balance)
     }
 
-    fn change_duration(&self) -> Row<app::Message> {
-        let col_1 = button("Week").on_press(app::Message::Account(Message::ChartWeek));
-        let col_2 = button("Month").on_press(app::Message::Account(Message::ChartMonth));
-        let col_3 = button("Year").on_press(app::Message::Account(Message::ChartYear));
-        let col_4 = button("Balance").on_press(app::Message::Account(Message::ChartAll));
-
-        row![col_1, col_2, col_3, col_4].spacing(ROW_SPACING)
-    }
-
     fn clear_date(&mut self) {
         self.filter_date_year = None;
         self.filter_date_month = None;
@@ -241,7 +232,7 @@ impl Account {
         let col = column![
             text_cell(txs_struct.currency.to_string()),
             chart,
-            self.change_duration(),
+            change_duration(),
             rows.spacing(ROW_SPACING),
             row![
                 text_cell("balance: "),
@@ -343,7 +334,7 @@ impl Account {
         let col = column![
             text_cell(name),
             chart,
-            self.change_duration(),
+            change_duration(),
             self.rows(&txs_1st),
             row![
                 text_cell("balance: "),
@@ -618,6 +609,15 @@ fn back_exit_view<'a>() -> Row<'a, app::Message> {
         button("Exit").on_press(app::Message::Exit),
     ]
     .spacing(ROW_SPACING)
+}
+
+fn change_duration<'a>() -> Row<'a, app::Message> {
+    let col_1 = button("Week").on_press(app::Message::Account(Message::ChartWeek));
+    let col_2 = button("Month").on_press(app::Message::Account(Message::ChartMonth));
+    let col_3 = button("Year").on_press(app::Message::Account(Message::ChartYear));
+    let col_4 = button("Balance").on_press(app::Message::Account(Message::ChartAll));
+
+    row![col_1, col_2, col_3, col_4].spacing(ROW_SPACING)
 }
 
 #[derive(Clone, Debug)]

@@ -951,18 +951,13 @@ fn text_cell_red<'a>(s: impl ToString) -> Row<'a, Message> {
     .padding(PADDING)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 enum Duration {
     Week,
     Month,
     Year,
+    #[default]
     All,
-}
-
-impl Default for Duration {
-    fn default() -> Self {
-        Duration::All
-    }
 }
 
 #[derive(Debug)]
