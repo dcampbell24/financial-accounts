@@ -189,20 +189,15 @@ impl Account {
         .spacing(ROW_SPACING)
     }
 
-    pub fn list_transactions_2nd<'a, T: 'a + Clone + Display>(
-        &'a self,
-        mut txs_struct: Transactions<T>,
-        total: Decimal,
-        balance: Decimal,
-    ) -> Scrollable<app::Message> {
+    pub fn list_transactions_2nd(&self) -> Scrollable<app::Message> {
+        let mut txs_struct = self.txs_2nd.as_ref().unwrap().clone();
         txs_struct.filter_month(self.filter_date);
 
         let chart = Chart {
             txs: txs_struct.clone(),
             duration: Duration::All,
         };
-        let chart: ChartWidget<'a, _, _, _, _> =
-            ChartWidget::new(chart).height(Length::Fixed(400.0));
+        let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
         let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
@@ -237,9 +232,9 @@ impl Account {
             rows.spacing(ROW_SPACING),
             row![
                 text_cell("balance: "),
-                number_cell(balance),
+                number_cell(self.balance_2nd().unwrap()),
                 text_cell("total: "),
-                number_cell(total)
+                number_cell(self.total_2nd())
             ],
             self.input(),
             self.filter_date(),

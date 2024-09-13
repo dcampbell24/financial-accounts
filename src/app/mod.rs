@@ -865,17 +865,7 @@ impl Application for App {
         match self.screen {
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
-            Screen::AccountSecondary(i) => {
-                let account = &self.accounts[i];
-                let txs = account.txs_2nd.as_ref().unwrap();
-                self.accounts[i]
-                    .list_transactions_2nd(
-                        txs.clone(),
-                        account.total_2nd(),
-                        account.balance_2nd().unwrap(),
-                    )
-                    .into()
-            }
+            Screen::AccountSecondary(i) => self.accounts[i].list_transactions_2nd().into(),
             Screen::Configuration => self.config().into(),
         }
     }
