@@ -471,15 +471,15 @@ impl App {
 
     #[rustfmt::skip]
     fn display_groups(&self) -> GroupColumnDisplay {
-        let mut a = column![text_cell(""), text_cell("Group")];
-        let mut b = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut c = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut d = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut e = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut f = column![text_cell(""), text_cell("")];
+        let mut a_ = column![text_cell(""), text_cell("Group")];
+        let mut b_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut c_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut d_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut e_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut f_ = column![text_cell(""), text_cell("")];
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
-            a = a.push(text_cell(&group.name));
+            a_ = a_.push(text_cell(&group.name));
             let mut week = dec!(0);
             let mut month = dec!(0);
             let mut year = dec!(0);
@@ -496,14 +496,14 @@ impl App {
             year.rescale(2);
             balance.rescale(2);
 
-            b = b.push(number_cell(week));
-            c = c.push(number_cell(month));
-            d = d.push(number_cell(year));
-            e = e.push(number_cell(balance));
-            f = f.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
+            b_ = b_.push(number_cell(week));
+            c_ = c_.push(number_cell(month));
+            d_ = d_.push(number_cell(year));
+            e_ = e_.push(number_cell(balance));
+            f_ = f_.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
 
-        GroupColumnDisplay { a, b, c, d, e, f }
+        GroupColumnDisplay { a: a_, b: b_, c: c_, d: d_, e: e_, f: f_}
     }
 
     #[rustfmt::skip]
