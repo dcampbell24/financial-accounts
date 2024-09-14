@@ -11,6 +11,7 @@ homepage = "https://github.com/dcampbell24/financial-accounts"
 documentation = "https://docs.rs/financial-accounts"
 repository = "https://github.com/dcampbell24/financial-accounts"
 readme = "README.md"
+rust-version = "1.81"
 
 [dependencies]
 anyhow = "1"
