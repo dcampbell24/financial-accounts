@@ -4,6 +4,7 @@ description = "Application for tracking your finances."
 version = "0.2.0-dev"
 authors = ["David Campbell <dcampbell24@gmail.com>"]
 edition = "2021"
+rust-version = "1.81"
 license = "MIT OR Apache-2.0"
 keywords = ["finance"]
 categories = ["finance"]
@@ -11,7 +12,6 @@ homepage = "https://github.com/dcampbell24/financial-accounts"
 documentation = "https://docs.rs/financial-accounts"
 repository = "https://github.com/dcampbell24/financial-accounts"
 readme = "README.md"
-rust-version = "1.81"
 
 [dependencies]
 anyhow = "1"
