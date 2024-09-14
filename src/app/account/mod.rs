@@ -615,7 +615,7 @@ fn change_duration<'a>() -> Row<'a, app::Message> {
     let col_1 = button("Week").on_press(app::Message::Account(Message::ChartWeek));
     let col_2 = button("Month").on_press(app::Message::Account(Message::ChartMonth));
     let col_3 = button("Year").on_press(app::Message::Account(Message::ChartYear));
-    let col_4 = button("Balance").on_press(app::Message::Account(Message::ChartAll));
+    let col_4 = button("All").on_press(app::Message::Account(Message::ChartAll));
 
     row![col_1, col_2, col_3, col_4].spacing(ROW_SPACING)
 }
