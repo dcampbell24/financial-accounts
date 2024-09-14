@@ -326,7 +326,7 @@ impl App {
             stock_plus_symbol: String::new(),
             currency: None,
             currency_selector: State::new(currencies),
-            duration: Duration::All,
+            duration: Duration::default(),
             project_months: None,
             screen: Screen::Accounts,
             errors: None,
