@@ -630,11 +630,16 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<Message> {
-        let chart = Chart {
-            txs: self.accounts.all_accounts_txs_1st(),
-            duration: self.duration.clone(),
-        };
-        let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
+        let mut charts = Column::new();
+        for currency in self.accounts.currencies() {
+            let chart = Chart {
+                txs: self.accounts.all_accounts_txs_1st(currency),
+                duration: self.duration.clone(),
+            };
+            let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
+            charts = charts.push(chart);
+        }
+
         let rows = self.rows();
 
         let mut column_errors = Column::new();
@@ -667,7 +672,7 @@ impl App {
         all_prices = all_prices.push(text(" ".repeat(EDGE_PADDING)));
 
         let cols = column![
-            chart,
+            charts,
             rows.spacing(ROW_SPACING),
             column_errors,
             text_cell(""),

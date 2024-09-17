@@ -44,11 +44,10 @@ impl Accounts {
         self.inner.sort_by_key(|account| account.name.clone());
     }
 
-    // Fixme: what to do when transactions are not in USD?
-    pub fn all_accounts_txs_1st(&self) -> Transactions<Fiat> {
-        let mut transactions = Transactions::new(Fiat::Usd);
+    pub fn all_accounts_txs_1st(&self, currency: Fiat) -> Transactions<Fiat> {
+        let mut transactions = Transactions::new(currency);
         for account in &self.inner {
-            if account.txs_1st.currency == Fiat::Usd {
+            if account.txs_1st.currency == transactions.currency {
                 for tx in &account.txs_1st.txs {
                     transactions.txs.push(tx.clone());
                 }
