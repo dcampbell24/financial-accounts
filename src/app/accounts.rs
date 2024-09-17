@@ -111,20 +111,20 @@ impl Accounts {
         }
     }
 
-    pub fn balance(&self, currency: Fiat) -> Decimal {
+    pub fn balance(&self, currency: &Fiat) -> Decimal {
         let mut balance = dec!(0);
         for account in &self.inner {
-            if account.txs_1st.currency == currency {
+            if account.txs_1st.currency == *currency {
                 balance += account.balance_1st();
             }
         }
         balance
     }
 
-    pub fn total_for_last_week(&self, currency: Fiat) -> Decimal {
+    pub fn total_for_last_week(&self, currency: &Fiat) -> Decimal {
         let mut total = dec!(0);
         for account in &self.inner {
-            if account.txs_1st.currency == currency {
+            if account.txs_1st.currency == *currency {
                 let sum = account.sum_last_week();
                 total += sum;
             }
@@ -132,10 +132,10 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_last_month(&self, currency: Fiat) -> Decimal {
+    pub fn total_for_last_month(&self, currency: &Fiat) -> Decimal {
         let mut total = dec!(0);
         for account in &self.inner {
-            if account.txs_1st.currency == currency {
+            if account.txs_1st.currency == *currency {
                 let sum = account.sum_last_month();
                 total += sum;
             }
@@ -143,10 +143,10 @@ impl Accounts {
         total
     }
 
-    pub fn total_for_last_year(&self, currency: Fiat) -> Decimal {
+    pub fn total_for_last_year(&self, currency: &Fiat) -> Decimal {
         let mut total = dec!(0);
         for account in &self.inner {
-            if account.txs_1st.currency == currency {
+            if account.txs_1st.currency == *currency {
                 let sum = account.sum_last_year();
                 total += sum;
             }

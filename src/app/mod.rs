@@ -579,10 +579,10 @@ impl App {
             col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
-        let mut total_for_last_week_usd = self.accounts.total_for_last_week(Fiat::Usd);
-        let mut total_for_last_month_usd = self.accounts.total_for_last_month(Fiat::Usd);
-        let mut total_for_last_year_usd = self.accounts.total_for_last_year(Fiat::Usd);
-        let mut balance = self.accounts.balance(Fiat::Usd);
+        let mut total_for_last_week_usd = self.accounts.total_for_last_week(&Fiat::Usd);
+        let mut total_for_last_month_usd = self.accounts.total_for_last_month(&Fiat::Usd);
+        let mut total_for_last_year_usd = self.accounts.total_for_last_year(&Fiat::Usd);
+        let mut balance = self.accounts.balance(&Fiat::Usd);
 
         total_for_last_week_usd.rescale(2);
         total_for_last_month_usd.rescale(2);
