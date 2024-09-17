@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use plotters::{
     series::AreaSeries,
-    style::{Color, FontTransform, IntoFont, ShapeStyle},
+    style::{Color, FontTransform, IntoFont, ShapeStyle, TextStyle},
 };
 use rust_decimal::prelude::ToPrimitive;
 
@@ -37,6 +37,10 @@ impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
             txs.max_date(),
         ) {
             let mut chart = chart
+                .caption(
+                    format!("Total in {}", self.txs.currency),
+                    TextStyle::from(("sans-serif", 20).into_font()),
+                )
                 .x_label_area_size(28)
                 .y_label_area_size(28)
                 .margin(60)
