@@ -43,7 +43,10 @@ impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
                 )
                 .x_label_area_size(28)
                 .y_label_area_size(28)
-                .margin(60)
+                .margin_top(20)
+                .margin_bottom(30)
+                .margin_left(60)
+                .margin_right(60)
                 .build_cartesian_2d(min_date..max_date, min_balance..max_balance)
                 .expect("failed to build chart");
 
