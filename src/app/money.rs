@@ -24,7 +24,7 @@ impl fmt::Display for Currency {
 }
 
 // Supported by https://www.goldapi.io/ .
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq, Eq, Serialize)]
 pub enum Fiat {
     Usd,
     Aud,

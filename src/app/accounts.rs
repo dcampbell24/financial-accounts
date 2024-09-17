@@ -5,6 +5,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashSet;
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Index, IndexMut};
@@ -31,6 +32,14 @@ pub struct Accounts {
 }
 
 impl Accounts {
+    pub fn currencies(&self) -> HashSet<Fiat> {
+        let mut currencies = HashSet::new();
+        for account in &self.inner {
+            currencies.insert(account.txs_1st.currency.clone());
+        }
+        currencies
+    }
+
     pub fn sort(&mut self) {
         self.inner.sort_by_key(|account| account.name.clone());
     }

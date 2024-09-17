@@ -506,6 +506,34 @@ impl App {
         GroupColumnDisplay { a: a_, b: b_, c: c_, d: d_, e: e_, f: f_}
     }
 
+    fn display_totals(&self, currency: &Fiat) -> TotalsColumnDisplay {
+        let mut total_for_last_week_usd = self.accounts.total_for_last_week(currency);
+        let mut total_for_last_month_usd = self.accounts.total_for_last_month(currency);
+        let mut total_for_last_year_usd = self.accounts.total_for_last_year(currency);
+        let mut balance = self.accounts.balance(currency);
+
+        total_for_last_week_usd.rescale(2);
+        total_for_last_month_usd.rescale(2);
+        total_for_last_year_usd.rescale(2);
+        balance.rescale(2);
+
+        let a_ = column![text_cell(format!("{currency} Total:"))];
+        let b_ = column![number_cell(total_for_last_week_usd)];
+        let c_ = column![number_cell(total_for_last_month_usd)];
+        let d_ = column![number_cell(total_for_last_year_usd)];
+        let e_ = column![number_cell(balance)];
+        let f_ = column![text_cell("")];
+
+        TotalsColumnDisplay {
+            a: a_,
+            b: b_,
+            c: c_,
+            d: d_,
+            e: e_,
+            f: f_,
+        }
+    }
+
     #[rustfmt::skip]
     fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
@@ -579,22 +607,15 @@ impl App {
             col_d = col_d.push(button_cell(button("Delete").on_press(Message::Delete(i))));
         }
 
-        let mut total_for_last_week_usd = self.accounts.total_for_last_week(&Fiat::Usd);
-        let mut total_for_last_month_usd = self.accounts.total_for_last_month(&Fiat::Usd);
-        let mut total_for_last_year_usd = self.accounts.total_for_last_year(&Fiat::Usd);
-        let mut balance = self.accounts.balance(&Fiat::Usd);
-
-        total_for_last_week_usd.rescale(2);
-        total_for_last_month_usd.rescale(2);
-        total_for_last_year_usd.rescale(2);
-        balance.rescale(2);
-
-        col_0 = col_0.push(text_cell("Total"));
-        col_1 = col_1.push(number_cell(total_for_last_week_usd));
-        col_2 = col_2.push(number_cell(total_for_last_month_usd));
-        col_3 = col_3.push(number_cell(total_for_last_year_usd));
-        col_4 = col_4.push(number_cell(balance));
-        col_d = col_d.push(text_cell(""));
+        for currency in self.accounts.currencies() {
+            let totals_display = self.display_totals(&currency);
+            col_0 = col_0.push(totals_display.a);
+            col_1 = col_1.push(totals_display.b);
+            col_2 = col_2.push(totals_display.c);
+            col_3 = col_3.push(totals_display.d);
+            col_4 = col_4.push(totals_display.e);
+            col_d = col_d.push(totals_display.f);
+        }
 
         let group_display = self.display_groups();
         col_0 = col_0.push(group_display.a);
@@ -900,6 +921,15 @@ impl Application for App {
 }
 
 struct GroupColumnDisplay<'a> {
+    a: Column<'a, Message>,
+    b: Column<'a, Message>,
+    c: Column<'a, Message>,
+    d: Column<'a, Message>,
+    e: Column<'a, Message>,
+    f: Column<'a, Message>,
+}
+
+struct TotalsColumnDisplay<'a> {
     a: Column<'a, Message>,
     b: Column<'a, Message>,
     c: Column<'a, Message>,
