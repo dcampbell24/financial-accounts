@@ -1,7 +1,7 @@
 use std::fmt;
 
 use reqwest::Client;
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::FromPrimitive, Decimal};
 use serde::{Deserialize, Serialize};
 use yahoo_finance_api::YahooConnector;
 
@@ -20,7 +20,7 @@ impl Price for StockPlus {
         let response = provider.get_latest_quotes(&self.symbol, "1d").await?;
         let quote = response.last_quote()?;
 
-        Ok(Decimal::from_f64_retain(quote.close).expect("error converting f64 to Decimal"))
+        Ok(Decimal::from_f64(quote.close).expect("error converting f64 to Decimal"))
     }
 }
 
