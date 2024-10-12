@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.0] - 2024-10-12
+
 ### Changed
 
 - Breaking change: remove the checked up to date.
@@ -47,4 +49,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
+[0.2.0]: https://crates.io/crates/financial-accounts/0.2.0
 [0.1.3]: https://crates.io/crates/financial-accounts/0.1.3
