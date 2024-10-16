@@ -437,40 +437,49 @@ impl Account {
         self.txs_2nd.as_ref().unwrap().total()
     }
 
-    pub fn sum_last_week(&self) -> Decimal {
+    pub fn sum_last_week(&self) -> (Decimal, Decimal) {
         let last_week = Utc::now() - TimeDelta::weeks(1);
+        let mut previous_amount = dec!(0);
         let mut amount = dec!(0);
 
         for tx in &self.txs_1st.txs {
             if tx.date >= last_week {
                 amount += tx.amount;
+            } else {
+                previous_amount += tx.amount;
             }
         }
-        amount
+        (previous_amount, amount)
     }
 
-    pub fn sum_last_month(&self) -> Decimal {
+    pub fn sum_last_month(&self) -> (Decimal, Decimal) {
         let last_month = Utc::now() - TimeDelta::days(30);
         let mut amount = dec!(0);
+        let mut previous_amount = dec!(0);
 
         for tx in &self.txs_1st.txs {
             if tx.date >= last_month {
                 amount += tx.amount;
+            } else {
+                previous_amount += tx.amount;
             }
         }
-        amount
+        (previous_amount, amount)
     }
 
-    pub fn sum_last_year(&self) -> Decimal {
+    pub fn sum_last_year(&self) -> (Decimal, Decimal) {
         let last_year = Utc::now() - TimeDelta::days(365);
         let mut amount = dec!(0);
+        let mut previous_amount = dec!(0);
 
         for tx in &self.txs_1st.txs {
             if tx.date >= last_year {
                 amount += tx.amount;
+            } else {
+                previous_amount += tx.amount;
             }
         }
-        amount
+        (previous_amount, amount)
     }
 
     fn display_error(&mut self, result: anyhow::Result<Transaction>) -> Option<Transaction> {

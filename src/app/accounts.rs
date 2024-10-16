@@ -129,37 +129,43 @@ impl Accounts {
         balance
     }
 
-    pub fn total_for_last_week(&self, currency: &Fiat) -> Decimal {
+    pub fn total_for_last_week(&self, currency: &Fiat) -> (Decimal, Decimal) {
+        let mut previous_total = dec!(0);
         let mut total = dec!(0);
         for account in &self.inner {
             if account.txs_1st.currency == *currency {
-                let sum = account.sum_last_week();
+                let (previous_sum, sum) = account.sum_last_week();
+                previous_total += previous_sum;
                 total += sum;
             }
         }
-        total
+        (previous_total, total)
     }
 
-    pub fn total_for_last_month(&self, currency: &Fiat) -> Decimal {
+    pub fn total_for_last_month(&self, currency: &Fiat) -> (Decimal, Decimal) {
+        let mut previous_total = dec!(0);
         let mut total = dec!(0);
         for account in &self.inner {
             if account.txs_1st.currency == *currency {
-                let sum = account.sum_last_month();
+                let (previous_sum, sum) = account.sum_last_month();
+                previous_total += previous_sum;
                 total += sum;
             }
         }
-        total
+        (previous_total, total)
     }
 
-    pub fn total_for_last_year(&self, currency: &Fiat) -> Decimal {
+    pub fn total_for_last_year(&self, currency: &Fiat) -> (Decimal, Decimal) {
+        let mut previous_total = dec!(0);
         let mut total = dec!(0);
         for account in &self.inner {
             if account.txs_1st.currency == *currency {
-                let sum = account.sum_last_year();
+                let (previous_sum, sum) = account.sum_last_year();
+                previous_total += previous_sum;
                 total += sum;
             }
         }
-        total
+        (previous_total, total)
     }
 
     pub fn to_string(&self) -> anyhow::Result<String> {

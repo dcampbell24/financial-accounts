@@ -43,6 +43,7 @@ const BOA_URL: &str = "https://secure.bankofamerica.com/myaccounts/brain/redirec
 const INVESTOR_360_URL: &str = "https://my.investor360.com/nce/Holdings";
 
 const TITLE_FILE_PICKER: &str = "Financial Accounts";
+const LAST_DATE_SCALE: u32 = 4;
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
 const CHECKBOX_SPACING: f32 = 12.5;
@@ -480,25 +481,40 @@ impl App {
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
             a_ = a_.push(text_cell(&group.name));
-            let mut week = dec!(0);
-            let mut month = dec!(0);
-            let mut year = dec!(0);
+            let mut sum_before_last_week = dec!(0);
+            let mut sum_last_week = dec!(0);
+            let mut sum_before_last_month = dec!(0);
+            let mut sum_last_month = dec!(0);
+            let mut sum_before_last_year = dec!(0);
+            let mut sum_last_year = dec!(0);
             let mut balance = dec!(0);
+
             for index in &group.members {
-                week += self.accounts.inner[*index].sum_last_week();
-                month += self.accounts.inner[*index].sum_last_month();
-                year += self.accounts.inner[*index].sum_last_year();
+                let (before_last_week, last_week) = self.accounts.inner[*index].sum_last_week();
+                let (before_last_month, last_month) = self.accounts.inner[*index].sum_last_month();
+                let (before_last_year, last_year) = self.accounts.inner[*index].sum_last_year();
+
+                sum_before_last_week += before_last_week;
+                sum_last_week += last_week;
+                sum_before_last_month += before_last_month;
+                sum_last_month += last_month;
+                sum_before_last_year += before_last_year;
+                sum_last_year += last_year;
                 balance += self.accounts.inner[*index].balance_1st();
             }
 
-            week.rescale(2);
-            month.rescale(2);
-            year.rescale(2);
+            sum_last_week = div_0_ok(sum_last_week, sum_before_last_week);
+            sum_last_month = div_0_ok(sum_last_month, sum_before_last_month);
+            sum_last_year = div_0_ok(sum_last_year, sum_before_last_year);
+
+            sum_last_week.rescale(LAST_DATE_SCALE);
+            sum_last_month.rescale(LAST_DATE_SCALE);
+            sum_last_year.rescale(LAST_DATE_SCALE);
             balance.rescale(2);
 
-            b_ = b_.push(number_cell(week));
-            c_ = c_.push(number_cell(month));
-            d_ = d_.push(number_cell(year));
+            b_ = b_.push(number_cell(sum_last_week));
+            c_ = c_.push(number_cell(sum_last_month));
+            d_ = d_.push(number_cell(sum_last_year));
             e_ = e_.push(number_cell(balance));
             f_ = f_.push(button_cell(button("Delete").on_press(Message::DeleteGroup(index))));
         }
@@ -507,20 +523,24 @@ impl App {
     }
 
     fn display_totals(&self, currency: &Fiat) -> TotalsColumnDisplay {
-        let mut total_for_last_week_usd = self.accounts.total_for_last_week(currency);
-        let mut total_for_last_month_usd = self.accounts.total_for_last_month(currency);
-        let mut total_for_last_year_usd = self.accounts.total_for_last_year(currency);
+        let (before_last_week, mut last_week) = self.accounts.total_for_last_week(currency);
+        let (before_last_month, mut last_month) = self.accounts.total_for_last_month(currency);
+        let (before_last_year, mut last_year) = self.accounts.total_for_last_year(currency);
         let mut balance = self.accounts.balance(currency);
 
-        total_for_last_week_usd.rescale(2);
-        total_for_last_month_usd.rescale(2);
-        total_for_last_year_usd.rescale(2);
+        last_week = div_0_ok(last_week, before_last_week);
+        last_month = div_0_ok(last_month, before_last_month);
+        last_year = div_0_ok(last_year, before_last_year);
+
+        last_week.rescale(LAST_DATE_SCALE);
+        last_month.rescale(LAST_DATE_SCALE);
+        last_year.rescale(LAST_DATE_SCALE);
         balance.rescale(2);
 
         let a_ = column![text_cell(format!("{currency} Total:"))];
-        let b_ = column![number_cell(total_for_last_week_usd)];
-        let c_ = column![number_cell(total_for_last_month_usd)];
-        let d_ = column![number_cell(total_for_last_year_usd)];
+        let b_ = column![number_cell(last_week)];
+        let c_ = column![number_cell(last_month)];
+        let d_ = column![number_cell(last_year)];
         let e_ = column![number_cell(balance)];
         let f_ = column![text_cell("")];
 
@@ -552,9 +572,9 @@ impl App {
         let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
-            let mut last_week = account.sum_last_week();
-            let mut last_month = account.sum_last_month();
-            let mut last_year = account.sum_last_year();
+            let (before_last_week, mut last_week) = account.sum_last_week();
+            let (before_last_month, mut last_month) = account.sum_last_month();
+            let (before_last_year, mut last_year) = account.sum_last_year();
             let mut value = account.balance_1st();
 
             let mut quantity = text_cell("");
@@ -568,9 +588,13 @@ impl App {
                 price = number_cell(price_);
             }
 
-            last_week.rescale(2);
-            last_month.rescale(2);
-            last_year.rescale(2);
+            last_week = div_0_ok(last_week, before_last_week);
+            last_month = div_0_ok(last_month, before_last_month);
+            last_year = div_0_ok(last_year, before_last_year);
+
+            last_week.rescale(LAST_DATE_SCALE);
+            last_month.rescale(LAST_DATE_SCALE);
+            last_year.rescale(LAST_DATE_SCALE);
             value.rescale(2);
 
             col_0 = col_0.push(text_cell(&account.name));
@@ -941,6 +965,14 @@ struct TotalsColumnDisplay<'a> {
     d: Column<'a, Message>,
     e: Column<'a, Message>,
     f: Column<'a, Message>,
+}
+
+fn div_0_ok(dividend: Decimal, divisor: Decimal) -> Decimal {
+    if divisor.is_zero() {
+        dec!(0)
+    } else {
+        dividend / divisor
+    }
 }
 
 fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
