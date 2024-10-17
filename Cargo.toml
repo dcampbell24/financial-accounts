@@ -38,6 +38,7 @@ webbrowser = "1"
 yahoo_finance_api = { version = "2", features = ["decimal"] }
 
 [package.metadata.deb]
+copyright = "2024 David Lawrence Campbell"
 maintainer = "David Campbell <dcampbell24@gmail.com>"
 assets = [
     ["target/release/financial-accounts", "usr/bin/", "755"],
