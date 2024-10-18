@@ -1,5 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: financial-accounts
-Source: https://github.com/dcampbell24/financial-accounts
-Copyright: 2024 David Lawrence Campbell
-License: MIT OR Apache-2.0

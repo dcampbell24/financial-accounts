@@ -40,13 +40,13 @@ yahoo_finance_api = { version = "2", features = ["decimal"] }
 [package.metadata.deb]
 copyright = "2024 David Lawrence Campbell"
 maintainer = "David Campbell <dcampbell24@gmail.com>"
-extended-description-file = "README.txt"
+extended-description-file = "debian/README.txt"
 assets = [
     ["target/release/financial-accounts", "usr/bin/", "755"],
     ["README.md", "usr/share/doc/financial-accounts/", "644"],
     ["demo-ledger.ron", "usr/share/doc/financial-accounts/", "644"],
-    ["financial-accounts.1.gz", "usr/share/man/man1/", "644"],
-    ["financial-accounts.desktop", "usr/share/applications/", "644"],
+    ["debian/financial-accounts.1.gz", "usr/share/man/man1/", "644"],
+    ["debian/financial-accounts.desktop", "usr/share/applications/", "644"],
     ["icons/financial-accounts_16x16.png", "usr/share/icons/hicolor/16x16/apps/financial-accounts.png", "644"],
     ["icons/financial-accounts_22x22.png", "usr/share/icons/hicolor/22x22/apps/financial-accounts.png", "644"],
     ["icons/financial-accounts_24x24.png", "usr/share/icons/hicolor/24x24/apps/financial-accounts.png", "644"],
@@ -55,6 +55,6 @@ assets = [
     ["icons/financial-accounts_64x64.png", "usr/share/icons/hicolor/64x64/apps/financial-accounts.png", "644"],
     ["icons/financial-accounts_128x128.png", "usr/share/icons/hicolor/128x128/apps/financial-accounts.png", "644"],
 ]
-changelog = "changelog.Debian"
+changelog = "debian/changelog"
 depends = "$auto, xdg-desktop-portal-kde (>= 5.27.5-2) | xdg-desktop-portal-gtk (>= 1.14.1-1) | xdg-desktop-portal-gnome (>= 43.1-2)"
 section = "misc"

@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- License files.
 - The demo ledger to the debian package.
 - A copyright date.
 
 ### Changed
 
+- Moved debian files into own folder.
 - Display fraction changed instead of dollar amount.
 
 ### Removed
