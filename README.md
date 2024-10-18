@@ -30,6 +30,6 @@ On Tx and 2nd Tx you can limit transactions displayed by month.
 
 Because there are many crypto, fiat, metals and stocks to choose from, you
 select which ones you want in your config file. An example of a config is
-shown in demo-ledger.ron, located under `usr/share/doc/financial-accounts/`
+shown in demo-ledger.ron, located under `/usr/share/doc/financial-accounts/`
 if this was installed as a Debian package. All the allowed fiat currencies are
 shown.
