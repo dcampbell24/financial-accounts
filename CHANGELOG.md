@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- The demo ledger to the debian package.
+- A copyright date.
+
 ### Changed
 
-- Add the demo ledger to the debian package.
-- Add a copyright date.
 - Display fraction changed instead of dollar amount.
+
+### Removed
+
+- The links in the debian extended-description.
 
 ## [0.2.0] - 2024-10-12
 
