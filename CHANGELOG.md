@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add a copyright date.
 - Display fraction changed instead of dollar amount.
 
 ## [0.2.0] - 2024-10-12
