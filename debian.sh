@@ -7,5 +7,8 @@ pandoc\
     --standalone --to=man financial-accounts.1.dj --output=financial-accounts.1
 
 gzip --no-name --best financial-accounts.1
+pandoc --standalone --to=plain README.md --output=README.txt
 cargo deb
+
 rm financial-accounts.1.gz
+rm README.txt

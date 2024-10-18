@@ -40,6 +40,7 @@ yahoo_finance_api = { version = "2", features = ["decimal"] }
 [package.metadata.deb]
 copyright = "2024 David Lawrence Campbell"
 maintainer = "David Campbell <dcampbell24@gmail.com>"
+extended-description-file = "README.txt"
 assets = [
     ["target/release/financial-accounts", "usr/bin/", "755"],
     ["README.md", "usr/share/doc/financial-accounts/", "644"],
