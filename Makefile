@@ -3,3 +3,9 @@ enable-git-hooks:
 
 install-audit:
 	cargo install cargo-audit
+
+install-msrv:
+	cargo install cargo-msrv
+
+install-vet:
+	cargo install cargo-vet
