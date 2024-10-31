@@ -37,6 +37,14 @@ thousands = "0.2"
 webbrowser = "1"
 yahoo_finance_api = { version = "2", features = ["decimal"] }
 
+[lints.clippy]
+cargo = "warn"
+# nursery "warn"
+pedantic = "warn"
+# restriction = warn
+
+multiple_crate_versions = { level = "allow", priority = 1 }
+
 [package.metadata.deb]
 copyright = "2024 David Lawrence Campbell"
 maintainer = "David Campbell <dcampbell24@gmail.com>"
