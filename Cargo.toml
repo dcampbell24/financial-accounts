@@ -39,9 +39,7 @@ yahoo_finance_api = { version = "2", features = ["decimal"] }
 
 [lints.clippy]
 cargo = "warn"
-# nursery "warn"
 pedantic = "warn"
-# restriction = "warn"
 
 multiple_crate_versions = { level = "allow", priority = 1 }
 
