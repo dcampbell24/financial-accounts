@@ -976,8 +976,7 @@ fn div_0_ok(dividend: Decimal, divisor: Decimal) -> Decimal {
 }
 
 fn some_or_empty<T: ToString>(value: Option<&T>) -> String {
-    value
-        .map_or_else(String::new, ToString::to_string)
+    value.map_or_else(String::new, ToString::to_string)
 }
 
 fn set_amount(amount: &mut Option<Decimal>, string: &str) {
