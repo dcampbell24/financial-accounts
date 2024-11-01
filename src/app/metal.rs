@@ -38,15 +38,13 @@ impl Price for Metal {
         let mut access_token = String::new();
         if fs::exists(&path)? {
             access_token = fs::read_to_string(path)?;
+        } else if let Some(dir) = home_dir() {
+            let path = dir.join(LOCATION_ACCESS_TOKEN);
+            error_msg.push_str(&format!(" and {path:?} doesn't exist"));
+            access_token = fs::read_to_string(&path).context(error_msg)?;
         } else {
-            if let Some(dir) = home_dir() {
-                let path = dir.join(LOCATION_ACCESS_TOKEN);
-                error_msg.push_str(&format!(" and {path:?} doesn't exist"));
-                access_token = fs::read_to_string(&path).context(error_msg)?;
-            } else {
-                error_msg.push_str("and variable $HOME cannot be found");
-                Err(anyhow::Error::msg(error_msg))?;
-            }
+            error_msg.push_str("and variable $HOME cannot be found");
+            Err(anyhow::Error::msg(error_msg))?;
         }
         let access_token = access_token.trim();
 
