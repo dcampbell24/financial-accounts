@@ -41,15 +41,15 @@ struct BoaRecord {
 
 pub fn import_boa(file_path: PathBuf) -> anyhow::Result<Transactions<Fiat>> {
     let mut records = Vec::new();
+    let name_formal = Regex::new(r" - .+ - .+")?;
+    let white_space = Regex::new(r"\s+")?;
 
     for boa_record in csv::Reader::from_path(file_path)?.deserialize() {
         let mut boa_record: BoaRecord = boa_record?;
         // We don't get the time of day, so can't tell what day it really is in UTC.
         boa_record.date.push_str(" 00:00:00");
 
-        let name_formal = Regex::new(r" - .+ - .+")?;
         let name = Regex::replace(&name_formal, &boa_record.account_name, "").into_owned();
-        let white_space = Regex::new(r"\s+")?;
         let description =
             Regex::replace_all(&white_space, &boa_record.original_description, " ").into_owned();
         let comment = format!("{name}: {description}");

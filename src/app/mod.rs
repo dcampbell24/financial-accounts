@@ -975,10 +975,9 @@ fn div_0_ok(dividend: Decimal, divisor: Decimal) -> Decimal {
     }
 }
 
-fn some_or_empty<T: ToString>(value: &Option<T>) -> String {
+fn some_or_empty<T: ToString>(value: Option<&T>) -> String {
     value
-        .as_ref()
-        .map_or_else(String::new, std::string::ToString::to_string)
+        .map_or_else(String::new, ToString::to_string)
 }
 
 fn set_amount(amount: &mut Option<Decimal>, string: &str) {

@@ -156,11 +156,11 @@ impl Account {
 
     fn input(&self) -> Row<super::Message> {
         row![
-            balance_view(&self.tx.balance),
-            amount_view(&self.tx.amount),
+            balance_view(self.tx.balance.as_ref()),
+            amount_view(self.tx.amount.as_ref()),
             date_view(&self.tx.date),
             comment_view(&self.tx.comment),
-            add_view(&self.tx.amount, &self.tx.balance),
+            add_view(self.tx.amount.as_ref(), self.tx.balance.as_ref()),
             text(" ".repeat(EDGE_PADDING)),
         ]
         .padding(PADDING)
@@ -168,10 +168,10 @@ impl Account {
     }
 
     fn filter_date(&self) -> Row<super::Message> {
-        let year = text_input("Year", &some_or_empty(&self.filter_date_year))
+        let year = text_input("Year", &some_or_empty(self.filter_date_year.as_ref()))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
 
-        let month = text_input("Month", &some_or_empty(&self.filter_date_month))
+        let month = text_input("Month", &some_or_empty(self.filter_date_month.as_ref()))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateMonth(string)));
 
         let mut filter_button = button("Filter");
@@ -579,12 +579,12 @@ impl Account {
     }
 }
 
-fn amount_view(amount: &Option<Decimal>) -> TextInput<app::Message> {
+fn amount_view(amount: Option<&Decimal>) -> TextInput<app::Message> {
     text_input("Amount", &some_or_empty(amount))
         .on_input(|string| app::Message::Account(Message::ChangeTx(string)))
 }
 
-fn balance_view(balance: &Option<Decimal>) -> TextInput<app::Message> {
+fn balance_view(balance: Option<&Decimal>) -> TextInput<app::Message> {
     text_input("Balance", &some_or_empty(balance))
         .on_input(|string| app::Message::Account(Message::ChangeBalance(string)))
 }
@@ -600,7 +600,7 @@ fn comment_view(comment: &str) -> TextInput<app::Message> {
         .on_paste(|string| app::Message::Account(Message::ChangeComment(string)))
 }
 
-fn add_view<'a>(amount: &Option<Decimal>, balance: &Option<Decimal>) -> Button<'a, app::Message> {
+fn add_view<'a>(amount: Option<&Decimal>, balance: Option<&Decimal>) -> Button<'a, app::Message> {
     let mut add = button("Add");
     match (amount, balance) {
         (Some(_amount), None) => add = add.on_press(app::Message::Account(Message::SubmitTx)),
