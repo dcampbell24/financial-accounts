@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::Context;
 use chrono::{serde::ts_seconds, DateTime, Utc};
+use dirs::home_dir;
 use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{account::transactions::Price, Fiat};
 
-const LOCATION_ACCESS_TOKEN: &str = "./goldapi.io.txt";
+const LOCATION_ACCESS_TOKEN: &str = "goldapi.io.txt";
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, Serialize)]
 pub struct Metal {
@@ -31,9 +32,22 @@ impl fmt::Display for Metal {
 impl Price for Metal {
     async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
         let pwd = env::current_dir()?;
-        let access_token = fs::read_to_string(LOCATION_ACCESS_TOKEN).context(format!(
-            "pwd: {pwd:?} location: {LOCATION_ACCESS_TOKEN:?} doesn't exist"
-        ))?;
+        let path = pwd.join(LOCATION_ACCESS_TOKEN);
+        let mut error_msg = format!("{path:?} doesn't exist");
+
+        let mut access_token = String::new();
+        if fs::exists(&path)? {
+            access_token = fs::read_to_string(path)?;
+        } else {
+            if let Some(dir) = home_dir() {
+                let path = dir.join(LOCATION_ACCESS_TOKEN);
+                error_msg.push_str(&format!(" and {path:?} doesn't exist"));
+                access_token = fs::read_to_string(&path).context(error_msg)?;
+            } else {
+                error_msg.push_str("and variable $HOME cannot be found");
+                Err(anyhow::Error::msg(error_msg))?;
+            }
+        }
         let access_token = access_token.trim();
 
         let url = Url::parse(&format!(

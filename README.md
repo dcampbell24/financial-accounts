@@ -10,8 +10,8 @@ An application for tracking your personal finances.
 
 To get the price of metals I use a service from goldapi.io and it requires a
 token (free for 100 requests per month). The token is stored in a file named
-"goldapi.io.txt" stored in the same directory as the program
-is run from or your home directory if you installed the application.
+"goldapi.io.txt" stored in the same directory as the program is run from or
+your home directory.
 
 You can import Bank of America transactions via Import BoA.
 
