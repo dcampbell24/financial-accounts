@@ -28,10 +28,6 @@ becomes active when you select one of these currencies. Tx is the currency
 Tx 2nd is traded in. When you select "Get Price" Tx is populated with the
 quantity of Tx 2nd you hold times the current price.
 
-Via Monthly Tx it supports making predictions into the future for what will
-happen to your finances. It also automatically submits these transactions at
-the beginning of each month.
-
 On Tx and 2nd Tx you can limit transactions displayed by month.
 
 Because there are many crypto, fiat, metals and stocks to choose from, you
