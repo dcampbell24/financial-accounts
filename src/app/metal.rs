@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Context;
 use chrono::{serde::ts_seconds, DateTime, Utc};
-use dirs::home_dir;
+use dirs::config_local_dir;
 use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
@@ -38,12 +38,12 @@ impl Price for Metal {
         let mut access_token = String::new();
         if fs::exists(&path)? {
             access_token = fs::read_to_string(path)?;
-        } else if let Some(dir) = home_dir() {
+        } else if let Some(dir) = config_local_dir() {
             let path = dir.join(LOCATION_ACCESS_TOKEN);
             error_msg.push_str(&format!(" and {path:?} doesn't exist"));
             access_token = fs::read_to_string(&path).context(error_msg)?;
         } else {
-            error_msg.push_str("and variable $HOME cannot be found");
+            error_msg.push_str("and config local cannot be found");
             Err(anyhow::Error::msg(error_msg))?;
         }
         let access_token = access_token.trim();
