@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Only look in config local for goldapi.io.txt file.
 - The links in the debian extended-description.
 
 ## [0.2.0] - 2024-10-12

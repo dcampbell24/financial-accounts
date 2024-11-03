@@ -1,5 +1,4 @@
 use std::{
-    env,
     fmt::{self, Display},
     fs,
 };
@@ -31,20 +30,13 @@ impl fmt::Display for Metal {
 
 impl Price for Metal {
     async fn get_price(&self, client: &Client) -> anyhow::Result<Decimal> {
-        let pwd = env::current_dir()?;
-        let path = pwd.join(LOCATION_ACCESS_TOKEN);
-        let mut error_msg = format!("{path:?} doesn't exist");
-
         let mut access_token = String::new();
-        if fs::exists(&path)? {
-            access_token = fs::read_to_string(path)?;
-        } else if let Some(dir) = config_local_dir() {
+        if let Some(dir) = config_local_dir() {
             let path = dir.join(LOCATION_ACCESS_TOKEN);
-            error_msg.push_str(&format!(" and {path:?} doesn't exist"));
+            let error_msg = format!("{path:?} doesn't exist");
             access_token = fs::read_to_string(&path).context(error_msg)?;
         } else {
-            error_msg.push_str("and config local cannot be found");
-            Err(anyhow::Error::msg(error_msg))?;
+            Err(anyhow::Error::msg("config local cannot be found"))?;
         }
         let access_token = access_token.trim();
 
