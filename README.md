@@ -10,8 +10,7 @@ An application for tracking your personal finances.
 
 To get the price of metals I use a service from goldapi.io and it requires a
 token (free for 100 requests per month). The token is stored in a file named
-"goldapi.io.txt" stored in the same directory as the program is run from or
-in your config local directory.
+"goldapi.io.txt" stored in your config local directory.
 
 | Platform | Value                             | Example                                  |
 | -------- | --------------------------------- | ---------------------------------------- |
