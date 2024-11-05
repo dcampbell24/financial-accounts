@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Look in your config local folder for goldapi.io.txt.
-- Look in your home directory for goldapi.io.txt.
 - License files.
 - The demo ledger to the debian package.
 - A copyright date.
