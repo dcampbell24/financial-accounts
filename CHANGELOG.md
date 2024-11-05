@@ -9,19 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Look in your config local folder for goldapi.io.txt.
 - License files.
 - The demo ledger to the debian package.
 - A copyright date.
 
 ### Changed
 
+- Only look in config local for goldapi.io.txt file.
 - Moved debian files into own folder.
 - Display fraction changed instead of dollar amount.
 
 ### Removed
 
-- Only look in config local for goldapi.io.txt file.
 - The links in the debian extended-description.
 
 ## [0.2.0] - 2024-10-12
