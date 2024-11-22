@@ -20,13 +20,14 @@ use chart::Chart;
 use chrono::Utc;
 use crypto::Crypto;
 use iced::{
-    executor, theme,
     widget::{
-        button, column,
+        self, button, column,
         combo_box::{ComboBox, State},
-        row, text, text_input, Button, Checkbox, Column, ProgressBar, Row, Scrollable,
+        row,
+        text::IntoFragment,
+        text_input, Button, Checkbox, Column, ProgressBar, Row, Scrollable,
     },
-    window, Alignment, Application, Element, Length, Theme,
+    Alignment, Element, Length, Task, Theme,
 };
 use metal::Metal;
 use money::{Currency, Fiat};
@@ -171,7 +172,7 @@ impl App {
 
         let mut fiats_current = Column::new();
         for fiat in &self.accounts.fiats {
-            fiats_current = fiats_current.push(text_cell(fiat));
+            fiats_current = fiats_current.push(text_cell(fiat.to_string()));
         }
 
         let add_fiat = row![
@@ -226,7 +227,7 @@ impl App {
         let mut column_errors = Column::new();
         if let Some(errors) = &self.errors {
             for error in errors.iter() {
-                column_errors = column_errors.push(text_cell_red(error));
+                column_errors = column_errors.push(text_cell_red(error.to_string()));
             }
         }
 
@@ -473,10 +474,10 @@ impl App {
     #[rustfmt::skip]
     fn display_groups(&self) -> GroupColumnDisplay {
         let mut a_ = column![text_cell(""), text_cell("Group")];
-        let mut b_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut c_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut d_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
-        let mut e_ = column![text_cell(""), text_cell("")].align_items(Alignment::End);
+        let mut b_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
+        let mut c_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
+        let mut d_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
+        let mut e_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
         let mut f_ = column![text_cell(""), text_cell("")];
 
         for (index, group) in self.accounts.groups.iter().enumerate() {
@@ -557,12 +558,12 @@ impl App {
     #[rustfmt::skip]
     fn rows(&self) -> Row<Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
-        let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_items(Alignment::End);
-        let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_items(Alignment::End);
-        let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_items(Alignment::End);
-        let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_items(Alignment::End);
-        let mut col_5 = column![text_cell("Price"), text_cell("")].align_items(Alignment::End);
-        let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_items(Alignment::End);
+        let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_x(Alignment::End);
+        let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_x(Alignment::End);
+        let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_x(Alignment::End);
+        let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_x(Alignment::End);
+        let mut col_5 = column![text_cell("Price"), text_cell("")].align_x(Alignment::End);
+        let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_x(Alignment::End);
         let mut col_7 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
@@ -669,7 +670,7 @@ impl App {
         let mut column_errors = Column::new();
         if let Some(errors) = &self.errors {
             for error in errors.iter() {
-                column_errors = column_errors.push(text_cell_red(error));
+                column_errors = column_errors.push(text_cell_red(error.to_string()));
             }
         }
 
@@ -693,7 +694,7 @@ impl App {
         if let Some(progress) = self.progress_bar {
             all_prices = all_prices.push(ProgressBar::<Theme>::new(0.0..=100.0, progress));
         }
-        all_prices = all_prices.push(text(" ".repeat(EDGE_PADDING)));
+        all_prices = all_prices.push(widget::text(" ".repeat(EDGE_PADDING)));
 
         let cols = column![
             charts,
@@ -701,12 +702,12 @@ impl App {
             column_errors,
             text_cell(""),
             row![
-                text("Account").size(TEXT_SIZE),
+                widget::text("Account").size(TEXT_SIZE),
                 name,
                 currency,
                 add,
                 add_group,
-                text(" ".repeat(EDGE_PADDING)),
+                widget::text(" ".repeat(EDGE_PADDING)),
 
             ].padding(PADDING).spacing(ROW_SPACING),
             all_prices,
@@ -780,6 +781,10 @@ impl App {
         self.save();
     }
 
+    pub fn theme(&self) -> Theme {
+        Theme::SolarizedLight
+    }
+
     fn update_account_name(&mut self, i: usize) {
         let name = self.account_name.trim().to_string();
         if let Err(error) = self.check_account_name(&name) {
@@ -794,53 +799,8 @@ impl App {
         self.insert_new_account(account);
         self.save();
     }
-}
 
-impl Application for App {
-    type Message = Message;
-    type Theme = Theme;
-    type Executor = executor::Default;
-    type Flags = ();
-
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
-        match command_line::get_configuration_file() {
-            command_line::File::Load(file_path) => {
-                let file_path_ = file_path.clone();
-                let (accounts, file) = Accounts::load(None, file_path)
-                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path_, err));
-                (
-                    Self::new(accounts, Some(file)),
-                    window::maximize(window::Id::MAIN, true),
-                )
-            }
-            command_line::File::New(file_path) => {
-                let accounts = Accounts::new();
-                let file_path_ = file_path.clone();
-                let file = accounts
-                    .save_first(file_path)
-                    .unwrap_or_else(|error| panic!("error creating {:?}: {}", &file_path_, error));
-
-                (
-                    Self::new(accounts, Some(file)),
-                    window::maximize(window::Id::MAIN, true),
-                )
-            }
-            command_line::File::None => (
-                Self::new(Accounts::new(), None),
-                window::maximize(window::Id::MAIN, true),
-            ),
-        }
-    }
-
-    fn theme(&self) -> Self::Theme {
-        Theme::SolarizedLight
-    }
-
-    fn title(&self) -> String {
-        String::from("Financial Accounts")
-    }
-
-    fn update(&mut self, message: Message) -> iced::Command<Message> {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         self.errors = None;
 
         match message {
@@ -933,18 +893,42 @@ impl Application for App {
             Message::SelectAccountSecondary(i) => self.screen = Screen::AccountSecondary(i),
             Message::SubmitAccount => self.submit_account(),
             Message::Exit => {
-                return window::close(window::Id::MAIN);
+                return iced::exit();
             }
         }
-        iced::Command::none()
+
+        Task::none()
     }
 
-    fn view(&self) -> Element<Message> {
+    pub fn view(&self) -> Element<Message> {
         match self.screen {
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),
             Screen::AccountSecondary(i) => self.accounts[i].list_transactions_2nd().into(),
             Screen::Configuration => self.config().into(),
+        }
+    }
+}
+
+impl Default for App {
+    fn default() -> Self {
+        match command_line::get_configuration_file() {
+            command_line::File::Load(file_path) => {
+                let file_path_ = file_path.clone();
+                let (accounts, file) = Accounts::load(None, file_path)
+                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path_, err));
+                Self::new(accounts, Some(file))
+            }
+            command_line::File::New(file_path) => {
+                let accounts = Accounts::new();
+                let file_path_ = file_path.clone();
+                let file = accounts
+                    .save_first(file_path)
+                    .unwrap_or_else(|error| panic!("error creating {:?}: {}", &file_path_, error));
+
+                Self::new(accounts, Some(file))
+            }
+            command_line::File::None => Self::new(Accounts::new(), None),
         }
     }
 }
@@ -993,27 +977,20 @@ fn button_cell(button: Button<Message>) -> Row<Message> {
 
 fn number_cell<'a>(num: Decimal) -> Row<'a, Message> {
     let text = match num.cmp(&dec!(0)) {
-        Ordering::Greater => {
-            text(num.separate_with_commas()).style(theme::Text::Color(solarized::green()))
-        }
-        Ordering::Less => {
-            text(num.separate_with_commas()).style(theme::Text::Color(solarized::red()))
-        }
-        Ordering::Equal => text(num.separate_with_commas()),
+        Ordering::Greater => widget::text(num.separate_with_commas()).color(solarized::green()),
+        Ordering::Less => widget::text(num.separate_with_commas()).color(solarized::red()),
+        Ordering::Equal => widget::text(num.separate_with_commas()),
     };
 
     row![text.size(TEXT_SIZE)].padding(PADDING)
 }
 
-fn text_cell<'a>(s: impl ToString) -> Row<'a, Message> {
-    row![text(s).size(TEXT_SIZE)].padding(PADDING)
+fn text_cell<'a>(s: impl ToString + IntoFragment<'a>) -> Row<'a, Message> {
+    row![widget::text(s).size(TEXT_SIZE)].padding(PADDING)
 }
 
-fn text_cell_red<'a>(s: impl ToString) -> Row<'a, Message> {
-    row![text(s)
-        .style(theme::Text::Color(solarized::red()))
-        .size(TEXT_SIZE)]
-    .padding(PADDING)
+fn text_cell_red<'a>(s: impl ToString + IntoFragment<'a>) -> Row<'a, Message> {
+    row![widget::text(s).color(solarized::red()).size(TEXT_SIZE)].padding(PADDING)
 }
 
 #[derive(Clone, Debug, Default)]

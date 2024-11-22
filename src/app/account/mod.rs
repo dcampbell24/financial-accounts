@@ -46,7 +46,7 @@ pub struct Account {
     #[serde(skip)]
     pub filter_date_month: Option<u32>,
     #[serde(skip)]
-    pub error: Option<anyhow::Error>,
+    pub error: Option<String>,
 }
 
 impl Account {
@@ -202,8 +202,8 @@ impl Account {
         };
         let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
 
-        let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
-        let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        let mut col_1 = column![text_cell("Balance")].align_x(iced::Alignment::End);
+        let mut col_2 = column![text_cell("Δ")].align_x(iced::Alignment::End);
         let mut col_3 = column![text_cell("Date")];
         let mut col_4 = column![text_cell("Comment")];
         let mut col_5 = column![text_cell("")];
@@ -216,8 +216,8 @@ impl Account {
 
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
-            col_3 = col_3.push(text_cell(tx.date.format("%Y-%m-%d")));
-            col_4 = col_4.push(text_cell(&tx.comment));
+            col_3 = col_3.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
+            col_4 = col_4.push(text_cell(tx.comment.to_string()));
             col_5 = col_5.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
             ));
@@ -250,12 +250,12 @@ impl Account {
     }
 
     fn rows(&self, txs_1st: &Transactions<Fiat>) -> Row<super::Message> {
-        let mut col_1 = column![text_cell("Balance")].align_items(iced::Alignment::End);
-        let mut col_2 = column![text_cell("Δ")].align_items(iced::Alignment::End);
-        let mut col_3 = column![text_cell("Price")].align_items(iced::Alignment::End);
-        let mut col_3b = column![text_cell("Δ")].align_items(iced::Alignment::End);
-        let mut col_4 = column![text_cell("Quantity")].align_items(iced::Alignment::End);
-        let mut col_4b = column![text_cell("Δ")].align_items(iced::Alignment::End);
+        let mut col_1 = column![text_cell("Balance")].align_x(iced::Alignment::End);
+        let mut col_2 = column![text_cell("Δ")].align_x(iced::Alignment::End);
+        let mut col_3 = column![text_cell("Price")].align_x(iced::Alignment::End);
+        let mut col_3b = column![text_cell("Δ")].align_x(iced::Alignment::End);
+        let mut col_4 = column![text_cell("Quantity")].align_x(iced::Alignment::End);
+        let mut col_4b = column![text_cell("Δ")].align_x(iced::Alignment::End);
         let mut col_5 = column![text_cell("Date")];
         let mut col_6 = column![text_cell("Comment")];
         let mut col_7 = column![text_cell("")];
@@ -294,8 +294,8 @@ impl Account {
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
 
-            col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d")));
-            col_6 = col_6.push(text_cell(&tx.comment));
+            col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
+            col_6 = col_6.push(text_cell(tx.comment.to_string()));
             col_7 = col_7.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
             ));
@@ -486,7 +486,7 @@ impl Account {
         match result {
             Ok(tx) => Some(tx),
             Err(error) => {
-                self.error = Some(error);
+                self.error = Some(error.to_string());
                 None
             }
         }
