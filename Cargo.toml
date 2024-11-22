@@ -27,7 +27,7 @@ plotters = "0.3"
 plotters-iced = "0.11"
 regex = "1"
 reqwest = "0.12"
-rfd = { version = "0.14", default-features = false, features = ["xdg-portal", "tokio"] }
+rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "tokio"] }
 ron = "0.8"
 rust_decimal = "1"
 rust_decimal_macros = "1"
