@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash -e
 
-cargo clippy || exit 1
-cargo fmt --all --check || exit 1
+cargo clippy
+cargo fmt --all --check
