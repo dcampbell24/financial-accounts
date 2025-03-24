@@ -1405,7 +1405,6 @@ dependencies = [
  "clap_lex",
  "csv",
  "dirs 5.0.1",
- "fs4",
  "futures",
  "iced",
  "plotters",
@@ -1568,16 +1567,6 @@ dependencies = [
  "cc",
  "libc",
  "pkg-config",
-]
-
-[[package]]
-name = "fs4"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e871a4cfa68bb224863b53149d973df1ac8d1ed2fa1d1bfc37ac1bb65dd37207"
-dependencies = [
- "rustix 0.38.44",
- "windows-sys 0.52.0",
 ]
 
 [[package]]

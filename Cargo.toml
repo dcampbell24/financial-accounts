@@ -20,7 +20,6 @@ clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
 csv = "1"
 dirs = "5"
-fs4 = { version ="0.11", features = ["sync"] }
 futures = "0.3"
 iced = { version = "0.13", features = ["async-std", "canvas", "tokio"] }
 plotters = "0.3"
