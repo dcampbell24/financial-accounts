@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 - cargo update
-- Updated fs4 and rfd.
+- Updated fs4, rfd, and ron.
 
 ## [0.3.0] 2024-11-21
 
