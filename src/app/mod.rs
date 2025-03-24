@@ -384,8 +384,8 @@ impl App {
 
         if fs::exists(&file_csv)? {
             return Err(anyhow::Error::msg(format!(
-                "\"{:?}\" already exists!",
-                &file_csv
+                "\"{}\" already exists!",
+                &file_csv.display()
             )));
         }
 
@@ -916,16 +916,17 @@ impl Default for App {
         match command_line::get_configuration_file() {
             command_line::File::Load(file_path) => {
                 let file_path_ = file_path.clone();
-                let (accounts, file) = Accounts::load(None, file_path)
-                    .unwrap_or_else(|err| panic!("error loading {:?}: {}", &file_path_, err));
+                let (accounts, file) = Accounts::load(None, file_path).unwrap_or_else(|err| {
+                    panic!("error loading {}: {}", &file_path_.display(), err)
+                });
                 Self::new(accounts, Some(file))
             }
             command_line::File::New(file_path) => {
                 let accounts = Accounts::new();
                 let file_path_ = file_path.clone();
-                let file = accounts
-                    .save_first(file_path)
-                    .unwrap_or_else(|error| panic!("error creating {:?}: {}", &file_path_, error));
+                let file = accounts.save_first(file_path).unwrap_or_else(|error| {
+                    panic!("error creating {}: {}", &file_path_.display(), error)
+                });
 
                 Self::new(accounts, Some(file))
             }

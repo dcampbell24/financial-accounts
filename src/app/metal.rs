@@ -33,7 +33,7 @@ impl Price for Metal {
         let mut access_token = String::new();
         if let Some(dir) = config_local_dir() {
             let path = dir.join(LOCATION_ACCESS_TOKEN);
-            let error_msg = format!("{path:?} doesn't exist");
+            let error_msg = format!("{} doesn't exist", path.display());
             access_token = fs::read_to_string(&path).context(error_msg)?;
         } else {
             Err(anyhow::Error::msg("config local cannot be found"))?;
