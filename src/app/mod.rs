@@ -367,7 +367,8 @@ impl App {
                 self.accounts[j].txs_2nd.as_mut().unwrap().txs.remove(i);
             }
             Screen::Configuration => panic!("Nothing to delete!"),
-        };
+        }
+
         self.save();
     }
 
