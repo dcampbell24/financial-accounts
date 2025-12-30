@@ -1,15 +1,10 @@
 #! /bin/sh
 
-pandoc\
-    --variable=title:financial-accounts\
-    --variable=section:1\
-    --variable=date:2024-07-14\
-    --standalone --to=man debian/financial-accounts.1.dj --output=debian/financial-accounts.1
+cargo build --release
+./target/release/financial-accounts --man
 
-gzip --no-name --best debian/financial-accounts.1
-pandoc --standalone --to=plain README.md --output=debian/README.txt
+gzip --no-name --best financial-accounts.1
 
 cargo deb
 
-rm debian/financial-accounts.1.gz
-rm debian/README.txt
+rm financial-accounts.1.gz

@@ -7,11 +7,15 @@ use clap::Parser;
 pub struct Args {
     /// Load FILE
     #[arg(long, value_name = "FILE", exclusive = true)]
-    load: Option<String>,
+    pub load: Option<String>,
 
     /// Create a new FILE
     #[arg(long, value_name = "FILE", exclusive = true)]
-    new: Option<String>,
+    pub new: Option<String>,
+
+    /// Build the manpage
+    #[arg(long)]
+    pub man: bool,
 }
 
 #[derive(Debug)]
@@ -21,6 +25,7 @@ pub enum File {
     None,
 }
 
+#[must_use]
 pub fn get_configuration_file() -> File {
     let args = Args::parse();
 

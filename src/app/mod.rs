@@ -1,7 +1,7 @@
 mod account;
 mod accounts;
 mod chart;
-mod command_line;
+pub mod command_line;
 mod crypto;
 mod import_boa;
 mod message;
