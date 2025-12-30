@@ -783,7 +783,7 @@ impl App {
     }
 
     pub fn theme(&self) -> Theme {
-        Theme::SolarizedLight
+        Theme::SolarizedDark
     }
 
     fn update_account_name(&mut self, i: usize) {
