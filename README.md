@@ -11,7 +11,7 @@
 
 An application for tracking your personal finances.
 
-To get the price of metals I use a service from goldapi.io and it requires a
+To get the price of metals a service from goldapi.io is used and it requires a
 token (free for 100 requests per month). The token is stored in a file named
 "goldapi.io.txt" stored in your config local directory.
 

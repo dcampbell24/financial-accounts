@@ -1,6 +1,6 @@
 [package]
 name = "financial-accounts"
-description = "Application for tracking your finances."
+description = "Application for tracking your finances"
 version = "0.3.0"
 authors = ["David Campbell <dcampbell24@gmail.com>"]
 edition = "2021"
@@ -46,39 +46,6 @@ multiple_crate_versions = { level = "allow", priority = 1 }
 [package.metadata.deb]
 copyright = "2024 David Lawrence Campbell"
 maintainer = "David Campbell <dcampbell24@gmail.com>"
-extended-description = """
-financial-accounts
--------------------
-
-An application for tracking your personal finances.
-
-To get the price of metals I use a service from goldapi.io and it requires a
-token (free for 100 requests per month). The token is stored in a file named
-"goldapi.io.txt" stored in your config local directory.
-
-| Platform | Value                             | Example                                  |
-| -------- | --------------------------------- | ---------------------------------------- |
-| Linux    | $XDG_CONFIG_HOME or $HOME/.config | /home/alice/.config                      |
-| macOS    | $HOME/Library/Application Support | /Users/Alice/Library/Application Support |
-| Windows  | {FOLDERID_LocalAppData}           | C:\\Users\\Alice\\AppData\\Local         |
-
-You can import Bank of America transactions via Import BoA.
-
-You can import Investor 360 via Import Investor 360.
-
-Via Tx 2nd you can get the price of metals, stocks plus, and crypto. Tx 2nd
-becomes active when you select one of these currencies. Tx is the currency
-Tx 2nd is traded in. When you select "Get Price" Tx is populated with the
-quantity of Tx 2nd you hold times the current price.
-
-On Tx and 2nd Tx you can limit transactions displayed by month.
-
-Because there are many crypto, fiat, metals and stocks to choose from, you
-select which ones you want in your config file. An example of a config is
-shown in demo-ledger.ron, located under `/usr/share/doc/financial-accounts/`
-if this was installed as a Debian package. All the allowed fiat currencies are
-shown.
-"""
 
 assets = [
     ["target/release/financial-accounts", "usr/bin/", "755"],

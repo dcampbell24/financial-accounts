@@ -6,3 +6,4 @@ Icon=financial-accounts
 Type=Application
 StartupNotify=true
 Categories=Office;Finance
+Keywords=Finance

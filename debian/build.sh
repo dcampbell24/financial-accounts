@@ -5,6 +5,9 @@ cargo build --release
 
 gzip --no-name --best financial-accounts.1
 
-cargo deb
+PACKAGE=$(cargo deb)
 
 rm financial-accounts.1.gz
+
+echo $PACKAGE
+lintian -EviIL +pedantic $PACKAGE
