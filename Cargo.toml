@@ -19,14 +19,14 @@ chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 clap_lex = "0.7"
 csv = "1"
-dirs = "5"
+dirs = "6"
 futures = "0.3"
 iced = { version = "0.13", features = ["async-std", "canvas", "tokio"] }
 plotters = "0.3"
 plotters-iced = "0.11"
 regex = "1"
-reqwest = "0.12"
-rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "tokio"] }
+reqwest = "0.13"
+rfd = { version = "0.16", default-features = false, features = ["xdg-portal", "tokio"] }
 ron = "0.12"
 rust_decimal = "1"
 rust_decimal_macros = "1"
