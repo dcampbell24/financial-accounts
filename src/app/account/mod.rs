@@ -154,7 +154,7 @@ impl Account {
         Ok(())
     }
 
-    fn input(&self) -> Row<super::Message> {
+    fn input(&self) -> Row<'_, super::Message> {
         row![
             balance_view(self.tx.balance.as_ref()),
             amount_view(self.tx.amount.as_ref()),
@@ -167,7 +167,7 @@ impl Account {
         .spacing(ROW_SPACING)
     }
 
-    fn filter_date(&self) -> Row<super::Message> {
+    fn filter_date(&self) -> Row<'_, super::Message> {
         let year = text_input("Year", &some_or_empty(self.filter_date_year.as_ref()))
             .on_input(|string| app::Message::Account(Message::ChangeFilterDateYear(string)));
 
@@ -192,7 +192,7 @@ impl Account {
         .spacing(ROW_SPACING)
     }
 
-    pub fn list_transactions_2nd(&self) -> Scrollable<app::Message> {
+    pub fn list_transactions_2nd(&self) -> Scrollable<'_, app::Message> {
         let mut txs_struct = self.txs_2nd.as_ref().unwrap().clone();
         txs_struct.filter_month(self.filter_date);
 
@@ -217,7 +217,7 @@ impl Account {
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
             col_3 = col_3.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
-            col_4 = col_4.push(text_cell(tx.comment.to_string()));
+            col_4 = col_4.push(text_cell(tx.comment.clone()));
             col_5 = col_5.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
             ));
@@ -249,7 +249,7 @@ impl Account {
         Scrollable::new(col)
     }
 
-    fn rows(&self, txs_1st: &Transactions<Fiat>) -> Row<super::Message> {
+    fn rows(&self, txs_1st: &Transactions<Fiat>) -> Row<'_, super::Message> {
         let mut col_1 = column![text_cell("Balance")].align_x(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_x(iced::Alignment::End);
         let mut col_3 = column![text_cell("Price")].align_x(iced::Alignment::End);
@@ -295,7 +295,7 @@ impl Account {
             col_2 = col_2.push(number_cell(amount));
 
             col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
-            col_6 = col_6.push(text_cell(tx.comment.to_string()));
+            col_6 = col_6.push(text_cell(tx.comment.clone()));
             col_7 = col_7.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
             ));
@@ -310,7 +310,7 @@ impl Account {
         rows.spacing(ROW_SPACING)
     }
 
-    pub fn list_transactions(&self) -> Scrollable<app::Message> {
+    pub fn list_transactions(&self) -> Scrollable<'_, app::Message> {
         let mut txs_1st = self.txs_1st.clone();
         txs_1st.filter_month(self.filter_date);
 
@@ -579,22 +579,22 @@ impl Account {
     }
 }
 
-fn amount_view(amount: Option<&Decimal>) -> TextInput<app::Message> {
+fn amount_view(amount: Option<&Decimal>) -> TextInput<'_, app::Message> {
     text_input("Amount", &some_or_empty(amount))
         .on_input(|string| app::Message::Account(Message::ChangeTx(string)))
 }
 
-fn balance_view(balance: Option<&Decimal>) -> TextInput<app::Message> {
+fn balance_view(balance: Option<&Decimal>) -> TextInput<'_, app::Message> {
     text_input("Balance", &some_or_empty(balance))
         .on_input(|string| app::Message::Account(Message::ChangeBalance(string)))
 }
 
-fn date_view(date: &str) -> TextInput<app::Message> {
+fn date_view(date: &str) -> TextInput<'_, app::Message> {
     text_input("Date YYYY-MM-DD (empty for today)", date)
         .on_input(|string| app::Message::Account(Message::ChangeDate(string)))
 }
 
-fn comment_view(comment: &str) -> TextInput<app::Message> {
+fn comment_view(comment: &str) -> TextInput<'_, app::Message> {
     text_input("Comment", comment)
         .on_input(|string| app::Message::Account(Message::ChangeComment(string)))
         .on_paste(|string| app::Message::Account(Message::ChangeComment(string)))

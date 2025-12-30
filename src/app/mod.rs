@@ -145,7 +145,7 @@ impl App {
         self.save();
     }
 
-    fn config(&self) -> Scrollable<Message> {
+    fn config(&self) -> Scrollable<'_, Message> {
         let mut crypto_current = Column::new();
         for crypto in &self.accounts.crypto {
             let crypto = format!("{crypto:?}");
@@ -473,7 +473,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn display_groups(&self) -> GroupColumnDisplay {
+    fn display_groups(&self) -> GroupColumnDisplay<'_> {
         let mut a_ = column![text_cell(""), text_cell("Group")];
         let mut b_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
         let mut c_ = column![text_cell(""), text_cell("")].align_x(Alignment::End);
@@ -524,7 +524,7 @@ impl App {
         GroupColumnDisplay { a: a_, b: b_, c: c_, d: d_, e: e_, f: f_}
     }
 
-    fn display_totals(&self, currency: &Fiat) -> TotalsColumnDisplay {
+    fn display_totals(&self, currency: &Fiat) -> TotalsColumnDisplay<'_> {
         let (before_last_week, mut last_week) = self.accounts.total_for_last_week(currency);
         let (before_last_month, mut last_month) = self.accounts.total_for_last_month(currency);
         let (before_last_year, mut last_year) = self.accounts.total_for_last_year(currency);
@@ -557,7 +557,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn rows(&self) -> Row<Message> {
+    fn rows(&self) -> Row<'_, Message> {
         let mut col_0 = column![text_cell(" Account "), text_cell("")];
         let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_x(Alignment::End);
         let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_x(Alignment::End);
@@ -655,7 +655,7 @@ impl App {
     }
 
     #[rustfmt::skip]
-    fn list_accounts(&self) -> Scrollable<Message> {
+    fn list_accounts(&self) -> Scrollable<'_, Message> {
         let mut charts = Column::new();
         for currency in self.accounts.currencies() {
             let chart = Chart {
@@ -901,7 +901,7 @@ impl App {
         Task::none()
     }
 
-    pub fn view(&self) -> Element<Message> {
+    pub fn view(&self) -> Element<'_, Message> {
         match self.screen {
             Screen::Accounts => self.list_accounts().into(),
             Screen::Account(i) => self.accounts[i].list_transactions().into(),

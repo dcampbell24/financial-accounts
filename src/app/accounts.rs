@@ -19,8 +19,6 @@ use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
 use super::File;
 
-const LOCK_FAILED: &str = "failed to take lock";
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Accounts {
     #[serde(rename = "accounts")]
@@ -186,17 +184,14 @@ impl Accounts {
 
         if fs::exists(&file_path)? {
             let file = fs::File::open(&file_path)?;
-            if !file.try_lock()? {
-                return Err(anyhow::Error::msg(LOCK_FAILED));
-            }
+            file.try_lock()?;
             file.unlock()?;
         }
 
         let mut file = fs::File::create(&file_path)?;
-        if !file.try_lock()? {
-            return Err(anyhow::Error::msg(LOCK_FAILED));
-        }
+        file.try_lock()?;
         file.write_all(self.to_string()?.as_bytes())?;
+
         Ok(File {
             path: file_path,
             inner: file,
@@ -209,10 +204,9 @@ impl Accounts {
             .create_new(true)
             .open(&file_path)?;
 
-        if !file.try_lock()? {
-            return Err(anyhow::Error::msg(LOCK_FAILED));
-        }
+        file.try_lock()?;
         file.write_all(self.to_string()?.as_bytes())?;
+
         Ok(File {
             path: file_path,
             inner: file,
@@ -225,11 +219,9 @@ impl Accounts {
 
         let mut file = fs::File::create(&file_path)?;
         old_file.inner.unlock()?;
-        if !file.try_lock()? {
-            return Err(anyhow::Error::msg(LOCK_FAILED));
-        }
-
+        file.try_lock()?;
         file.write_all(self.to_string()?.as_bytes())?;
+
         Ok(File {
             path: file_path,
             inner: file,
@@ -242,20 +234,18 @@ impl Accounts {
         }
         let mut file = fs::File::open(&file_path)?;
 
-        if file.try_lock()? {
-            let mut buf = String::new();
-            file.read_to_string(&mut buf)?;
-            let accounts = ron::from_str(&buf)?;
-            Ok((
-                accounts,
-                File {
-                    path: file_path,
-                    inner: file,
-                },
-            ))
-        } else {
-            Err(anyhow::Error::msg(LOCK_FAILED))
-        }
+        file.try_lock()?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let accounts = ron::from_str(&buf)?;
+
+        Ok((
+            accounts,
+            File {
+                path: file_path,
+                inner: file,
+            },
+        ))
     }
 }
 
