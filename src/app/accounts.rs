@@ -19,7 +19,7 @@ use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
 use super::File;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Accounts {
     #[serde(rename = "accounts")]
     pub inner: Vec<Account>,

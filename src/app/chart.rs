@@ -15,7 +15,7 @@ pub struct Chart<T: Clone + Display> {
     pub duration: Duration,
 }
 
-impl<T: Clone + Display> plotters_iced::Chart<Message> for Chart<T> {
+impl<T: Clone + Display> plotters_iced2::Chart<Message> for Chart<T> {
     type State = ();
 
     fn build_chart<DB: plotters::prelude::DrawingBackend>(

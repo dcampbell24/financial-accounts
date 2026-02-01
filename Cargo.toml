@@ -22,9 +22,9 @@ clap_mangen = "0.2"
 csv = "1"
 dirs = "6"
 futures = "0.3"
-iced = { version = "0.13", features = ["async-std", "canvas", "tokio"] }
+iced = { version = "0.14", features = ["canvas", "tokio"] }
 plotters = "0.3"
-plotters-iced = "0.11"
+plotters-iced2 = "0.14"
 regex = "1"
 reqwest = "0.13"
 rfd = { version = "0.16", default-features = false, features = ["xdg-portal", "tokio"] }

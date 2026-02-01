@@ -27,11 +27,11 @@ use iced::{
         text::IntoFragment,
         text_input, Button, Checkbox, Column, ProgressBar, Row, Scrollable,
     },
-    Alignment, Element, Length, Task, Theme,
+    Alignment, Element, Length, Pixels, Task, Theme,
 };
 use metal::Metal;
 use money::{Currency, Fiat};
-use plotters_iced::ChartWidget;
+use plotters_iced2::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::Deserialize;
@@ -49,8 +49,8 @@ const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 1;
 const CHECKBOX_SPACING: f32 = 12.5;
 const COLUMN_SPACING: f32 = 0.3;
-const ROW_SPACING: u16 = 5;
-const TEXT_SIZE: u16 = 24;
+const ROW_SPACING: Pixels = Pixels(5.0);
+const TEXT_SIZE: Pixels = Pixels(24.0);
 
 /// The financial-accounts application.
 #[derive(Debug)]
@@ -565,7 +565,7 @@ impl App {
         let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_x(Alignment::End);
         let mut col_5 = column![text_cell("Price"), text_cell("")].align_x(Alignment::End);
         let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_x(Alignment::End);
-        let mut col_7 = column![Checkbox::new("", false), Checkbox::new("", false)].spacing(CHECKBOX_SPACING);
+        let mut col_7 = column![Checkbox::new(false), Checkbox::new(false)].spacing(CHECKBOX_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
         let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
@@ -606,7 +606,7 @@ impl App {
             col_4 = col_4.push(number_cell(value));
             col_5 = col_5.push(price);
             col_6 = col_6.push(quantity);
-            col_7 = col_7.push(Checkbox::new("", self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
+            col_7 = col_7.push(Checkbox::new(self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
             col_8 = col_8.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd {

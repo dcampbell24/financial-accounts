@@ -20,8 +20,9 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    iced::application("Financial Accounts", App::update, App::view)
-        .window_size(iced::Size::INFINITY)
+    iced::application(App::default, App::update, App::view)
+        .title("Financial Accounts")
+        .window_size(iced::Size::INFINITE)
         .theme(App::theme)
         .run()?;
 

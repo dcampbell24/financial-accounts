@@ -8,7 +8,7 @@ use iced::{
     widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
 };
-use plotters_iced::ChartWidget;
+use plotters_iced2::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
