@@ -8,7 +8,7 @@ rust-version = "1.89"
 license = "MIT OR Apache-2.0"
 keywords = ["finance"]
 categories = ["finance"]
-homepage = "https://github.com/dcampbell24/financial-accounts"
+# homepage = ""
 documentation = "https://docs.rs/financial-accounts"
 repository = "https://github.com/dcampbell24/financial-accounts"
 readme = "README.md"
@@ -27,7 +27,7 @@ plotters = "0.3"
 plotters-iced2 = "0.14"
 regex = "1"
 reqwest = "0.13"
-rfd = { version = "0.16", default-features = false, features = ["xdg-portal", "tokio"] }
+rfd = { version = "0.17", default-features = false, features = ["xdg-portal"] }
 ron = "0.12"
 rust_decimal = "1"
 rust_decimal_macros = "1"
