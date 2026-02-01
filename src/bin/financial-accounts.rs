@@ -2,6 +2,10 @@ use std::io::Write;
 
 use clap::{CommandFactory, Parser};
 use financial_accounts::app::{command_line::Args, App};
+use iced::window;
+use image::ImageFormat;
+
+const MONEY: &[u8] = include_bytes!("financial-accounts_256x256.png");
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
@@ -22,6 +26,13 @@ fn main() -> anyhow::Result<()> {
 
     iced::application(App::default, App::update, App::view)
         .title("Financial Accounts")
+        .window(window::Settings {
+            icon: Some(iced::window::icon::from_file_data(
+                MONEY,
+                Some(ImageFormat::Png),
+            )?),
+            ..window::Settings::default()
+        })
         .window_size(iced::Size::INFINITE)
         .theme(App::theme)
         .run()?;
