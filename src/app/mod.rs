@@ -20,14 +20,14 @@ use chart::Chart;
 use chrono::Utc;
 use crypto::Crypto;
 use iced::{
+    Alignment, Element, Length, Pixels, Task, Theme,
     widget::{
-        self, button, column,
+        self, Button, Checkbox, Column, ProgressBar, Row, Scrollable, button, column,
         combo_box::{ComboBox, State},
         row,
         text::IntoFragment,
-        text_input, Button, Checkbox, Column, ProgressBar, Row, Scrollable,
+        text_input,
     },
-    Alignment, Element, Length, Pixels, Task, Theme,
 };
 use metal::Metal;
 use money::{Currency, Fiat};
@@ -106,11 +106,7 @@ impl App {
             .zip(self.accounts.inner.iter())
             .filter_map(
                 |(index, account)| {
-                    if account.check_box {
-                        Some(index)
-                    } else {
-                        None
-                    }
+                    if account.check_box { Some(index) } else { None }
                 },
             )
             .collect();
@@ -609,10 +605,9 @@ impl App {
             col_7 = col_7.push(Checkbox::new(self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
             col_8 = col_8.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
-            if let Some(account) = &account.txs_2nd {
-                if account.has_txs_2nd() {
+            if let Some(account) = &account.txs_2nd
+                && account.has_txs_2nd() {
                     txs_2nd = txs_2nd.on_press(Message::SelectAccountSecondary(i));
-                }
             }
             col_9 = col_9.push(button_cell(txs_2nd));
             let mut update_name = button("Update Name");
@@ -732,10 +727,9 @@ impl App {
         if let Some(account) = match self.screen {
             Screen::Accounts | Screen::Configuration => None,
             Screen::Account(account) | Screen::AccountSecondary(account) => Some(account),
-        } {
-            if self.accounts[account].update(&self.screen, message) {
-                self.save();
-            }
+        } && self.accounts[account].update(&self.screen, message)
+        {
+            self.save();
         }
     }
 

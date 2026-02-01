@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.4.0]
+
 ## Changed
 
 - cargo update
@@ -77,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
+[0.4.0]: https://crates.io/crates/financial-accounts/0.4.0
 [0.3.0]: https://crates.io/crates/financial-accounts/0.3.0
 [0.2.0]: https://crates.io/crates/financial-accounts/0.2.0
 [0.1.3]: https://crates.io/crates/financial-accounts/0.1.3

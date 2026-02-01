@@ -7,7 +7,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{money::Currency, Fiat};
+use crate::app::{Fiat, money::Currency};
 
 use super::transaction::Transaction;
 

@@ -12,12 +12,12 @@ use std::path::PathBuf;
 
 use crate::app::account::Account;
 
+use super::File;
 use super::account::transactions::Transactions;
 use super::crypto::Crypto;
 use super::metal::Metal;
 use super::money::{Currency, Fiat};
 use super::stocks::StockPlus;
-use super::File;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Accounts {

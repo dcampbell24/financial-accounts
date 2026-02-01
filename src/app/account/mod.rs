@@ -5,8 +5,8 @@ use std::{error::Error, fmt::Display, path::PathBuf, string::ToString};
 
 use chrono::{DateTime, NaiveDate, ParseError, TimeDelta, TimeZone, Utc};
 use iced::{
-    widget::{button, column, row, text, text_input, Button, Row, Scrollable, TextInput},
     Length,
+    widget::{Button, Row, Scrollable, TextInput, button, column, row, text, text_input},
 };
 use plotters_iced2::ChartWidget;
 use rust_decimal::Decimal;
@@ -14,16 +14,16 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use transactions::{PriceAsTransaction, Transactions};
 
-use crate::app::{self, account::transaction::Transaction, EDGE_PADDING, PADDING};
+use crate::app::{self, EDGE_PADDING, PADDING, account::transaction::Transaction};
 
 use super::{
-    button_cell,
+    Duration, ROW_SPACING, button_cell,
     chart::Chart,
     import_boa::import_boa,
     money::{Currency, Fiat},
     number_cell,
     screen::Screen,
-    set_amount, some_or_empty, text_cell, Duration, ROW_SPACING,
+    set_amount, some_or_empty, text_cell,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -137,7 +137,9 @@ impl Account {
         if let Some(tx_1st) = self.txs_1st.txs.last() {
             if let Some(tx_add) = boa.txs.first() {
                 if tx_1st.date > tx_add.date {
-                    return Err(anyhow::Error::msg("The starting date of the first transaction you want to add is not greater than the end date of the old transactions."));
+                    return Err(anyhow::Error::msg(
+                        "The starting date of the first transaction you want to add is not greater than the end date of the old transactions.",
+                    ));
                 }
             } else {
                 return Ok(());
@@ -302,7 +304,9 @@ impl Account {
         }
 
         let rows = if self.txs_2nd.is_some() {
-            row![col_1, col_2, col_3, col_3b, col_4, col_4b, col_5, col_6, col_7]
+            row![
+                col_1, col_2, col_3, col_3b, col_4, col_4b, col_5, col_6, col_7
+            ]
         } else {
             row![col_1, col_2, col_5, col_6, col_7]
         };
@@ -505,20 +509,20 @@ impl Account {
                 if date.is_empty() {
                     self.filter_date_month = None;
                 }
-                if let Ok(date) = date.parse() {
-                    if (1..13).contains(&date) {
-                        self.filter_date_month = Some(date);
-                    }
+                if let Ok(date) = date.parse()
+                    && (1..13).contains(&date)
+                {
+                    self.filter_date_month = Some(date);
                 }
             }
             Message::ChangeFilterDateYear(date) => {
                 if date.is_empty() {
                     self.filter_date_year = None;
                 }
-                if let Ok(date) = date.parse() {
-                    if (0..3_000).contains(&date) {
-                        self.filter_date_year = Some(date);
-                    }
+                if let Ok(date) = date.parse()
+                    && (0..3_000).contains(&date)
+                {
+                    self.filter_date_year = Some(date);
                 }
             }
             Message::ChangeTx(tx) => set_amount(&mut self.tx.amount, &tx),

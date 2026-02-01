@@ -8,7 +8,7 @@ use rust_decimal::prelude::ToPrimitive;
 
 use crate::app::message::Message;
 
-use super::{account::transactions::Transactions, solarized, Duration};
+use super::{Duration, account::transactions::Transactions, solarized};
 
 pub struct Chart<T: Clone + Display> {
     pub txs: Transactions<T>,

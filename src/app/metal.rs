@@ -4,14 +4,14 @@ use std::{
 };
 
 use anyhow::Context;
-use chrono::{serde::ts_seconds, DateTime, Utc};
+use chrono::{DateTime, Utc, serde::ts_seconds};
 use dirs::config_local_dir;
 use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use super::{account::transactions::Price, Fiat};
+use super::{Fiat, account::transactions::Price};
 
 const LOCATION_ACCESS_TOKEN: &str = "goldapi.io.txt";
 

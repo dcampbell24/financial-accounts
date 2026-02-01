@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use clap::{CommandFactory, Parser};
-use financial_accounts::app::{command_line::Args, App};
+use financial_accounts::app::{App, command_line::Args};
 use iced::window;
 use image::ImageFormat;
 
