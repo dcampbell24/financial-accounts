@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.4.1]
+
+## Changed
+
+- Don't set the window size to INFINITE, so the program runs on macOS.
+
 ## [0.4.0]
 
 ## Changed
 
 - cargo update
-- Updated rfd, and ron.
+- Updated iced, rfd, and ron.
 
 ### Removed
 
