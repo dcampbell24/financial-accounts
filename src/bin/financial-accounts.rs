@@ -33,7 +33,6 @@ fn main() -> anyhow::Result<()> {
             )?),
             ..window::Settings::default()
         })
-        .window_size(iced::Size::INFINITE)
         .theme(App::theme)
         .run()?;
 
