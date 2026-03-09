@@ -47,8 +47,7 @@ const TITLE_FILE_PICKER: &str = "Financial Accounts";
 const LAST_DATE_SCALE: u32 = 4;
 const EDGE_PADDING: usize = 4;
 const PADDING: u16 = 2;
-const CHECKBOX_SPACING: f32 = 21.0;
-const COLUMN_SPACING: f32 = 0.3;
+const COLUMN_SPACING: f32 = 0.5;
 const ROW_SPACING: Pixels = Pixels(5.0);
 const TEXT_SIZE: Pixels = Pixels(24.0);
 
@@ -561,7 +560,7 @@ impl App {
         let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("---")].align_x(Alignment::End);
         let mut col_5 = column![text_cell("Price"), text_cell("---")].align_x(Alignment::End);
         let mut col_6 = column![text_cell("Quantity"), text_cell("---")].align_x(Alignment::End);
-        let mut col_7 = column![text_cell("---")].spacing(CHECKBOX_SPACING);
+        let mut col_7 = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
         let mut col_8 = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
         let mut col_9 = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
         let mut col_a = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
@@ -606,7 +605,7 @@ impl App {
             col_4 = col_4.push(number_cell(value));
             col_5 = col_5.push(price);
             col_6 = col_6.push(quantity);
-            col_7 = col_7.push(Checkbox::new(self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))));
+            col_7 = col_7.push(Checkbox::new(self.accounts[i].check_box).on_toggle(move |b| Message::Checkbox((i, b))).size(35));
             col_8 = col_8.push(button_cell(button("Tx").on_press(Message::SelectAccount(i))));
             let mut txs_2nd = button("Tx 2nd");
             if let Some(account) = &account.txs_2nd
