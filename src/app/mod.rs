@@ -690,7 +690,7 @@ impl App {
             add_group = add_group.on_press(Message::AddGroup);
         }
 
-        let mut all_prices = row![button_cell(button("Get All Prices").on_press(Message::GetPriceAll))];
+        let mut all_prices = row![button_cell(button("Get All Prices").on_press(Message::GetPriceAll))].padding(PADDING);
         if let Some(progress) = self.progress_bar {
             all_prices = all_prices.push(ProgressBar::<Theme>::new(0.0..=100.0, progress));
         }
@@ -715,13 +715,13 @@ impl App {
                 button_cell(button("Open BoA URL").on_press(Message::OpenBoaUrl)),
                 button_cell(button("Open Investor 360 URL").on_press(Message::OpenInvestor360Url)),
                 button_cell(button("Import Investor 360").on_press(Message::ImportInvestor360)),
-            ].padding(PADDING),
+            ].spacing(ROW_SPACING).padding(PADDING).padding(PADDING),
             row![
                 button_cell(button("Exit").on_press(Message::Exit)),
                 button_cell(button("Load").on_press(Message::FileLoad)),
                 button_cell(button("Save As").on_press(Message::FileSaveAs)),
                 button_cell(button("Configuration").on_press(Message::Configuration)),
-            ]
+            ].spacing(ROW_SPACING).padding(PADDING)
         ];
 
         Scrollable::new(cols)
