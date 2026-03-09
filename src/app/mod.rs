@@ -578,7 +578,11 @@ impl App {
             let mut quantity = text_cell("");
             let mut price = text_cell("");
             if let Some(mut quantity_) = account.balance_2nd() {
-                let mut price_ = value / quantity_;
+                let mut price_ = if quantity_ == dec!(0.0) {
+                    dec!(0.0)
+                } else {
+                    value / quantity_
+                };
 
                 quantity_.rescale(8);
                 price_.rescale(2);

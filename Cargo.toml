@@ -17,7 +17,7 @@ include = ["src/**/*", "LICENSE-*", "README.md", "CHANGELOG.md"]
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
-clap_lex = "0.7"
+clap_lex = "1"
 clap_mangen = "0.2"
 csv = "1"
 dirs = "6"
