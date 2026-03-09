@@ -46,8 +46,8 @@ const INVESTOR_360_URL: &str = "https://my.investor360.com/nce/Holdings";
 const TITLE_FILE_PICKER: &str = "Financial Accounts";
 const LAST_DATE_SCALE: u32 = 4;
 const EDGE_PADDING: usize = 4;
-const PADDING: u16 = 1;
-const CHECKBOX_SPACING: f32 = 12.5;
+const PADDING: u16 = 2;
+const CHECKBOX_SPACING: f32 = 21.0;
 const COLUMN_SPACING: f32 = 0.3;
 const ROW_SPACING: Pixels = Pixels(5.0);
 const TEXT_SIZE: Pixels = Pixels(24.0);
@@ -554,20 +554,20 @@ impl App {
 
     #[rustfmt::skip]
     fn rows(&self) -> Row<'_, Message> {
-        let mut col_0 = column![text_cell(" Account "), text_cell("")];
-        let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("")].align_x(Alignment::End);
-        let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("")].align_x(Alignment::End);
-        let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("")].align_x(Alignment::End);
-        let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("")].align_x(Alignment::End);
-        let mut col_5 = column![text_cell("Price"), text_cell("")].align_x(Alignment::End);
-        let mut col_6 = column![text_cell("Quantity"), text_cell("")].align_x(Alignment::End);
-        let mut col_7 = column![Checkbox::new(false), Checkbox::new(false)].spacing(CHECKBOX_SPACING);
-        let mut col_8 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_9 = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_a = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_b = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_c = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
-        let mut col_d = column![text_cell(""), text_cell("")].spacing(COLUMN_SPACING);
+        let mut col_0 = column![text_cell(" Account "), text_cell("---")];
+        let mut col_1 = column![button_cell(button("Week").on_press(Message::ChartWeek)), text_cell("---")].align_x(Alignment::End);
+        let mut col_2 = column![button_cell(button("Month").on_press(Message::ChartMonth)), text_cell("---")].align_x(Alignment::End);
+        let mut col_3 = column![button_cell(button("Year").on_press(Message::ChartYear)), text_cell("---")].align_x(Alignment::End);
+        let mut col_4 = column![button_cell(button("Balance").on_press(Message::ChartAll)), text_cell("---")].align_x(Alignment::End);
+        let mut col_5 = column![text_cell("Price"), text_cell("---")].align_x(Alignment::End);
+        let mut col_6 = column![text_cell("Quantity"), text_cell("---")].align_x(Alignment::End);
+        let mut col_7 = column![text_cell("---")].spacing(CHECKBOX_SPACING);
+        let mut col_8 = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
+        let mut col_9 = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
+        let mut col_a = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
+        let mut col_b = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
+        let mut col_c = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
+        let mut col_d = column![text_cell(""), text_cell("---")].spacing(COLUMN_SPACING);
 
         for (i, account) in self.accounts.inner.iter().enumerate() {
             let (before_last_week, mut last_week) = account.sum_last_week();
