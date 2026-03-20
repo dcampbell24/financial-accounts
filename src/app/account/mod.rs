@@ -459,7 +459,7 @@ impl Account {
     }
 
     pub fn sum_last_month(&self) -> (Decimal, Decimal) {
-        let last_month = Timestamp::now().checked_sub(30.days()).unwrap(); 
+        let last_month = Timestamp::now().checked_sub(30.days()).unwrap();
         let mut amount = dec!(0);
         let mut previous_amount = dec!(0);
 
@@ -474,7 +474,7 @@ impl Account {
     }
 
     pub fn sum_last_year(&self) -> (Decimal, Decimal) {
-        let last_year = Timestamp::now().checked_sub(365.days()).unwrap(); 
+        let last_year = Timestamp::now().checked_sub(365.days()).unwrap();
         let mut amount = dec!(0);
         let mut previous_amount = dec!(0);
 
