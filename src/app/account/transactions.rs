@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use anyhow::Error;
-use chrono::{DateTime, Months, TimeDelta, Utc};
+use jiff::{Timestamp, ToSpan};
 use reqwest::Client;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -43,7 +43,7 @@ impl PriceAsTransaction for Transactions<Currency> {
             Currency::Crypto(_) | Currency::Metal(_) | Currency::StockPlus(_) => Ok(Transaction {
                 amount: dec!(0),
                 balance: count * price,
-                date: Utc::now(),
+                date: Timestamp::now(),
                 comment: String::new(),
             }),
             Currency::Fiat(_) => unreachable!("You can't have a fiat price_as_transaction!"),
@@ -95,7 +95,7 @@ impl<T: Clone + Display> Transactions<T> {
         self.txs.iter().map(|tx| tx.amount).sum()
     }
 
-    pub fn date_most_recent(&self, date: &DateTime<Utc>) -> anyhow::Result<()> {
+    pub fn date_most_recent(&self, date: &Timestamp) -> anyhow::Result<()> {
         for tx in &self.txs {
             if &tx.date > date {
                 return Err(Error::msg("The date is not the most recent!"));
@@ -104,11 +104,11 @@ impl<T: Clone + Display> Transactions<T> {
         Ok(())
     }
 
-    pub fn filter_month(&mut self, filter_date: Option<DateTime<Utc>>) {
+    pub fn filter_month(&mut self, filter_date: Option<Timestamp>) {
         if let Some(date) = filter_date {
             let mut filtered_tx = Vec::new();
             for tx in &self.txs {
-                if tx.date >= date && tx.date < date.checked_add_months(Months::new(1)).unwrap() {
+                if tx.date >= date && tx.date < date.checked_add(1.months()).unwrap() {
                     filtered_tx.push(tx.clone());
                 }
             }
@@ -117,7 +117,7 @@ impl<T: Clone + Display> Transactions<T> {
     }
 
     pub fn last_week(&self) -> Transactions<T> {
-        let last_week = Utc::now() - TimeDelta::weeks(1);
+        let last_week = Timestamp::now().checked_sub(1.weeks()).unwrap();
         let mut txs = Vec::new();
 
         for tx in &self.txs {
@@ -133,7 +133,7 @@ impl<T: Clone + Display> Transactions<T> {
     }
 
     pub fn last_month(&self) -> Transactions<T> {
-        let last_week = Utc::now() - TimeDelta::days(30);
+        let last_week = Timestamp::now().checked_sub(30.days()).unwrap();
         let mut txs = Vec::new();
 
         for tx in &self.txs {
@@ -149,7 +149,7 @@ impl<T: Clone + Display> Transactions<T> {
     }
 
     pub fn last_year(&self) -> Transactions<T> {
-        let last_week = Utc::now() - TimeDelta::days(365);
+        let last_week = Timestamp::now().checked_sub(365.days()).unwrap();
         let mut txs = Vec::new();
 
         for tx in &self.txs {
@@ -172,11 +172,11 @@ impl<T: Clone + Display> Transactions<T> {
         self.txs.iter().map(|tx| tx.balance).min()
     }
 
-    pub fn max_date(&self) -> Option<DateTime<Utc>> {
+    pub fn max_date(&self) -> Option<Timestamp> {
         self.txs.iter().map(|tx| tx.date).max()
     }
 
-    pub fn min_date(&self) -> Option<DateTime<Utc>> {
+    pub fn min_date(&self) -> Option<Timestamp> {
         self.txs.iter().map(|tx| tx.date).min()
     }
 

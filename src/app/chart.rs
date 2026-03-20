@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use jiff::Timestamp;
 use plotters::{
     series::AreaSeries,
     style::{Color, FontTransform, IntoFont, ShapeStyle, TextStyle},
@@ -61,7 +62,7 @@ impl<T: Clone + Display> plotters_iced2::Chart<Message> for Chart<T> {
                         .into_font()
                         .color(&solarized::plot::base0()),
                 )
-                .x_label_formatter(&|y| y.format("%Y-%m-%d %Z").to_string())
+                .x_label_formatter(&|y: &Timestamp| y.strftime("%Y-%m-%d %Z").to_string())
                 .y_labels(10)
                 .y_label_style(
                     ("sans-serif", 15)

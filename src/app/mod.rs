@@ -17,7 +17,6 @@ use account::{transaction::Transaction, transactions::Transactions};
 use accounts::Group;
 use anyhow::Context;
 use chart::Chart;
-use chrono::Utc;
 use crypto::Crypto;
 use iced::{
     Alignment, Element, Length, Pixels, Task, Theme,
@@ -29,6 +28,7 @@ use iced::{
         text_input,
     },
 };
+use jiff::Timestamp;
 use metal::Metal;
 use money::{Currency, Fiat};
 use plotters_iced2::ChartWidget;
@@ -406,7 +406,7 @@ impl App {
                 amount: dec!(0),
                 balance,
                 comment: investor_360_record.description.clone(),
-                date: Utc::now(),
+                date: Timestamp::now(),
             };
 
             let name = format!("Investor 360: {}", &investor_360_record.symbol);

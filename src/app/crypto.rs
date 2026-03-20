@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display, str::FromStr};
 
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
@@ -16,7 +16,7 @@ const URL_KRAKEN_OHLC: &str = "https://api.kraken.com/0/public/OHLC";
 #[derive(Clone, Debug)]
 pub struct Ohlc {
     pub name: String,
-    pub date_time: DateTime<Utc>,
+    pub date_time: Timestamp,
     pub open: Decimal,
     pub high: Decimal,
     pub low: Decimal,
@@ -42,7 +42,7 @@ impl Ohlc {
         result = &result[&name][0];
 
         Ok(Self {
-            date_time: DateTime::from_timestamp(result[0].as_i64().unwrap(), 0).unwrap(),
+            date_time: Timestamp::from_second(result[0].as_i64().unwrap()).unwrap(),
             open: Decimal::from_str(result[1].as_str().unwrap()).unwrap(),
             high: Decimal::from_str(result[2].as_str().unwrap()).unwrap(),
             low: Decimal::from_str(result[3].as_str().unwrap()).unwrap(),
@@ -90,7 +90,7 @@ impl Price for Crypto {
                 ("pair", pair.as_str()),
                 // A day.
                 ("interval", "1440"),
-                ("since", &Utc::now().timestamp().to_string()),
+                ("since", &Timestamp::now().as_second().to_string()),
             ],
         )?;
 

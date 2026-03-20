@@ -15,7 +15,6 @@ include = ["src/**/*", "LICENSE-*", "README.md", "CHANGELOG.md"]
 
 [dependencies]
 anyhow = "1"
-chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 clap_lex = "1"
 clap_mangen = "0.2"
@@ -24,6 +23,7 @@ dirs = "6"
 futures = "0.3"
 iced = { version = "0.14", features = ["canvas", "image", "tokio"] }
 image = { version = "0.25", features = ["png"], default-features = false }
+jiff = { version = "0.2", features = ["serde"] }
 plotters = "0.3"
 plotters-iced2 = "0.14"
 regex = "1"
