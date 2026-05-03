@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- cargo update
+
 ## [0.4.1]
 
-## Changed
+### Changed
 
 - Don't set the window size to INFINITE, so the program runs on macOS.
 
