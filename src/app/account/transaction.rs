@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, serde::ts_seconds};
+use jiff::Timestamp;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -7,8 +7,7 @@ pub struct Transaction {
     pub amount: Decimal,
     pub balance: Decimal,
     pub comment: String,
-    #[serde(with = "ts_seconds")]
-    pub date: DateTime<Utc>,
+    pub date: Timestamp,
 }
 
 #[derive(Clone, Debug)]

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use chrono::NaiveDateTime;
+use jiff::Timestamp;
 use regex::Regex;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -54,11 +54,14 @@ pub fn import_boa(file_path: PathBuf) -> anyhow::Result<Transactions<Fiat>> {
             Regex::replace_all(&white_space, &boa_record.original_description, " ").into_owned();
         let comment = format!("{name}: {description}");
 
+        let mut date = boa_record.date;
+        date.push_str(" -0400");
+
         let record = Transaction {
             amount: boa_record.amount.replace(',', "").parse::<Decimal>()?,
             balance: dec!(0),
             comment,
-            date: NaiveDateTime::parse_from_str(&boa_record.date, "%m/%d/%Y %H:%M:%S")?.and_utc(),
+            date: Timestamp::strptime("%m/%d/%Y %H:%M:%S %z", &date)?,
         };
         records.push(record);
     }

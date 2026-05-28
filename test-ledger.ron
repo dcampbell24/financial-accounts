@@ -1,0 +1,26 @@
+(
+    accounts: [
+        (
+            name: "Test",
+            transactions: (
+                currency: Usd,
+                txs: [
+                    (
+                        amount: "100",
+                        balance: "100",
+                        comment: "",
+                        date: "2026-05-28T21:25:09.582988091Z",
+                    ),
+                ],
+            ),
+            transactions_secondary: None,
+        ),
+    ],
+    groups: [],
+    crypto: [],
+    fiats: [
+        Usd,
+    ],
+    metals: [],
+    stocks_plus: [],
+)

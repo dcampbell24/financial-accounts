@@ -1,7 +1,11 @@
 (
     accounts: [],
-    groups: [],
-    // Supports all the crypto on api.kraken.com .
+    groups: [
+        (
+            name: "Test",
+            members: [],
+        ),
+    ],
     crypto: [
         (
             currency: Usd,
@@ -19,35 +23,10 @@
             symbol: "GNO",
         ),
     ],
-    // Supports all the fiats on www.goldapi.io .
     fiats: [
         Usd,
-        // Aud,
-        // Gbp,
         Eur,
-        // Cad,
-        // Chf,
-        // Jpy,
-        // Krw,
-        // Inr,
-        // Cny,
-        // Zar,
-        // Thb,
-        // Sgd,
-        // Hkd,
-        // Czk,
-        // Pln,
-        // Myr,
-        // Rub,
-        // Aed,
-        // Kwd,
-        // Egp,
-        // Omr,
-        // Sar,
-        // Mxn,
-        // Jod,
     ],
-    // Supports all the metals on www.goldapi.io .
     metals: [
         (
             currency: Usd,
@@ -65,11 +44,8 @@
             symbol: "XAG",
         ),
     ],
-    // Supports everything on finance.yahoo.com .
-    // All equities are in Usd.
     stocks_plus: [
         (
-            // Mutual Fund:
             description: "Invesco Charter A",
             symbol: "CHTRX",
         ),

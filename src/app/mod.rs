@@ -1,6 +1,6 @@
 mod account;
 mod accounts;
-mod chart;
+// mod chart;
 pub mod command_line;
 mod crypto;
 mod import_boa;
@@ -16,11 +16,9 @@ use std::{cmp::Ordering, fs, mem::take, path::PathBuf, str::FromStr, sync::Arc};
 use account::{transaction::Transaction, transactions::Transactions};
 use accounts::Group;
 use anyhow::Context;
-use chart::Chart;
-use chrono::Utc;
 use crypto::Crypto;
 use iced::{
-    Alignment, Element, Length, Pixels, Task, Theme,
+    Alignment, Element, Pixels, Task, Theme,
     widget::{
         self, Button, Checkbox, Column, ProgressBar, Row, Scrollable, button, column,
         combo_box::{ComboBox, State},
@@ -29,9 +27,9 @@ use iced::{
         text_input,
     },
 };
+use jiff::Timestamp;
 use metal::Metal;
 use money::{Currency, Fiat};
-use plotters_iced2::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::Deserialize;
@@ -406,7 +404,7 @@ impl App {
                 amount: dec!(0),
                 balance,
                 comment: investor_360_record.description.clone(),
-                date: Utc::now(),
+                date: Timestamp::now(),
             };
 
             let name = format!("Investor 360: {}", &investor_360_record.symbol);
@@ -654,6 +652,7 @@ impl App {
 
     #[rustfmt::skip]
     fn list_accounts(&self) -> Scrollable<'_, Message> {
+        /* Fixme!
         let mut charts = Column::new();
         for currency in self.accounts.currencies() {
             let chart = Chart {
@@ -663,6 +662,7 @@ impl App {
             let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
             charts = charts.push(chart);
         }
+        */
 
         let rows = self.rows();
 
@@ -696,7 +696,8 @@ impl App {
         all_prices = all_prices.push(widget::text(" ".repeat(EDGE_PADDING)));
 
         let cols = column![
-            charts,
+            // Fixme!
+            // charts,
             rows.spacing(ROW_SPACING),
             column_errors,
             text_cell(""),

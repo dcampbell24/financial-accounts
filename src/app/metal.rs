@@ -4,8 +4,8 @@ use std::{
 };
 
 use anyhow::Context;
-use chrono::{DateTime, Utc, serde::ts_seconds};
 use dirs::config_local_dir;
+use jiff::Timestamp;
 use reqwest::Client;
 use reqwest::Url;
 use rust_decimal::Decimal;
@@ -85,8 +85,7 @@ const _TESTING_RESPONSE: &str = r#"{
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Prices {
-    #[serde(with = "ts_seconds")]
-    pub timestamp: DateTime<Utc>,
+    pub timestamp: Timestamp,
     pub metal: String,
     pub currency: String,
     pub exchange: String,
@@ -95,8 +94,7 @@ pub struct Prices {
     pub open_price: Decimal,
     pub low_price: Decimal,
     pub high_price: Decimal,
-    #[serde(with = "ts_seconds")]
-    pub open_time: DateTime<Utc>,
+    pub open_time: Timestamp,
     pub price: Decimal,
     pub ch: Decimal,
     pub chp: Decimal,

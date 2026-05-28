@@ -1,13 +1,13 @@
 pub mod transaction;
 pub mod transactions;
 
-use std::{error::Error, fmt::Display, path::PathBuf, string::ToString};
+use std::{path::PathBuf, string::ToString};
 
-use chrono::{DateTime, NaiveDate, ParseError, TimeDelta, TimeZone, Utc};
 use iced::{
     Length,
     widget::{Button, Row, Scrollable, TextInput, button, column, row, text, text_input},
 };
+use jiff::{Timestamp, ToSpan};
 use plotters_iced2::ChartWidget;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -17,14 +17,23 @@ use transactions::{PriceAsTransaction, Transactions};
 use crate::app::{self, EDGE_PADDING, PADDING, account::transaction::Transaction};
 
 use super::{
-    Duration, ROW_SPACING, button_cell,
-    chart::Chart,
+    Duration,
+    ROW_SPACING,
+    button_cell,
+    // Fixme!
+    // chart::Chart,
     import_boa::import_boa,
     money::{Currency, Fiat},
     number_cell,
     screen::Screen,
-    set_amount, some_or_empty, text_cell,
+    set_amount,
+    some_or_empty,
+    text_cell,
 };
+
+const HOURS_WEEK: i64 = 24 * 7;
+const HOURS_30_DAYS: i64 = 30 * 24 * 7;
+const HOURS_365_DAYS: i64 = 365 * 24 * 7;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Account {
@@ -40,7 +49,7 @@ pub struct Account {
     #[serde(rename = "transactions_secondary")]
     pub txs_2nd: Option<Transactions<Currency>>,
     #[serde(skip)]
-    pub filter_date: Option<DateTime<Utc>>,
+    pub filter_date: Option<Timestamp>,
     #[serde(skip)]
     pub filter_date_year: Option<i32>,
     #[serde(skip)]
@@ -97,7 +106,7 @@ impl Account {
         self.filter_date = None;
     }
 
-    fn get_quantity(&self, date: DateTime<Utc>) -> Option<Transaction> {
+    fn get_quantity(&self, date: Timestamp) -> Option<Transaction> {
         if let Some(txs) = &self.txs_2nd {
             if txs.txs.is_empty() {
                 return None;
@@ -198,11 +207,13 @@ impl Account {
         let mut txs_struct = self.txs_2nd.as_ref().unwrap().clone();
         txs_struct.filter_month(self.filter_date);
 
+        /*
         let chart = Chart {
             txs: txs_struct.clone(),
             duration: self.duration.clone(),
         };
         let chart = ChartWidget::new(chart).height(Length::Fixed(400.0));
+        */
 
         let mut col_1 = column![text_cell("Balance")].align_x(iced::Alignment::End);
         let mut col_2 = column![text_cell("Δ")].align_x(iced::Alignment::End);
@@ -218,7 +229,7 @@ impl Account {
 
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
-            col_3 = col_3.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
+            col_3 = col_3.push(text_cell(tx.date.strftime("%Y-%m-%d").to_string()));
             col_4 = col_4.push(text_cell(tx.comment.clone()));
             col_5 = col_5.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
@@ -233,7 +244,7 @@ impl Account {
 
         let col = column![
             text_cell(txs_struct.currency.to_string()),
-            chart,
+            // chart,
             change_duration(),
             rows.spacing(ROW_SPACING),
             row![
@@ -296,7 +307,7 @@ impl Account {
             col_1 = col_1.push(number_cell(balance));
             col_2 = col_2.push(number_cell(amount));
 
-            col_5 = col_5.push(text_cell(tx.date.format("%Y-%m-%d").to_string()));
+            col_5 = col_5.push(text_cell(tx.date.strftime("%Y-%m-%d").to_string()));
             col_6 = col_6.push(text_cell(tx.comment.clone()));
             col_7 = col_7.push(button_cell(
                 button("Delete").on_press(app::Message::Delete(i)),
@@ -318,11 +329,13 @@ impl Account {
         let mut txs_1st = self.txs_1st.clone();
         txs_1st.filter_month(self.filter_date);
 
+        /*
         let chart = Chart {
             txs: txs_1st.clone(),
             duration: self.duration.clone(),
         };
         let chart: ChartWidget<_, _, _, _> = ChartWidget::new(chart).height(Length::Fixed(400.0));
+        */
 
         let error = self
             .error
@@ -337,7 +350,7 @@ impl Account {
 
         let col = column![
             text_cell(name),
-            chart,
+            // chart,
             change_duration(),
             self.rows(&txs_1st),
             row![
@@ -356,22 +369,28 @@ impl Account {
         Scrollable::new(col)
     }
 
-    fn parse_date(&self) -> Result<DateTime<Utc>, ParseDateError> {
+    fn parse_date(&self) -> Result<Timestamp, jiff::Error> {
         if self.tx.date.is_empty() {
-            Ok(Utc::now())
+            Ok(Timestamp::now())
         } else {
-            match NaiveDate::parse_from_str(&self.tx.date, "%Y-%m-%d") {
-                Ok(naive_date) => Ok(naive_date.and_hms_opt(0, 0, 0).unwrap().and_utc()),
-                Err(error) => Err(ParseDateError { error }),
-            }
+            Timestamp::strptime(
+                "%Y-%m-%d %H:%M%:%S %z",
+                format!("{} 00:00:00 +0000", &self.tx.date),
+            )
         }
     }
 
-    fn submit_filter_date(&self) -> Option<DateTime<Utc>> {
+    fn submit_filter_date(&self) -> Option<Timestamp> {
         let year = self.filter_date_year?;
         let month = self.filter_date_month?;
 
-        Some(TimeZone::with_ymd_and_hms(&Utc, year, month, 1, 0, 0, 0).unwrap())
+        Some(
+            Timestamp::strptime(
+                "%Y-%m-%d %H:%M:%S %z",
+                format!("{year}-{month}-01 00:00:00 +0000"),
+            )
+            .unwrap(),
+        )
     }
 
     fn submit_balance_1st(&mut self) -> anyhow::Result<Transaction> {
@@ -442,7 +461,7 @@ impl Account {
     }
 
     pub fn sum_last_week(&self) -> (Decimal, Decimal) {
-        let last_week = Utc::now() - TimeDelta::weeks(1);
+        let last_week = Timestamp::now() - HOURS_WEEK.hours();
         let mut previous_amount = dec!(0);
         let mut amount = dec!(0);
 
@@ -457,7 +476,7 @@ impl Account {
     }
 
     pub fn sum_last_month(&self) -> (Decimal, Decimal) {
-        let last_month = Utc::now() - TimeDelta::days(30);
+        let last_month = Timestamp::now() - HOURS_30_DAYS.hours();
         let mut amount = dec!(0);
         let mut previous_amount = dec!(0);
 
@@ -472,7 +491,7 @@ impl Account {
     }
 
     pub fn sum_last_year(&self) -> (Decimal, Decimal) {
-        let last_year = Utc::now() - TimeDelta::days(365);
+        let last_year = Timestamp::now() - HOURS_365_DAYS.hours();
         let mut amount = dec!(0);
         let mut previous_amount = dec!(0);
 
@@ -632,19 +651,6 @@ fn change_duration<'a>() -> Row<'a, app::Message> {
 
     row![col_1, col_2, col_3, col_4].spacing(ROW_SPACING)
 }
-
-#[derive(Clone, Debug)]
-pub struct ParseDateError {
-    error: ParseError,
-}
-
-impl Display for ParseDateError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        writeln!(f, "Parse Date error: {}", self.error)
-    }
-}
-
-impl Error for ParseDateError {}
 
 #[derive(Clone, Debug)]
 pub enum Message {
